@@ -935,6 +935,7 @@ function update(dt: number): void {
     pc.step(dt, racing ? aim : pc.heading, racing && !input.brake, racing && input.brake);
   }
   sound.engine(pc.gear, pc.rev, pc.thrust, clamp(pc.speed / 880, 0, 1));
+  sound.gale(racing && pc.deploying);
 
   for (const { car, driver } of rivals) {
     const c = racing ? driver.think(track, time, cars) : { aim: car.craft.heading, throttle: false, brake: false, deploy: false };
@@ -1833,6 +1834,7 @@ function guestFrame(dt: number): void {
   if (input.takePause()) { if (menus.pauseOpen) { if (performance.now() - pausedAt > 300) play(); } else pause(); }
 
   sound.engine(pc.gear, pc.rev, pc.thrust, clamp(pc.speed / 880, 0, 1));
+  sound.gale(racing && pc.deploying);
   for (const car of cars) { emitTrail(car.craft, car.hue); emitHeat(car.craft); }
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];

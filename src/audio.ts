@@ -72,39 +72,140 @@ export class Sound {
    * A car going past: a rush of air that rises then falls in pitch (the Doppler drop),
    * panned to the side it passes on. closing = how fast it passes (px/s), side -1 left .. +1 right.
    */
+  /**
+   * A rival dragon sweeping past close by: two or three heavy wingbeats panned from one side to
+   * behind, each a little lower and fainter as it pulls away or drops back (a wingbeat Doppler),
+   * over the rush of the air it pushes. `closing` is how fast it passes (px/s), `side` +1 right.
+   */
   passBy(closing: number, side: number): void {
     const ctx = this.live();
     if (!ctx) return;
     const t = ctx.currentTime, k = Math.min(1, closing / 400);
     const pan = ctx.createStereoPanner();
-    pan.pan.setValueAtTime(Math.max(-1, Math.min(1, side * 0.8)), t);
-    pan.pan.linearRampToValueAtTime(Math.max(-1, Math.min(1, side * 0.3)), t + 0.5);
-    // Air: noise through a band-pass that sweeps down as it passes.
+    pan.pan.setValueAtTime(Math.max(-1, Math.min(1, side * 0.85)), t);
+    pan.pan.linearRampToValueAtTime(Math.max(-1, Math.min(1, side * 0.25)), t + 0.9);
+    pan.connect(this.sfx);
+    // The rush of its wake: soft air, sweeping down.
     const src = this.noiseSource();
     const band = ctx.createBiquadFilter();
     band.type = 'bandpass';
-    band.Q.value = 1.4;
-    band.frequency.setValueAtTime(1800 + k * 900, t);
-    band.frequency.exponentialRampToValueAtTime(500, t + 0.55);
+    band.Q.value = 0.9;
+    band.frequency.setValueAtTime(900 + k * 500, t);
+    band.frequency.exponentialRampToValueAtTime(260, t + 0.8);
     const g = ctx.createGain();
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.1 + k * 0.14, t + 0.12);
-    g.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
-    src.connect(band).connect(g).connect(pan).connect(this.sfx);
-    src.start(t); src.stop(t + 0.65);
-    // Its engine: a short buzz whose pitch drops as it goes by.
-    const osc = ctx.createOscillator();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(150 + k * 40, t);
-    osc.frequency.exponentialRampToValueAtTime(90, t + 0.5);
-    const lp = ctx.createBiquadFilter();
-    lp.type = 'lowpass'; lp.frequency.value = 900;
-    const og = ctx.createGain();
-    og.gain.setValueAtTime(0.0001, t);
-    og.gain.exponentialRampToValueAtTime(0.05 + k * 0.05, t + 0.1);
-    og.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
-    osc.connect(lp).connect(og).connect(pan);
-    osc.start(t); osc.stop(t + 0.6);
+    g.gain.exponentialRampToValueAtTime(0.12 + k * 0.12, t + 0.15);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.85);
+    src.connect(band).connect(g).connect(pan);
+    src.start(t); src.stop(t + 0.9);
+    // Its wingbeats: deep whumps of air, each lower than the last.
+    const beats = closing > 220 ? 3 : 2;
+    for (let n = 0; n < beats; n++) {
+      const at = t + 0.04 + n * (0.3 - k * 0.06), fade = 1 - n * 0.28, drop = 1 - n * 0.12;
+      const air = this.noiseSource();
+      const low = ctx.createBiquadFilter();
+      low.type = 'lowpass';
+      low.frequency.setValueAtTime(620 * drop, at);
+      low.frequency.exponentialRampToValueAtTime(150 * drop, at + 0.2);
+      const ag = ctx.createGain();
+      ag.gain.setValueAtTime(0.0001, at);
+      ag.gain.exponentialRampToValueAtTime((0.42 + k * 0.22) * fade, at + 0.04);
+      ag.gain.exponentialRampToValueAtTime(0.001, at + 0.26);
+      air.connect(low).connect(ag).connect(pan);
+      air.start(at); air.stop(at + 0.28);
+      const thud = ctx.createOscillator();
+      thud.type = 'sine';
+      thud.frequency.setValueAtTime(88 * drop, at);
+      thud.frequency.exponentialRampToValueAtTime(52 * drop, at + 0.18);
+      const tg = ctx.createGain();
+      tg.gain.setValueAtTime((0.16 + k * 0.1) * fade, at);
+      tg.gain.exponentialRampToValueAtTime(0.001, at + 0.22);
+      thud.connect(tg).connect(pan);
+      thud.start(at); thud.stop(at + 0.24);
+    }
+  }
+
+  /** Call every step with whether the player is riding the gale: it roars as the gale is called. */
+  gale(on: boolean): void {
+    if (on && !this.galeOn) this.roar();
+    this.galeOn = on;
+  }
+  private galeOn = false;
+
+  /**
+   * The player's dragon roars: a deep, rough growl that swells and opens up (the vowel moving
+   * from a closed "oo" to a wide "ah"), with a gravelly rumble and a rush of breath, about 1.3 s.
+   */
+  roar(): void {
+    const ctx = this.live();
+    if (!ctx) return;
+    const t = ctx.currentTime, len = 1.3;
+    const out = ctx.createGain();
+    out.gain.setValueAtTime(0.0001, t);
+    out.gain.exponentialRampToValueAtTime(0.3, t + 0.12);
+    out.gain.setValueAtTime(0.3, t + 0.55);
+    out.gain.exponentialRampToValueAtTime(0.001, t + len);
+    // A rough edge: soft clipping.
+    const shaper = ctx.createWaveShaper();
+    const curve = new Float32Array(256);
+    for (let i = 0; i < 256; i++) { const x = (i / 255) * 2 - 1; curve[i] = Math.tanh(x * 3); }
+    shaper.curve = curve;
+    // The voice: two detuned saws, pitch rising into the roar and sagging at the end.
+    const voice = ctx.createGain();
+    voice.gain.value = 0.35;
+    for (const det of [0, 7]) {
+      const o = ctx.createOscillator();
+      o.type = 'sawtooth';
+      o.detune.value = det;
+      o.frequency.setValueAtTime(70, t);
+      o.frequency.exponentialRampToValueAtTime(118, t + 0.35);
+      o.frequency.exponentialRampToValueAtTime(64, t + len);
+      o.connect(voice);
+      o.start(t); o.stop(t + len + 0.05);
+    }
+    // The growl: the voice's loudness flutters quickly, like a throat rattling.
+    const rattle = ctx.createGain();
+    rattle.gain.value = 0.6;
+    const lfo = ctx.createOscillator();
+    lfo.frequency.setValueAtTime(22, t);
+    lfo.frequency.linearRampToValueAtTime(30, t + len);
+    const depth = ctx.createGain();
+    depth.gain.value = 0.4;
+    lfo.connect(depth).connect(rattle.gain);
+    lfo.start(t); lfo.stop(t + len + 0.05);
+    voice.connect(rattle).connect(shaper);
+    // The mouth: two vowel formants opening from "oo" to "ah".
+    for (const [f0, f1, q, lvl] of [[300, 750, 5, 1], [700, 1150, 6, 0.6]] as const) {
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.Q.value = q;
+      bp.frequency.setValueAtTime(f0, t);
+      bp.frequency.exponentialRampToValueAtTime(f1, t + 0.4);
+      bp.frequency.exponentialRampToValueAtTime(f0 * 1.2, t + len);
+      const bg = ctx.createGain();
+      bg.gain.value = lvl;
+      shaper.connect(bp).connect(bg).connect(out);
+    }
+    // Chest: the low body of it.
+    const chest = ctx.createBiquadFilter();
+    chest.type = 'lowpass';
+    chest.frequency.value = 220;
+    const cg = ctx.createGain();
+    cg.gain.value = 0.7;
+    shaper.connect(chest).connect(cg).connect(out);
+    // Breath: a rush of air through the teeth.
+    const breath = this.noiseSource();
+    const bb = ctx.createBiquadFilter();
+    bb.type = 'bandpass';
+    bb.Q.value = 0.8;
+    bb.frequency.setValueAtTime(900, t);
+    bb.frequency.exponentialRampToValueAtTime(1600, t + 0.4);
+    bb.frequency.exponentialRampToValueAtTime(700, t + len);
+    const brg = ctx.createGain();
+    brg.gain.value = 0.18;
+    breath.connect(bb).connect(brg).connect(out);
+    breath.start(t); breath.stop(t + len + 0.05);
+    out.connect(this.sfx);
   }
 
   toggleMute(): boolean {
