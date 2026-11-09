@@ -2,7 +2,8 @@
 // bust (in the game's palette: timber, iron, bronze and wool, with each character's own colour)
 // which is cut into flat triangular planes like folded. Every plane takes the colour of the drawing
 // under it and a tone from the angle of its fold, with crisp creases between planes and a matte
-// paper grain. The backdrop is a folded paper sunburst under a faceted gold arch.
+// paper grain. The backdrop is a wall of folded timber planks with iron straps, and a round
+// shield behind the head: boards, a ring painted in the character's colour, an iron rim, rivets.
 
 import { CHARACTERS, Speaker } from './story';
 
@@ -315,59 +316,66 @@ function creases(g: CanvasRenderingContext2D, pts: Pt[], tris: [number, number, 
 
 /** The backdrop folded from paper: a sunburst of alternating teal planes under a faceted gold arch. */
 function paperBackdrop(g: CanvasRenderingContext2D, S: number, team: string): void {
-  const u = S / 200, cx = 100 * u, cy = 92 * u, R = 210 * u, rays = 24;
-  for (let k = 0; k < rays; k++) {
-    const a0 = (k / rays) * Math.PI * 2, a1 = ((k + 1) / rays) * Math.PI * 2, am = (a0 + a1) / 2;
-    // Each ray is a valley fold: two planes meeting along its centre line, one catching the light.
-    const p0: Pt = [cx + Math.cos(a0) * R, cy + Math.sin(a0) * R], p1: Pt = [cx + Math.cos(a1) * R, cy + Math.sin(a1) * R];
-    const pm: Pt = [cx + Math.cos(am) * R * 0.98, cy + Math.sin(am) * R * 0.98];
-    const facing = Math.cos(am - (-2.2));
-    const base = k % 2 ? [16, 70, 78] : [12, 54, 62];
-    for (const [q, lift] of [[p0, 0.1], [p1, -0.1]] as [Pt, number][]) {
-      const t = 0.82 + (facing + lift) * 0.14;
-      g.beginPath(); g.moveTo(cx, cy); g.lineTo(q[0], q[1]); g.lineTo(pm[0], pm[1]); g.closePath();
-      g.fillStyle = `rgb(${base.map((v) => Math.round(v * t)).join(',')})`;
-      g.strokeStyle = g.fillStyle; g.lineWidth = 0.8;
-      g.fill(); g.stroke();
+  const u = S / 200;
+  /** A strip of timber folded down its middle: a lit half and a shaded half, with a dark seam. */
+  const plank = (x0: number, x1: number, y0: number, y1: number, rgb: number[], clip?: () => void) => {
+    const xm = (x0 + x1) / 2;
+    g.save();
+    if (clip) clip();
+    for (const [a, b2, t] of [[x0, xm, 1.06], [xm, x1, 0.84]] as const) {
+      g.fillStyle = `rgb(${rgb.map((v) => Math.round(v * t)).join(',')})`;
+      g.fillRect(a * u, y0 * u, (b2 - a) * u + 0.5, (y1 - y0) * u);
     }
-  }
-  // Darken toward the corners, like paper in shadow.
-  const v = g.createRadialGradient(cx, cy * 0.9, S * 0.15, cx, cy, S * 0.75);
-  v.addColorStop(0, 'rgba(4,16,22,0)'); v.addColorStop(1, 'rgba(4,16,22,0.62)');
-  g.fillStyle = v; g.fillRect(0, 0, S, S);
-  // The arch: a gold paper band folded into facets, an inner neon line in the team colour.
-  const band = (r0: number, r1: number, segs: number, colA: string, colB: string) => {
-    const ax = 100 * u, ay = 86 * u;
-    const pts: [Pt, Pt][] = [];
-    pts.push([[ax - r1 * u, 200 * u], [ax - r0 * u, 200 * u]]);
-    for (let i = 0; i <= segs; i++) {
-      const a = Math.PI + (i / segs) * Math.PI;
-      pts.push([[ax + Math.cos(a) * r1 * u, ay + Math.sin(a) * r1 * u], [ax + Math.cos(a) * r0 * u, ay + Math.sin(a) * r0 * u]]);
-    }
-    pts.push([[ax + r1 * u, 200 * u], [ax + r0 * u, 200 * u]]);
-    for (let i = 0; i < pts.length - 1; i++) {
-      const [o0, i0] = pts[i], [o1, i1] = pts[i + 1];
-      // Outer half and inner half of the band: a ridge fold along its middle.
-      const m0: Pt = [(o0[0] + i0[0]) / 2, (o0[1] + i0[1]) / 2], m1: Pt = [(o1[0] + i1[0]) / 2, (o1[1] + i1[1]) / 2];
-      for (const [q, col] of [[[o0, o1, m1, m0], i % 2 ? colA : colB], [[m0, m1, i1, i0], i % 2 ? colB : colA]] as [Pt[], string][]) {
-        g.beginPath(); q.forEach(([x, y], n) => (n ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath();
-        g.fillStyle = col; g.strokeStyle = col; g.lineWidth = 0.8; g.fill(); g.stroke();
-      }
-    }
+    // A knot or two and the grain lines, faint.
+    g.strokeStyle = 'rgba(0,0,0,0.18)'; g.lineWidth = 0.6 * u;
+    for (let k = 1; k < 3; k++) { g.beginPath(); g.moveTo((x0 + (x1 - x0) * k / 3) * u, y0 * u); g.lineTo((x0 + (x1 - x0) * k / 3 + 1.5) * u, y1 * u); g.stroke(); }
+    g.fillStyle = 'rgba(10,6,4,0.85)'; g.fillRect(x1 * u - 0.8 * u, y0 * u, 1.6 * u, (y1 - y0) * u);
+    g.restore();
   };
-  band(68, 78, 14, '#f3dc96', '#c99e45');
+  const rivet = (x: number, y: number, r = 2.6) => {
+    g.fillStyle = '#5a3a1c'; g.beginPath(); g.arc(x * u, y * u, r * u, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#c98b3e'; g.beginPath(); g.arc((x - 0.5) * u, (y - 0.5) * u, r * 0.72 * u, 0, Math.PI * 2); g.fill();
+    g.fillStyle = 'rgba(255,230,180,0.6)'; g.beginPath(); g.arc((x - 0.9) * u, (y - 0.9) * u, r * 0.28 * u, 0, Math.PI * 2); g.fill();
+  };
+  // The wall: dark timber planks, each its own shade of old wood.
+  const woods = [[58, 40, 28], [66, 46, 32], [52, 36, 25], [62, 44, 30], [55, 39, 27]];
+  for (let k = 0, x = -4; x < 204; k++, x += 26) plank(x, x + 26, 0, 200, woods[k % woods.length]);
+  // Iron straps across the wall, riveted.
+  for (const y of [14, 186]) {
+    g.fillStyle = '#2a2c30'; g.fillRect(0, (y - 5) * u, S, 10 * u);
+    g.fillStyle = '#44484e'; g.fillRect(0, (y - 5) * u, S, 4 * u);
+    for (let x = 13; x < 200; x += 26) rivet(x, y, 2);
+  }
+  // Darken toward the corners, like a hall lit by one fire.
+  const v = g.createRadialGradient(100 * u, 86 * u, S * 0.18, 100 * u, 92 * u, S * 0.78);
+  v.addColorStop(0, 'rgba(8,4,2,0)'); v.addColorStop(1, 'rgba(8,4,2,0.66)');
+  g.fillStyle = v; g.fillRect(0, 0, S, S);
+  // The round shield behind the head: lime-wood boards, a thin painted ring in the character's
+  // colour, an iron rim folded into facets, and bronze rivets all round.
+  const cx = 100, cy = 86, R = 80;
+  const disc = () => { g.beginPath(); g.arc(cx * u, cy * u, (R - 6) * u, 0, Math.PI * 2); g.clip(); };
+  const boards = [[150, 118, 82], [138, 108, 74], [160, 128, 90], [144, 112, 78]];
+  for (let k = 0, x = cx - R; x < cx + R; k++, x += 20) plank(x, x + 20, cy - R, cy + R, boards[k % boards.length], disc);
   g.save();
-  g.strokeStyle = team; g.lineWidth = 2.2 * u; g.shadowColor = team; g.shadowBlur = 8 * u;
-  g.beginPath(); g.moveTo(36 * u, 200 * u); g.lineTo(36 * u, 88 * u); g.arc(100 * u, 88 * u, 64 * u, Math.PI, 0); g.lineTo(164 * u, 200 * u); g.stroke();
+  g.strokeStyle = team; g.globalAlpha = 0.9; g.lineWidth = 5 * u;
+  g.beginPath(); g.arc(cx * u, cy * u, (R - 14) * u, 0, Math.PI * 2); g.stroke();
   g.restore();
-  // The keystone: a folded gold diamond with the team colour at its heart.
-  const kx = 100 * u, ky = 16 * u, kr = 11 * u;
-  const facets: [Pt, Pt, string][] = [
-    [[kx, ky - kr], [kx - kr, ky], '#f6e3a1'], [[kx, ky - kr], [kx + kr, ky], '#d9b25b'],
-    [[kx, ky + kr], [kx - kr, ky], '#c99e45'], [[kx, ky + kr], [kx + kr, ky], '#a8802e'],
-  ];
-  for (const [a, b, col] of facets) { g.beginPath(); g.moveTo(kx, ky); g.lineTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.closePath(); g.fillStyle = col; g.fill(); }
-  g.fillStyle = team; g.beginPath(); g.arc(kx, ky, 3.6 * u, 0, Math.PI * 2); g.fill();
+  const facets = 24;
+  for (let i = 0; i < facets; i++) {
+    const a0 = (i / facets) * Math.PI * 2, a1 = ((i + 1) / facets) * Math.PI * 2;
+    const light = Math.cos((a0 + a1) / 2 + 2.2);
+    g.beginPath();
+    g.arc(cx * u, cy * u, R * u, a0, a1);
+    g.arc(cx * u, cy * u, (R - 7) * u, a1, a0, true);
+    g.closePath();
+    const t = 0.75 + light * 0.25;
+    g.fillStyle = `rgb(${[70, 74, 80].map((c) => Math.round(c * t)).join(',')})`;
+    g.fill();
+  }
+  for (let i = 0; i < 16; i++) {
+    const a = (i / 16) * Math.PI * 2;
+    rivet(cx + Math.cos(a) * (R - 3.5), cy + Math.sin(a) * (R - 3.5), 2.2);
+  }
 }
 
 /** Matte paper: a fine grain over everything. */

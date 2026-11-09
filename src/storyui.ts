@@ -77,27 +77,32 @@ const CSS = `
 .st-up .hr-btn { grid-row: 1 / span 3; grid-column: 2; min-width: 120px; padding: 10px 14px; font-size: 14px; }
 .st-up .hr-btn:disabled { filter: grayscale(1) brightness(0.6); cursor: default; }
 
-/* Dialogue: a bar across the bottom of the screen with the speaker's portrait, in deep-sea glass
-   with a gold double frame, deco corners and an arched portrait frame lit in the speaker's colour. */
+/* Dialogue: a bar across the bottom of the screen with the speaker's portrait: a board of dark
+   timber planks in an iron frame with bronze rivets at the corners, the portrait a round shield
+   with an iron rim and a thin painted ring in the speaker's colour. */
 .st-talk { position: fixed; inset: 0; z-index: 20; display: flex; align-items: flex-end; justify-content: center;
-  background: linear-gradient(transparent 40%, rgba(4,16,20,0.88)); font-family: system-ui, sans-serif; color: #efe6d2; cursor: pointer; }
+  background: linear-gradient(transparent 40%, rgba(12,8,5,0.88)); font-family: 'Alegreya Sans', system-ui, sans-serif; color: #efe6d2; cursor: pointer; }
 .st-talk.hidden { display: none; }
 .st-box { position: relative; display: flex; gap: 22px; align-items: flex-start; width: min(960px, calc(100% - 32px)); margin-bottom: 28px;
-  padding: 22px 28px 24px; border-radius: 6px;
-  background: linear-gradient(160deg, rgba(16,58,66,0.96), rgba(6,22,28,0.97) 60%);
-  border: 2px solid #b98040; outline: 1px solid rgba(217,178,91,0.45); outline-offset: 4px;
-  box-shadow: 0 0 46px -14px var(--c), inset 0 0 0 1px rgba(246,227,161,0.15); }
-.st-box::before, .st-box::after { content: ''; position: absolute; width: 22px; height: 22px; border: 2px solid #e3b878; pointer-events: none; }
-.st-box::before { top: 7px; left: 7px; border-right: 0; border-bottom: 0; }
-.st-box::after { bottom: 7px; right: 7px; border-left: 0; border-top: 0; }
-.st-face { flex: none; width: 128px; height: 128px; border-radius: 64px 64px 4px 4px; overflow: hidden; display: flex; align-items: center; justify-content: center;
-  background: #0c3540; border: 3px solid #b98040; box-shadow: 0 0 0 2px var(--c), 0 0 22px -2px var(--c);
-  font: 900 44px system-ui, sans-serif; color: #fff; }
+  padding: 22px 28px 24px; border-radius: 4px;
+  background:
+    repeating-linear-gradient(90deg, rgba(0,0,0,0) 0 118px, rgba(0,0,0,0.45) 118px 120px),
+    repeating-linear-gradient(0deg, rgba(255,240,210,0.025) 0 3px, rgba(0,0,0,0.03) 3px 7px),
+    linear-gradient(180deg, #3e2b1d, #2a1d14 70%);
+  border: 4px solid #3a3d42; outline: 1px solid #6b6f76; outline-offset: -8px;
+  box-shadow: 0 10px 30px -8px rgba(0,0,0,0.8), inset 0 0 30px rgba(0,0,0,0.5); }
+.st-box::before, .st-box::after { content: ''; position: absolute; width: 10px; height: 10px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle at 35% 35%, #f0c48a, #c98b3e 45%, #5a3a1c 80%); }
+.st-box::before { top: 6px; left: 6px; box-shadow: 0 0 0 1px rgba(0,0,0,0.5); }
+.st-box::after { bottom: 6px; right: 6px; box-shadow: 0 0 0 1px rgba(0,0,0,0.5); }
+.st-face { flex: none; width: 128px; height: 128px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center;
+  background: #4a3424; border: 5px solid #44484e; box-shadow: 0 0 0 2px #23252a, inset 0 0 0 3px var(--c), 0 6px 16px -4px rgba(0,0,0,0.8);
+  font: 400 44px 'Uncial Antiqua', Georgia, serif; color: #efe6d2; }
 .st-face img { width: 100%; height: 100%; object-fit: cover; }
-.st-speaker { font: 700 20px 'Cinzel', 'Trajan Pro', Georgia, serif; letter-spacing: 0.16em; color: var(--c); text-shadow: 0 0 12px var(--c); }
-.st-role { color: #b98040; font-size: 11px; letter-spacing: 0.22em; font-weight: 700; margin: 3px 0 10px; text-transform: uppercase; }
-.st-text { font-size: 19px; line-height: 1.5; min-height: 56px; color: #f3ecdc; }
-.st-next { position: absolute; right: 22px; bottom: 10px; color: #b98040; font-size: 11px; letter-spacing: 0.22em; font-weight: 700; }
+.st-speaker { font: 400 22px 'Uncial Antiqua', Georgia, serif; letter-spacing: 0.08em; color: var(--c); text-shadow: 0 2px 0 rgba(0,0,0,0.6); }
+.st-role { color: #c98b3e; font-size: 12px; letter-spacing: 0.2em; font-weight: 700; margin: 3px 0 10px; text-transform: uppercase; }
+.st-text { font-size: 20px; line-height: 1.5; min-height: 56px; color: #f3ecdc; }
+.st-next { position: absolute; right: 22px; bottom: 10px; color: #c98b3e; font-size: 11px; letter-spacing: 0.22em; font-weight: 700; }
 .st-skip { position: fixed; top: 18px; right: 22px; z-index: 21; }
 
 /* The way forward: one big card for the next mission. Nothing past it is shown. */
@@ -127,6 +132,36 @@ const CSS = `
 @keyframes st-fade { from { opacity: 0; } }
 @keyframes st-rise { from { opacity: 0; transform: translateY(14px); } }
 .st-note { margin: 14px 0 0; padding: 10px 14px; border-radius: 10px; background: rgba(77,255,154,0.1); color: #4dff9a; font-weight: 800; font-size: 13px; letter-spacing: 0.06em; }
+
+/* Skyfold: the saga screens in timber, iron, bronze and bone, Uncial titles, frost for what's chosen. */
+.st-wrap, .st-card, .st-chaptercard { font-family: 'Alegreya Sans', system-ui, sans-serif; }
+.st-title, .st-chaptercard b, .st-continue b {
+  font: 400 clamp(32px, 6vw, 54px) 'Uncial Antiqua', Georgia, serif; font-style: normal; letter-spacing: 0.03em;
+  background: none; -webkit-background-clip: border-box; background-clip: border-box; color: #e6c08a; text-shadow: 0 2px 0 rgba(0,0,0,0.6); }
+.st-chaptercard b { font-size: clamp(40px, 8vw, 86px); }
+.st-continue b { font-size: clamp(24px, 3.6vw, 34px); color: #efe6d2; }
+.st-who, .st-chapter h3, .st-mission small, .st-link, .st-card .st-sub, .st-row span:first-child, .st-up small, .st-journal-head { color: #a89880; }
+.st-chapter h3 b { color: #efe6d2; }
+.st-points { font: 700 26px 'Alegreya Sans', system-ui, sans-serif; color: #e6c08a; }
+.st-points small { color: #a89880; }
+.st-star { color: #e6c08a; } .st-done { color: #8fd0e0; } .st-lock { color: #6a5a48; }
+.st-row, .st-up { border-top-color: #3a2c20; }
+.st-mission { background: linear-gradient(180deg, #33251a, #241a12); border: 1px solid #4a3828; }
+.st-mission:hover:not(:disabled) { border-color: #8fd0e0; box-shadow: 0 0 18px -8px #8fd0e0; }
+.st-pips i.on { background: #8fd0e0; box-shadow: none; }
+.st-input { background: #1c140e; color: #efe6d2; border-color: #4a3828; font-family: 'Uncial Antiqua', Georgia, serif; font-weight: 400; }
+.st-input:focus { border-color: #8fd0e0; }
+.st-continue { border-radius: 6px; border: 3px solid #44484e; outline: 1px solid #6b6f76; outline-offset: -7px;
+  background: repeating-linear-gradient(90deg, rgba(0,0,0,0) 0 118px, rgba(0,0,0,0.4) 118px 120px), linear-gradient(180deg, #3e2b1d, #2a1d14);
+  box-shadow: 0 10px 28px -10px rgba(0,0,0,0.8); }
+.st-continue:hover { box-shadow: 0 10px 28px -10px rgba(0,0,0,0.8), 0 0 0 2px #8fd0e0; }
+.st-continue small { color: #c98b3e; }
+.st-continue .st-go { font: 700 18px 'Alegreya Sans', system-ui, sans-serif; color: #1c140e; background: linear-gradient(180deg, #e6c08a, #c98b3e); border-radius: 4px; }
+.st-continue.champ { border-color: #c98b3e; background: linear-gradient(180deg, #4a3420, #2a1d14); box-shadow: 0 0 0 1px #c98b3e; }
+.st-chaptercard { background: radial-gradient(ellipse at center, rgba(40,26,16,0.94), rgba(10,7,5,0.99)); color: #efe6d2; }
+.st-chaptercard small { color: #c98b3e; }
+.st-chaptercard p { color: #d8cbb4; }
+.st-note { background: rgba(143,208,224,0.1); color: #8fd0e0; }
 `;
 
 export class StoryUI {
