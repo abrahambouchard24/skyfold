@@ -1834,13 +1834,23 @@ function foldedShape(src: THREE.BufferGeometry): THREE.BufferGeometry {
       break;
     }
     case 'CylinderGeometry':
-      g = new THREE.CylinderGeometry(pr.radiusTop, pr.radiusBottom, pr.height, Math.min(7, Math.max(5, pr.radialSegments)), 1);
+      // Prisms (3 or 4 sides) stay prisms: a gabled roof is a 3-sided cylinder laid on its side.
+      g = new THREE.CylinderGeometry(pr.radiusTop, pr.radiusBottom, pr.height, pr.radialSegments <= 4 ? pr.radialSegments : Math.min(7, Math.max(5, pr.radialSegments)), 1);
       break;
     case 'ConeGeometry':
-      g = new THREE.ConeGeometry(pr.radius, pr.height, Math.min(7, Math.max(4, pr.radialSegments)), 1);
+      g = new THREE.ConeGeometry(pr.radius, pr.height, Math.min(7, Math.max(pr.radialSegments <= 4 ? pr.radialSegments : 4, pr.radialSegments)), 1);
       break;
     default:
       g = src.clone();
+  }
+  // A shape that was rotated or reshaped after it was built (its geometry no longer matches its
+  // parameters) is kept as it is, so a roof laid along a hall doesn't stand back up.
+  if (g.type !== src.type || src.type === 'SphereGeometry' || src.type === 'CylinderGeometry' || src.type === 'ConeGeometry') {
+    src.computeBoundingBox(); g.computeBoundingBox();
+    const a = src.boundingBox!.getSize(new THREE.Vector3()), b = g.boundingBox!.getSize(new THREE.Vector3());
+    if (Math.abs(a.x - b.x) > 1 || Math.abs(a.y - b.y) > 1 || Math.abs(a.z - b.z) > 1) {
+      if (src.type !== 'SphereGeometry') { g.dispose(); g = src.clone(); }
+    }
   }
   // Keep any offset the original shape was built with.
   src.computeBoundingBox(); g.computeBoundingBox();

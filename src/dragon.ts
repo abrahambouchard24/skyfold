@@ -115,6 +115,19 @@ export const FLY_HEIGHT = 22;
 interface Seg { g: THREE.Group; len: number }
 interface Wing { shoulder: THREE.Group; hand: THREE.Group; side: number }
 
+/**
+ * One wingbeat as a position (+1 wings up, -1 down) and its direction of travel (-1 moving down at
+ * full speed, +1 moving up), for a phase in radians: the downstroke takes 58% of the beat and the
+ * recovery the rest, eased at both ends. A beat starts at the top, so each new cycle is a downstroke.
+ */
+function stroke(phase: number): { pos: number; vel: number } {
+  const DOWN = 0.58;
+  const u = ((phase / (Math.PI * 2)) % 1 + 1) % 1;
+  if (u < DOWN) { const t = u / DOWN; return { pos: Math.cos(Math.PI * t), vel: -Math.sin(Math.PI * t) }; }
+  const t = (u - DOWN) / (1 - DOWN);
+  return { pos: -Math.cos(Math.PI * t), vel: Math.sin(Math.PI * t) };
+}
+
 /** Called on each downstroke of the player's dragon (strength 0..1), for the wingbeat sound. */
 export const dragonEvents: { playerBeat: ((strength: number) => void) | null } = { playerBeat: null };
 
@@ -332,35 +345,41 @@ export class DragonRig {
     const speed = c.speed;
 
     // Glide through turns and under braking; the rest of the time the wings keep beating.
-    const want = clamp((Math.abs(this.turnSmooth) - 0.25) / 0.9 + (c.braking ? 0.8 : 0), 0, 1);
-    if (dt > 0) this.glide += (want - this.glide) * (1 - Math.exp(-(want > this.glide ? 8 : 3) * dt));
+    // Only real turns (and braking) lock the wings out, and the change is gradual both ways, so
+    // small steering corrections don't make the wings stutter between beating and gliding.
+    const want = clamp((Math.abs(this.turnSmooth) - 0.5) / 0.8 + (c.braking ? 0.8 : 0), 0, 1);
+    if (dt > 0) this.glide += (want - this.glide) * (1 - Math.exp(-(want > this.glide ? 4 : 2) * dt));
     const effort = racing ? 0.6 + c.thrust * 0.4 : 0.45;
     if (dt > 0) this.tuck += ((c.deploying ? 1 : 0) - this.tuck) * (1 - Math.exp(-7 * dt));
     const flap = (1 - this.glide) * effort * (1 - 0.75 * this.tuck);
     // A little slower than before, and the dragons' speed is unaffected (this only paces the art).
-    const freq = (1.5 + c.thrust * 1.3 + speed / 1100) * sp.beat * 0.78;
+    // Big, slow wingbeats (about 1.2-1.8 a second at racing speed), not a flutter.
+    const freq = (0.95 + c.thrust * 0.5 + speed / 2600) * sp.beat;
     const before = Math.floor(this.phase / (Math.PI * 2));
     this.phase += dt * Math.PI * 2 * freq * (0.4 + flap * 0.6);
     if (this.isPlayer && racing && flap > 0.2 && Math.floor(this.phase / (Math.PI * 2)) !== before) dragonEvents.playerBeat?.(flap);
-    const s = Math.sin(this.phase), s2 = Math.sin(this.phase - 0.9);
+    const st = stroke(this.phase), lag = stroke(this.phase - 0.75);
+    const s = st.pos;
 
-    // Wings: a big beat (shoulders), the hands following a beat behind and folding on the upstroke.
-    // Gliding: locked out with a little dihedral, hands swept back, gently flexing in the air.
+    // Wings: a strong, unhurried downstroke and a quicker recovery (shoulders), the hands trailing
+    // the arms and folding back on the way up, as a big flier's do. Gliding: locked out with a
+    // little dihedral, hands swept back, gently flexing in the air.
     for (const w of this.wings) {
-      const beat = s * 0.7 * flap, flex = Math.sin(time * 2.1) * 0.03 * this.glide;
+      const beat = st.pos * 0.62 * flap, flex = Math.sin(time * 2.1) * 0.03 * this.glide;
       w.shoulder.rotation.x = -w.side * (0.12 + beat + flex - 0.08 * this.tuck);
       w.shoulder.rotation.y = -w.side * 0.55 * this.tuck;   // the gale: wings swept back into a dive
-      w.hand.rotation.x = -w.side * (s2 * 0.5 * flap + 0.05 * this.glide);
-      w.hand.rotation.y = -w.side * (0.25 * this.glide + Math.max(0, -s) * 0.25 * flap + 0.35 * this.tuck);   // sweep back
+      w.hand.rotation.x = -w.side * (lag.pos * 0.42 * flap + 0.05 * this.glide);
+      w.hand.rotation.y = -w.side * (0.25 * this.glide + Math.max(0, st.vel) * 0.3 * flap + 0.35 * this.tuck);   // sweep back on the upstroke
     }
 
     // Body: banks into the turn, lifts on the downstroke, noses up a touch when braking.
     const bank = clamp(this.turnSmooth * 0.45, -0.75, 0.75);
     this.roll += (bank - this.roll) * k;
     this.body.rotation.x = -this.roll;
-    this.body.rotation.z = (c.braking ? 0.18 : 0) - flap * 0.04 * s;
+    this.body.rotation.z = (c.braking ? 0.18 : 0) - flap * 0.03 * s;
     const hover = racing ? 0 : Math.sin(time * 2.2) * 1.5;
-    this.body.position.y = FLY_HEIGHT + c.alt + hover + Math.max(0, -s) * 1.8 * flap;
+    // Each downstroke lifts the body and it settles a little on the recovery: smooth, no kinks.
+    this.body.position.y = FLY_HEIGHT + c.alt + hover - st.vel * 1.4 * flap;
 
     // Neck looks into the turn; tail trails out of it, rippling.
     this.neck.forEach((n, i) => {
