@@ -22,6 +22,7 @@ import { dragonEvents, speciesFor } from './dragon';
 import { DailyDef, DailyUI, dailyChallenge, dailyStatus, recordDaily } from './daily';
 import { GhostLap, GhostRecorder, ghostPose, loadGhost, saveGhost, trackSig } from './ghost';
 import { BoardRow, CarSnap, Controls, Guest, Host, LobbyState, NetEntrant, Snapshot } from './net';
+import { FlockMode } from './flockmode';
 import { RaceState, TRACKS, Track, WALL_DIST, collideWalls, inCoolingLane, lateral, placeOnGrid } from './track';
 
 const STEP = 1 / 60;
@@ -521,6 +522,14 @@ const menus = new Menus(LIVERIES, trackChoices, {
     else if (!online) { startRace(); play(); }
   },
   action(act) {
+    if (act === 'flock') {
+      // Flock Raid: its own view and screens take over until it's left.
+      endTutorial();
+      menus.hide();
+      if (chase) chase.visible = false;
+      flock.open();
+      return;
+    }
     if (act === 'install') installApp();
     if (act === 'daily') openDaily();
     if (act === 'lobby') onlineToLobby();
@@ -571,6 +580,16 @@ const menus = new Menus(LIVERIES, trackChoices, {
     menus.selectTrack(trackIndex);
     menus.showStart();
   },
+});
+
+/** Flock Raid (the sheep-catching mode): it runs its own frame while a raid is open. */
+const flock = new FlockMode({
+  input, sound, hud: canvas,
+  makeCar: (i) => ({ craft: new Craft(), race: new RaceState(), ...livery(i), skin: null }),
+  playerLivery: () => playerLivery,
+  steer: steerAim,
+  pixelRatio: () => renderScale,
+  onExit: () => { if (chase) chase.visible = view === 'chase'; menus.showFront(); sound.menu(); },
 });
 refreshRecords();
 
@@ -768,7 +787,7 @@ function fitCanvas(): void {
 // Dev-only handle for poking at game state from the console.
 if (import.meta.env.DEV) {
   (window as unknown as { game: object }).game = {
-    get player() { return player; }, get rivals() { return rivals; }, get track() { return track; }, get chase() { return chase; },
+    get player() { return player; }, get rivals() { return rivals; }, get track() { return track; }, get chase() { return chase; }, get flock() { return flock; },
     get mode() { return mode; },
     /** Let an AI drive the player's car (for testing whole races). */
     autodrive() {
@@ -1959,6 +1978,12 @@ function frame(now: number): void {
     const muted = sound.toggleMute();
     applySettings({ ...settings, muted });
     showToast(muted ? 'SOUND OFF' : 'SOUND ON', '#ffffff');
+  }
+  if (flock.active) {
+    flock.frame(now);
+    acc = 0;
+    requestAnimationFrame(frame);
+    return;
   }
   // Esc on the Settings screen closes it (rather than resuming the race underneath).
   if (settingsUI.isOpen && input.takePause()) settingsUI.close();

@@ -592,6 +592,7 @@ export class Menus {
         <div class="hr-btns row hr-front-actions">
           <button class="hr-btn secondary" data-act="tutorial">HOW TO PLAY</button>
           <button class="hr-btn secondary" data-act="trial">TIME TRIAL</button>
+          <button class="hr-btn secondary" data-act="flock">FLOCK RAID</button>
           <button class="hr-btn secondary daily" data-act="daily">DAILY CHALLENGE</button>
           <button class="hr-btn secondary" data-act="garage">GARAGE</button>
           <button class="hr-btn secondary" data-act="settings">SETTINGS</button>
