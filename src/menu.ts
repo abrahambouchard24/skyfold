@@ -7,7 +7,7 @@ export interface SkinChoice { id: string; name: string; card: string }
 
 /** The row of unlocked skins under the car cards (shared by the setup screen and the lobby). */
 export function skinCards(skins: SkinChoice[], equipped: string): string {
-  if (!skins.length) return '<p class="hr-skin-hint">Earn skins with achievements (see the Garage); they show up here to pick.</p>';
+  if (!skins.length) return '<p class="hr-skin-hint">Earn skins with deeds (see the Hoard); they show up here to pick.</p>';
   return skins.map((s) => `<button class="hr-car hr-skincard ${equipped === s.id ? 'selected' : ''}" style="--c:#c98b3e" data-skin="${s.id}">
     ${cardFace({ name: `◆ ${s.name}`, card: s.card, url: '', color: '#c98b3e' })}</button>`).join('');
 }
@@ -594,7 +594,7 @@ export class Menus {
           <button class="hr-btn secondary" data-act="trial">TIME TRIAL</button>
           <button class="hr-btn secondary" data-act="flock">FLOCK RAID</button>
           <button class="hr-btn secondary daily" data-act="daily">DAILY CHALLENGE</button>
-          <button class="hr-btn secondary" data-act="garage">GARAGE</button>
+          <button class="hr-btn secondary" data-act="garage">HOARD</button>
           <button class="hr-btn secondary" data-act="settings">SETTINGS</button>
           <button class="hr-btn secondary hidden" data-act="install">INSTALL</button>
         </div>
