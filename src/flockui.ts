@@ -30,6 +30,10 @@ const CSS = `
   font-weight: 700; letter-spacing: 0.18em; font-size: 12px; color: #c98b3e; }
 .fl-claws span { width: 30px; height: 22px; border-radius: 50%; border: 2px dashed rgba(239,230,210,0.35); }
 .fl-claws span.full { border: 2px solid #1c140e; background: radial-gradient(circle at 40% 35%, #fffaf0, #e4dccb 60%, #b8ad98); }
+.fl-claws span.ram { width: 66px; border: 2px solid #1c140e; background: radial-gradient(circle at 40% 35%, #8a7a66, #4a3e32 60%, #2a221a); box-shadow: 0 0 0 2px #c98b3e; }
+.fl-ram { position: absolute; top: 132px; left: 50%; width: 40px; height: 40px; margin-left: 30px; transition: opacity 200ms; }
+.fl-ram svg { width: 100%; height: 100%; filter: drop-shadow(0 0 6px rgba(230,192,138,0.8)); }
+.fl-ram.hidden { display: none; }
 .fl-arrow { position: absolute; top: 132px; left: 50%; width: 44px; height: 44px; margin-left: -22px; transition: opacity 200ms; }
 .fl-arrow svg { width: 100%; height: 100%; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.6)); }
 .fl-tally { position: absolute; top: 14px; right: 14px; min-width: 200px; padding: 8px 12px; background: rgba(28,20,14,0.85); border: 3px solid #3a3d42; }
@@ -54,6 +58,7 @@ export class FlockUI {
   private timer: HTMLDivElement;
   private claws: HTMLDivElement;
   private arrow: HTMLDivElement;
+  private ramArrow: HTMLDivElement;
   private tally: HTMLDivElement;
   private call: HTMLDivElement;
   private note: HTMLDivElement;
@@ -67,9 +72,10 @@ export class FlockUI {
     this.layer.className = 'fl-layer hidden';
     this.layer.innerHTML = `
       <div class="fl-hud hidden">
-        <div class="fl-timer"><small>TIME LEFT</small><span>2:00</span></div>
+        <div class="fl-timer"><small>ROUND 1 / 3</small><span>0:50</span></div>
         <div class="fl-claws"></div>
         <div class="fl-arrow"><svg viewBox="0 0 44 44"><path d="M22 3 L37 34 L22 26 L7 34 Z" fill="#e6c08a" stroke="#1c140e" stroke-width="2.5" stroke-linejoin="round"/></svg></div>
+        <div class="fl-ram hidden"><svg viewBox="0 0 40 40"><path d="M20 3 L33 31 L20 24 L7 31 Z" fill="#d9a441" stroke="#1c140e" stroke-width="2.5" stroke-linejoin="round"/><circle cx="20" cy="17" r="4" fill="#5a3a1c"/></svg></div>
         <div class="fl-tally"></div>
         <div class="fl-call"></div>
         <div class="fl-note"></div>
@@ -79,7 +85,7 @@ export class FlockUI {
     document.body.append(this.layer);
     const q = (s: string) => this.layer.querySelector(s) as HTMLDivElement;
     this.hud = q('.fl-hud'); this.card = q('.fl-card'); this.timer = q('.fl-timer');
-    this.claws = q('.fl-claws'); this.arrow = q('.fl-arrow'); this.tally = q('.fl-tally');
+    this.claws = q('.fl-claws'); this.arrow = q('.fl-arrow'); this.ramArrow = q('.fl-ram'); this.tally = q('.fl-tally');
     this.call = q('.fl-call'); this.note = q('.fl-note');
   }
 
@@ -100,13 +106,14 @@ export class FlockUI {
     this.hud.classList.add('hidden');
     this.showCard(`
       <h2>Flock Raid</h2>
-      <div class="sub">Two minutes · six dragons · one village green</div>
+      <div class="sub">Three rounds · six dragons · one village green</div>
       <ul>
         <li>Sheep graze on the green. <b>Snatch</b> one by flying low and slow over it: brake as you reach it. Your claws hold two.</li>
         <li>Fly them to <b>your pen</b>, the one under your own banner. The arrow at the top points the way.</li>
+        <li>Sheep stand on the <b>longhouse roofs</b> too: ride up over the roof slowly to lift them.</li>
         <li>Sheep scatter from a dragon flying close: sweep behind a flock to <b>herd</b> it through any pen's gate, and it counts for that pen.</li>
-        <li>A hard bump shakes a carried sheep loose. Carrying slows you down.</li>
-        <li>Most sheep penned when the horn sounds wins.</li>
+        <li><b>Thieves:</b> a hard bump shakes a carried sheep loose, and holding close behind a carrier plucks one of its sheep. Carrying slows you down.</li>
+        <li>Three rounds, each ended by a horn. In the last, the <b>bellwether</b> comes out with its flock: pen the belled ram and its whole flock follows it in.</li>
       </ul>
       <div class="fl-actions">
         <button class="hr-btn" data-fly data-default>FLY</button>
@@ -131,14 +138,22 @@ export class FlockUI {
     { again: onAgain, menu: onMenu });
   }
 
-  /** Update the HUD: time left (s), the tally, the sheep in your claws, the pen arrow's angle. */
-  update(left: number, rows: TallyRow[], carrying: number, penAngle: number, call: string | null): void {
+  /**
+   * Update the HUD: the round and its time left (s), the tally, what's in your claws ('sheep' /
+   * 'ram' each), the pen arrow's angle, the bellwether arrow's angle (null when it isn't out).
+   */
+  update(round: number, rounds: number, left: number, rows: TallyRow[], claws: ('sheep' | 'ram')[], penAngle: number, ramAngle: number | null, call: string | null): void {
+    const carrying = claws.length;
     this.layer.classList.remove('hidden');
     this.hud.classList.remove('hidden');
     const s = Math.ceil(left);
     this.timer.querySelector('span')!.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-    this.timer.classList.toggle('low', left < 15);
-    this.claws.innerHTML = `CLAWS <span class="${carrying > 0 ? 'full' : ''}"></span><span class="${carrying > 1 ? 'full' : ''}"></span>`;
+    this.timer.querySelector('small')!.textContent = `ROUND ${round} / ${rounds}`;
+    this.timer.classList.toggle('low', left < 10);
+    this.claws.innerHTML = claws[0] === 'ram' ? 'CLAWS <span class="ram"></span>'
+      : `CLAWS <span class="${carrying > 0 ? 'full' : ''}"></span><span class="${carrying > 1 ? 'full' : ''}"></span>`;
+    this.ramArrow.classList.toggle('hidden', ramAngle === null);
+    if (ramAngle !== null) this.ramArrow.style.transform = `rotate(${ramAngle}rad)`;
     this.arrow.style.transform = `rotate(${penAngle}rad)`;
     this.arrow.style.opacity = carrying > 0 ? '1' : '0.45';
     this.tally.innerHTML = [...rows].sort((a, b) => b.score - a.score)

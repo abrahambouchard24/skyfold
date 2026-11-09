@@ -5,7 +5,7 @@
 import { Craft, clamp } from './craft';
 import type { Sound } from './audio';
 import { dragonEvents } from './dragon';
-import { COUNTDOWN, FlockGame } from './flock';
+import { COUNTDOWN, FlockGame, LULL, ROUNDS } from './flock';
 import { FlockUI, TallyRow } from './flockui';
 import { FlockView } from './flockview';
 import type { Input } from './input';
@@ -66,7 +66,13 @@ export class FlockMode {
     for (const c of this.cars) c.race.lapStart = -1;
     const s = this.deps.sound;
     this.game.events = {
-      snatch: (d) => { if (d === 0) { s.snatch(); this.ui.flash('SNATCHED!'); } },
+      snatch: (d, roof) => { if (d === 0) { s.snatch(); this.ui.flash(roof ? 'OFF THE ROOF!' : 'SNATCHED!'); } },
+      steal: (t, v) => {
+        if (t === 0) { s.snatch(); this.ui.flash(`STOLEN FROM ${this.game!.dragons[v].name}!`); }
+        else if (v === 0) { s.thud(160); this.ui.flash(`${this.game!.dragons[t].name} STOLE ONE!`); }
+      },
+      roundOver: (round, final) => { if (!final) { s.roundHorn(false); this.ui.flash(`ROUND ${round} DONE`); } },
+      bellwether: () => { s.bleat(0, 0.7); this.ui.flash('THE BELLWETHER IS OUT!'); },
       deliver: (d, n) => { if (d === 0) { s.chime(n > 1); this.ui.flash(`+${n} PENNED`); } },
       herded: (d) => { if (d === 0) { s.chime(false); this.ui.flash('+1 HERDED IN'); } },
       knock: (d) => { if (d === 0) { s.thud(220); this.ui.flash('SHAKEN LOOSE!'); } },
@@ -122,8 +128,14 @@ export class FlockMode {
     const toPen = Math.atan2(pen.y - pc.pos.y, pen.x - pc.pos.x);
     const camH = this.view?.heading ?? pc.heading;
     const toGo = COUNTDOWN - g.time;
-    const call = toGo > 0 ? String(Math.ceil(toGo)) : toGo > -0.8 ? 'FLY!' : null;
-    if (!this.finished) this.ui.update(g.left, rows, g.dragons[0].carrying.length, toPen - camH, call);
+    const call = toGo > 0 ? String(Math.ceil(toGo))
+      : toGo > -0.8 ? 'FLY!'
+      : g.lull > 0 ? (g.lull > LULL - 1.6 ? 'HORN!' : `ROUND ${g.round + 1}${g.round + 1 === ROUNDS ? ': THE BELLWETHER' : ''}`)
+      : null;
+    const claws = g.dragons[0].carrying.filter((id) => id >= 0).map((id) => (g.byId(id)?.bell ? 'ram' as const : 'sheep' as const));
+    const ram = g.ram;
+    const ramAngle = ram && !g.dragons[0].carrying.includes(ram.id) ? Math.atan2(ram.y - pc.pos.y, ram.x - pc.pos.x) - camH : null;
+    if (!this.finished) this.ui.update(g.round, ROUNDS, g.lull > 0 ? 0 : g.roundLeft, rows, claws, toPen - camH, ramAngle, call);
     this.view?.render(g, this.cars, player, g.time, this.deps.pixelRatio());
   }
 

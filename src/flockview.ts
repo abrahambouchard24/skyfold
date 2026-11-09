@@ -26,14 +26,19 @@ class SheepRig {
   private legs: THREE.Mesh[] = [];
   private head = new THREE.Group();
   private phase = Math.random() * 6;
-  constructor(mats: { wool: THREE.Material; face: THREE.Material }) {
-    this.root.scale.setScalar(SHEEP_SCALE);
-    const body = new THREE.Mesh(new THREE.IcosahedronGeometry(13, 0), mats.wool);
+  private bell: THREE.Group | null = null;
+  /** Height of its back above its feet (world px). */
+  readonly top: number;
+  constructor(mats: { wool: THREE.Material; face: THREE.Material; dark: THREE.Material; horn: THREE.Material; bronze: THREE.Material; glow: THREE.Material }, ram = false) {
+    const scale = ram ? 0.95 : SHEEP_SCALE;
+    this.top = 30 * scale;
+    this.root.scale.setScalar(scale);
+    const body = new THREE.Mesh(new THREE.IcosahedronGeometry(13, 0), ram ? mats.dark : mats.wool);
     body.scale.set(1.35, 1, 1);
     body.position.y = 17;
     body.castShadow = true;
     this.root.add(body);
-    const tuft = new THREE.Mesh(new THREE.IcosahedronGeometry(7, 0), mats.wool);
+    const tuft = new THREE.Mesh(new THREE.IcosahedronGeometry(7, 0), ram ? mats.dark : mats.wool);
     tuft.position.set(-8, 25, 0);
     this.root.add(tuft);
     const face = new THREE.Mesh(new THREE.ConeGeometry(5.5, 13, 5), mats.face);
@@ -44,6 +49,25 @@ class SheepRig {
       const ear = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 6), mats.face);
       ear.position.set(1, 3, z);
       this.head.add(ear);
+    }
+    if (ram) {
+      // The bellwether: curled horns, a bronze bell at its throat, a soft glow round its feet.
+      for (const z of [-6, 6]) {
+        const horn = new THREE.Mesh(new THREE.TorusGeometry(4.5, 1.6, 5, 9, Math.PI * 1.6), mats.horn);
+        horn.position.set(-1, 4, z);
+        horn.rotation.y = z > 0 ? 0 : Math.PI;
+        this.head.add(horn);
+      }
+      this.bell = new THREE.Group();
+      const b = new THREE.Mesh(new THREE.ConeGeometry(3.4, 6, 6, 1, true), mats.bronze);
+      b.position.y = -3;
+      this.bell.add(b);
+      this.bell.position.set(14, 12, 0);
+      this.root.add(this.bell);
+      const ring = new THREE.Mesh(new THREE.RingGeometry(22, 30, 32).rotateX(-Math.PI / 2), mats.glow);
+      ring.position.y = 0.6;
+      ring.renderOrder = 2;
+      this.root.add(ring);
     }
     this.head.position.set(17, 20, 0);
     this.root.add(this.head);
@@ -67,12 +91,13 @@ class SheepRig {
     // Grazing: head down now and then; running: head up and a bounce.
     const grazing = s.state === 'graze' && speed < 12 ? Math.max(0, Math.sin(t * 0.7 + s.id)) : 0;
     this.head.rotation.z = -grazing * 0.7;
+    if (this.bell) this.bell.rotation.x = Math.sin(this.phase * 2) * Math.min(0.6, 0.15 + speed / 200);
     if (s.state === 'graze' || s.state === 'penned') this.root.position.y += Math.abs(Math.sin(this.phase * 1.5)) * Math.min(4, speed / 40);
     if (s.state === 'carried') {
       // Held under the dragon's belly in its hind claws (two side by side), legs kicking.
       const side = slot * 6;
       const gx = grip ? grip.x : s.x, gz = grip ? grip.z : s.y, gy = grip ? grip.y : FLY_HEIGHT - 3;
-      this.root.position.set(gx - Math.sin(s.heading) * side, Math.max(0, gy - SHEEP_TOP + 1), gz + Math.cos(s.heading) * side);
+      this.root.position.set(gx - Math.sin(s.heading) * side, Math.max(0, gy - this.top + 1), gz + Math.cos(s.heading) * side);
       this.root.rotation.z = Math.sin(t * 5 + s.id) * 0.18;
     }
   }
@@ -88,7 +113,10 @@ export class FlockView {
   private world = new THREE.Group();
   private rigs = new Map<Car, DragonRig>();
   private sheep = new Map<number, SheepRig>();
-  private sheepMats = { wool: paper(WOOL), face: paper(FACE) };
+  private sheepMats = {
+    wool: paper(WOOL), face: paper(FACE), dark: paper(0x4e4034), horn: paper(0xd8ccb0), bronze: paper(0xc98b3e, 0x3a2208),
+    glow: new THREE.MeshBasicMaterial({ color: 0xe6c08a, transparent: true, opacity: 0.45, depthWrite: false, blending: THREE.AdditiveBlending }),
+  };
   private camHeading = 0;
   private lastNow = 0;
   private builtFor: FlockGame | null = null;
@@ -194,6 +222,30 @@ export class FlockView {
       cloth.rotation.y = -p.angle + Math.PI / 2;
       cloth.position.add(new THREE.Vector3(-Math.sin(p.angle) * 30, 0, Math.cos(p.angle) * 30));
     });
+    // Longhouses on the green: plank walls up to the eaves and a turf roof whose ridge matches the
+    // height the dragons ride over (FlockGame.groundAt), a doorway glowing at each gable.
+    for (const h of g.houses) {
+      const hall = new THREE.Group();
+      const walls = new THREE.Mesh(new THREE.BoxGeometry(h.length, h.eave, h.width - 8), paper(0x5a4030));
+      walls.position.y = h.eave / 2; hall.add(walls);
+      const roofH = h.ridge - h.eave;
+      const shape = new THREE.Shape([new THREE.Vector2(-h.width / 2, 0), new THREE.Vector2(h.width / 2, 0), new THREE.Vector2(0, roofH)]);
+      const roofGeo = new THREE.ExtrudeGeometry(shape, { depth: h.length + 8, bevelEnabled: false });
+      roofGeo.translate(0, 0, -(h.length + 8) / 2);
+      roofGeo.rotateY(Math.PI / 2);
+      const roof = new THREE.Mesh(roofGeo, paper(TURF));
+      roof.position.y = h.eave; hall.add(roof);
+      const ridge = new THREE.Mesh(new THREE.BoxGeometry(h.length + 10, 4, 6), paper(TIMBER_DARK));
+      ridge.position.y = h.ridge + 1; hall.add(ridge);
+      for (const end of [-1, 1]) {
+        const door = new THREE.Mesh(new THREE.BoxGeometry(2, h.eave * 0.75, 22), new THREE.MeshBasicMaterial({ color: 0xffb45a }));
+        door.position.set(end * (h.length / 2 + 1), h.eave * 0.38, 0); hall.add(door);
+      }
+      hall.position.set(h.x, 0, h.y);
+      hall.rotation.y = -h.angle;
+      hall.traverse((o) => { (o as THREE.Mesh).castShadow = true; (o as THREE.Mesh).receiveShadow = true; });
+      this.world.add(hall);
+    }
     // Beyond the fence: longhouses, birch clumps and hills.
     const turf = paper(TURF), wall = paper(0x5a4030), birch = paper(0xeeeae0), leaf = paper(0x7f9a52);
     for (let k = 0; k < 14; k++) {
@@ -258,7 +310,7 @@ export class FlockView {
     const alive = new Set<number>();
     for (const s of g.sheep) {
       let rig = this.sheep.get(s.id);
-      if (!rig) { rig = new SheepRig(this.sheepMats); this.sheep.set(s.id, rig); this.scene.add(rig.root); }
+      if (!rig) { rig = new SheepRig(this.sheepMats, !!s.bell); this.sheep.set(s.id, rig); this.scene.add(rig.root); }
       if (s.state === 'carried') {
         const list = g.dragons[s.owner].carrying, k = list.indexOf(s.id);
         rig.update(s, time, dt, grips.get(s.owner), list.length > 1 ? (k === 0 ? -1 : 1) : 0);
