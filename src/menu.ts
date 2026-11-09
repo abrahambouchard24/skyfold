@@ -789,13 +789,9 @@ export class Menus {
             <div class="scene sc-season">${SCENE_SEASON}${sparks}</div>
             <div class="label"><b>SAGA</b><small>A saga across the realms. Glory for every finish, a name in the sagas for the best.</small></div>
           </button>
-          <button class="hr-window" data-act="flock" style="--c:#7aa25a">
-            <div class="scene sc-flock">${SCENE_FLOCK}<img src="${cars[2]?.card ?? cars[2]?.url ?? ''}" alt=""></div>
-            <div class="label"><b>FLOCK RAID</b><small>Snatch sheep in your claws and pen the most before the horn.</small></div>
-          </button>
           <button class="hr-window" data-act="onesheep" style="--c:#e6c08a">
             <div class="scene sc-onesheep">${SCENE_ONESHEEP}<img class="carrier" src="${cars[0]?.card ?? cars[0]?.url ?? ''}" alt=""><img class="chaser" src="${cars[4]?.card ?? cars[4]?.url ?? ''}" alt=""></div>
-            <div class="label"><b>ONE SHEEP</b><small>One sheep, one race. Carry it to score, and steal it from whoever has it.</small></div>
+            <div class="label"><b>ONE SHEEP</b><small>One sheep, one race. Carry it to score; tail or bump the carrier to shake it loose.</small></div>
           </button>
           <button class="hr-window" data-act="trial" style="--c:#8fd0e0">
             <div class="scene sc-trial">${SCENE_TRIAL}<img class="ghost" src="${cars[0]?.card ?? cars[0]?.url ?? ''}" alt=""><img class="me" src="${cars[0]?.card ?? cars[0]?.url ?? ''}" alt=""></div>

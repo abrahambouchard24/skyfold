@@ -24,7 +24,6 @@ import { dragonEvents, speciesFor } from './dragon';
 import { DailyDef, DailyUI, dailyChallenge, dailyStatus, recordDaily } from './daily';
 import { GhostLap, GhostRecorder, ghostPose, loadGhost, saveGhost, trackSig } from './ghost';
 import { BoardRow, CarSnap, Controls, Guest, Host, LobbyState, NetEntrant, Snapshot } from './net';
-import { FlockMode } from './flockmode';
 import { OneSheepMode } from './onesheepmode';
 import { RaceState, TRACKS, Track, WALL_DIST, collideWalls, inCoolingLane, lateral, placeOnGrid } from './track';
 
@@ -538,14 +537,6 @@ const menus = new Menus(LIVERIES, trackChoices, {
       oneSheep.open();
       return;
     }
-    if (act === 'flock') {
-      // Flock Raid: its own view and screens take over until it's left.
-      endTutorial();
-      menus.hide();
-      if (chase) chase.visible = false;
-      flock.open();
-      return;
-    }
     if (act === 'install') installApp();
     if (act === 'daily') openDaily();
     if (act === 'lobby') onlineToLobby();
@@ -615,15 +606,6 @@ function modeCar(i: number): Car {
 const oneSheep = new OneSheepMode({
   input, sound, chase, hud: canvas,
   tracks: tracks.filter((t) => !t.sprint),
-  makeCar: modeCar,
-  playerLivery: () => playerLivery,
-  steer: steerAim,
-  pixelRatio: () => renderScale,
-  onExit: () => { if (chase) chase.visible = view === 'chase'; menus.showFront(); sound.menu(); },
-});
-/** Flock Raid (the sheep-catching mode): it runs its own frame while a raid is open. */
-const flock = new FlockMode({
-  input, sound, hud: canvas,
   makeCar: modeCar,
   playerLivery: () => playerLivery,
   steer: steerAim,
@@ -826,7 +808,7 @@ function fitCanvas(): void {
 // Dev-only handle for poking at game state from the console.
 if (import.meta.env.DEV) {
   (window as unknown as { game: object }).game = {
-    get player() { return player; }, get rivals() { return rivals; }, get track() { return track; }, get chase() { return chase; }, get flock() { return flock; }, get onesheep() { return oneSheep; },
+    get player() { return player; }, get rivals() { return rivals; }, get track() { return track; }, get chase() { return chase; }, get onesheep() { return oneSheep; },
     get mode() { return mode; },
     /** Let an AI drive the player's car (for testing whole races). */
     autodrive() {
@@ -2021,12 +2003,6 @@ function frame(now: number): void {
   }
   if (oneSheep.active) {
     oneSheep.frame(now);
-    acc = 0;
-    requestAnimationFrame(frame);
-    return;
-  }
-  if (flock.active) {
-    flock.frame(now);
     acc = 0;
     requestAnimationFrame(frame);
     return;
