@@ -35,6 +35,8 @@ const WAKE_LENGTH = 340;         // px behind a car that its wake reaches
 const WAKE_HALF_WIDTH = 28;      // px either side of the wake's center line, right behind the car
 const WAKE_SPREAD = 0.1;         // the wake widens by this many px per px behind the car
 const WAKE_MIN_SPEED = 300;      // px/s: slower cars leave no usable wake
+const WAKE_ALT = 60;              // px of height difference beyond which a wake doesn't reach
+const CONTACT_ALT = 30;           // px of height difference beyond which dragons pass over each other
 const WAKE_ALIGN = 0.85;         // both cars must be moving within ~30° of the same direction
 // Heat: hitting walls and other cars heats the craft; a hot craft loses top speed until it cools.
 const HEAT_PER_IMPACT = 1 / 350;  // heat per px/s of into-the-wall speed (a 10° hit at 200 km/h: about 0.44)
@@ -72,6 +74,21 @@ const GRAVITY = 380;              // px/s² pulling the craft back down: low, so
 const AIR_GRIP = 0.12;            // share of grip left in the air (it keeps its sideways momentum)
 const AIR_TURN = 0.5;             // share of steering left in the air
 const ERS_AIR = 0.32;             // energy per second of airtime at speed (airtime charges the boost)
+// Flight height (Skyfold): holding climb pitches the dragon up; let go and it swoops back down.
+// Height is stored speed: climbing pays for it in speed, diving gives it back (and can push a dragon
+// past its top speed while it's coming down). At the floor (alt 0) nothing changes.
+export const ALT_MAX = 260;       // px above the floor a dragon can climb to
+const CLIMB_RATE = 200;           // px/s of climb while holding climb
+const CLIMB_EASE = 3;             // how quickly it pitches up (1/s)
+const CLIMB_MIN_SPEED = 260;      // px/s: slower than this and it can't climb any more
+const CLIMB_EFF = 0.85;           // share of the speed spent on height that's stored...
+const DIVE_EFF = 0.95;            // ...and share of it given back on the way down
+const DIVE_RATE = 160;            // px/s of descent as a swoop begins...
+const DIVE_STEEPEN = 220;         // ...steepening this much per second of falling...
+const DIVE_MAX = 420;             // ...up to this
+const DIVE_EASE = 2.5;            // how quickly it noses over (1/s)
+const DIVE_TOP = 0.12;            // extra top speed allowed at the steepest dive
+const ALT_G = 380;                // px/s² that converts height into speed (as gravity would)
 const LANDING_LOSS = 1 / 12000;   // speed lost per px/s of landing impact (capped at 8%)
 export const HARVEST_PER_LAP = 1;  // most energy a craft can harvest in one lap (one full battery)
 const ERS_DRAIN = 0.25;           // energy per second while deploying (4 s from full)
@@ -106,6 +123,7 @@ export interface CraftState {
   slipstream: number; catchUp: number; heat: number; overheated: boolean; launch: number;
   stall: number; energy: number; deploying: boolean; harvested: number; drsOpen: boolean; cooling: boolean;
   alt: number; vAlt: number; onGround: boolean; ground: number; pad?: number;
+  climb?: boolean; flying?: boolean; fallTime?: number;
 }
 
 export class Craft {
@@ -156,6 +174,14 @@ export class Craft {
   alt = 0;
   vAlt = 0;
   onGround = true;
+  /** Holding climb this step (set from the controls before step()). */
+  climb = false;
+  /** In free flight above the floor (from a climb until it touches down again). Ramp jumps aren't. */
+  flying = false;
+  /** 0..1 how hard it's diving (turning height into speed), for effects and the HUD. */
+  dive = 0;
+  /** Seconds since it last climbed while flying (the swoop steepens with it). */
+  private fallTime = 0;
   /** Road height under the craft (ramps), set by collideWalls each step. */
   ground = 0;
   /** Seconds left of a boost pad's push (set by the track while on a pad). */
@@ -171,6 +197,7 @@ export class Craft {
       slipstream: this.slipstream, catchUp: this.catchUp, heat: this.heat, overheated: this.overheated, launch: this.launch,
       stall: this.stall, energy: this.energy, deploying: this.deploying, harvested: this.harvested, drsOpen: this.drsOpen, cooling: this.cooling,
       alt: this.alt, vAlt: this.vAlt, onGround: this.onGround, ground: this.ground, pad: this.pad,
+      climb: this.climb, flying: this.flying, fallTime: this.fallTime,
     };
   }
 
@@ -181,6 +208,7 @@ export class Craft {
     this.stall = s.stall; this.energy = s.energy; this.deploying = s.deploying; this.harvested = s.harvested; this.drsOpen = s.drsOpen; this.cooling = s.cooling;
     this.pad = s.pad ?? 0;
     this.alt = s.alt ?? 0; this.vAlt = s.vAlt ?? 0; this.onGround = s.onGround ?? true; this.ground = s.ground ?? 0;
+    this.climb = s.climb ?? false; this.flying = s.flying ?? false; this.fallTime = s.fallTime ?? 0;
   }
 
   /** In the air off a jump. */
@@ -228,8 +256,9 @@ export class Craft {
     const speedFrac = clamp(speed / GEARS[GEARS.length - 1].top, 0, 1);
     let turnRate = lerp(TURN_RATE, TURN_RATE_FAST, speedFrac) * (1 + this.mods.turn);
     if (brake) turnRate *= BRAKE_TURN_BONUS;
-    if (!this.onGround) turnRate *= AIR_TURN;
-    const limit = CARVE_G * (1 + this.mods.grip) * (brake ? BRAKE_CARVE : 1) * (this.onGround ? 1 : AIR_CARVE);
+    const handles = this.onGround || this.flying;   // a dragon in free flight handles as it does low down
+    if (!handles) turnRate *= AIR_TURN;
+    const limit = CARVE_G * (1 + this.mods.grip) * (brake ? BRAKE_CARVE : 1) * (handles ? 1 : AIR_CARVE);
     if (speed > 1) turnRate = Math.min(turnRate, limit / speed);
     const diff = wrapAngle(aimAngle - this.heading);
     const maxTurn = turnRate * dt;
@@ -272,7 +301,7 @@ export class Craft {
     }
     void gear; void SHIFT_PULL;
     // Above top speed (e.g. after a downhill bump) it slowly settles back.
-    const vmax = GEARS[GEARS.length - 1].top * tow;
+    const vmax = GEARS[GEARS.length - 1].top * tow * (1 + DIVE_TOP * this.dive);
     if (fwd > vmax) fwd -= (fwd - vmax) * 0.8 * dt;
 
     // Air drag only while coasting; under throttle the pull curve already sets the pace.
@@ -289,7 +318,7 @@ export class Craft {
     // Any sideways motion left over (the small lag, or a knock from a wall or another dragon)
     // fades quickly into the flight path, without a slide.
     const sideBefore = side;
-    side *= Math.exp(-SIDE_GRIP * (this.onGround ? 1 : AIR_GRIP * 4) * dt);
+    side *= Math.exp(-SIDE_GRIP * (handles ? 1 : AIR_GRIP * 4) * dt);
     if (fwd > 0) fwd = Math.sqrt(fwd * fwd + (sideBefore * sideBefore - side * side) * 0.6);
 
     this.vel.x = fx * fwd - fy * side;
@@ -298,7 +327,7 @@ export class Craft {
     this.drifting = false;
     // The gale charges from carving: a hard bank at speed, faster the harder and faster.
     const fast = clamp((speed - 300) / 400, 0, 1);
-    this.carving = this.onGround ? clamp((load - CARVE_FROM) / (CARVE_FULL - CARVE_FROM), 0, 1) * fast : 0;
+    this.carving = handles ? clamp((load - CARVE_FROM) / (CARVE_FULL - CARVE_FROM), 0, 1) * fast : 0;
     if (this.carving > 0) {
       const gain = Math.min(ERS_CARVE * (1 + this.mods.harvest) * this.carving * dt, HARVEST_PER_LAP - this.harvested, 1 - this.energy);
       if (gain > 0) { this.energy += gain; this.harvested += gain; }
@@ -309,7 +338,7 @@ export class Craft {
       if (gain > 0) { this.energy += gain; this.harvested += gain; }
     }
     // Airtime charges it too.
-    if (!this.onGround && speed > 300) {
+    if (!this.onGround && !this.flying && speed > 300) {
       const gain = Math.min(ERS_AIR * (1 + this.mods.harvest) * clamp(speed / 600, 0, 1.3) * dt, HARVEST_PER_LAP - this.harvested, 1 - this.energy);
       if (gain > 0) { this.energy += gain; this.harvested += gain; }
     }
@@ -333,6 +362,12 @@ export class Craft {
   private fly(dt: number): void {
     this.landed = 0;
     const g = this.ground;
+    // Free flight: climb while the control is held, swoop back down when it's let go.
+    if (this.onGround && this.climb && this.speed > CLIMB_MIN_SPEED) {
+      this.onGround = false; this.flying = true; this.fallTime = 0;
+    }
+    if (this.flying) { this.freeFlight(dt, g); return; }
+    this.dive = 0;
     if (this.onGround) {
       if (g >= this.alt - 1) {
         this.vAlt = Math.max(0, (g - this.alt) / dt);
@@ -351,6 +386,39 @@ export class Craft {
         this.vel.x *= keep; this.vel.y *= keep;
         this.alt = g; this.vAlt = 0; this.onGround = true;
       }
+    }
+  }
+
+  /**
+   * Free flight above the floor. Holding climb eases the dragon up toward CLIMB_RATE (while it has the
+   * speed for it); letting go noses it over into a swoop that steepens as it falls. Height and speed
+   * trade through energy (v² + 2·g·h), lossy on the way up, nearly free on the way down.
+   */
+  private freeFlight(dt: number, floor: number): void {
+    const v0 = this.speed;
+    const canClimb = this.climb && v0 > CLIMB_MIN_SPEED && this.alt < floor + ALT_MAX;
+    if (canClimb) {
+      this.fallTime = 0;
+      this.vAlt += (CLIMB_RATE - this.vAlt) * (1 - Math.exp(-CLIMB_EASE * dt));
+    } else {
+      this.fallTime += dt;
+      const target = -Math.min(DIVE_MAX, DIVE_RATE + this.fallTime * DIVE_STEEPEN);
+      this.vAlt += (target - this.vAlt) * (1 - Math.exp(-DIVE_EASE * dt));
+    }
+    if (this.alt >= floor + ALT_MAX && this.vAlt > 0) this.vAlt = 0;
+    const dh = this.vAlt * dt;
+    this.alt += dh;
+    // Pay for height in speed, or take it back.
+    if (v0 > 1) {
+      const v2 = Math.max(CLIMB_MIN_SPEED * CLIMB_MIN_SPEED * 0.8, v0 * v0 - 2 * ALT_G * dh * (dh > 0 ? 1 / CLIMB_EFF : DIVE_EFF));
+      const k = Math.sqrt(v2) / v0;
+      this.vel.x *= k; this.vel.y *= k;
+    }
+    this.dive = this.vAlt < 0 ? clamp(-this.vAlt / DIVE_MAX, 0, 1) : 0;
+    // Back at the floor (or a ramp rose to meet it): a smooth touchdown, then it handles as before.
+    if (this.alt <= floor) {
+      this.landed = Math.max(1, -this.vAlt * 0.25);
+      this.alt = floor; this.vAlt = 0; this.onGround = true; this.flying = false; this.dive = 0;
     }
   }
 
@@ -378,6 +446,7 @@ export class Craft {
     if (mySpeed > WAKE_MIN_SPEED * 0.5) {
       for (const o of others) {
         if (o === this) continue;
+        if (Math.abs(o.alt - this.alt) > WAKE_ALT) continue;   // a wake only helps at about its height
         const os = o.speed;
         if (os < WAKE_MIN_SPEED) continue;
         const dx = o.vel.x / os, dy = o.vel.y / os;
@@ -442,6 +511,7 @@ export class Craft {
 
 /** Bump two craft apart (circles). Returns the closing speed of the hit, 0 if none. */
 export function collideCrafts(a: Craft, b: Craft, radius = 22): number {
+  if (Math.abs(a.alt - b.alt) > CONTACT_ALT) return 0;   // one flying over the other
   const dx = b.pos.x - a.pos.x, dy = b.pos.y - a.pos.y;
   const d = Math.hypot(dx, dy), min = radius * 2;
   if (d >= min || d === 0) return 0;
@@ -460,7 +530,8 @@ export function collideCrafts(a: Craft, b: Craft, radius = 22): number {
  * collideCrafts as seen by car a alone: a gets exactly the push and impulse it would get, and b
  * (an estimate of where another car is) is left untouched. Used to predict bumps online.
  */
-export function bumpOff(a: Craft, b: { pos: Vec; vel: Vec }, radius = 22): number {
+export function bumpOff(a: Craft, b: { pos: Vec; vel: Vec; alt?: number }, radius = 22): number {
+  if (Math.abs(a.alt - (b.alt ?? 0)) > CONTACT_ALT) return 0;
   const dx = b.pos.x - a.pos.x, dy = b.pos.y - a.pos.y;
   const d = Math.hypot(dx, dy), min = radius * 2;
   if (d >= min || d === 0) return 0;
