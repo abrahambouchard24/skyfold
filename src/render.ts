@@ -1145,7 +1145,7 @@ function drawHud(ctx: CanvasRenderingContext2D, w: number, h: number, c: Craft, 
   if (carve > 0.08) {
     ctx.fillStyle = `rgba(196, 236, 245, ${0.55 + 0.45 * carve})`;
     ctx.fillText('CARVING', bx, y + 136);
-  } else ctx.fillText(c.deploying ? 'RIDING THE GALE' : 'GALE (W)', bx, y + 136);
+  } else ctx.fillText(c.deploying ? 'ON THE GALE' : 'GALE (W)', bx, y + 136);
   ctx.fillStyle = '#3a2e24';
   ctx.fillRect(bx + 80, y + 128, bw - 80, 6);
   if (carve > 0.08) {

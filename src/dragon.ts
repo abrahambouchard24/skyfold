@@ -5,7 +5,8 @@
 // the wings beat while the dragon is pulling (faster as it works harder), then lock out and glide,
 // banked, through turns and when it eases off; the neck looks into the turn, the tail trails it,
 // and the whole body rises a little on each downstroke. Calling the gale (the boost) tucks the
-// wings back into a streamlined dive inside a sheath of rushing wind.
+// wings back into a streamlined dive: neck reaching forward, tail straight, the rider crouched low,
+// and pale contrails streaming off the wingtips. A small Viking rider sits behind the neck.
 //
 // Model space (world px): nose along +x, y up, z to the dragon's right. A DragonRig is a drop-in
 // replacement for the old craft rig: root, update(car, time, dt).
@@ -169,10 +170,14 @@ export class DragonRig {
   private neck: Seg[] = [];
   private tail: Seg[] = [];
   private wings: Wing[] = [];
-  /** The gale: a sheath of pale rushing wind around the body while the boost is on. */
-  private gale: THREE.Mesh;
-  private galeMat: THREE.MeshBasicMaterial;
+  /** The gale's contrails: a ribbon off each wingtip (in the rig's own space, rebuilt each frame). */
+  private trails: { tip: THREE.Vector3; hand: THREE.Group; pts: THREE.Vector3[]; geo: THREE.BufferGeometry; mesh: THREE.Mesh }[] = [];
   private tuck = 0;
+  /** The rider: a seated Viking whose upper body leans and crouches, with a cloak streaming back. */
+  private riderTorso!: THREE.Group;
+  private cloak!: THREE.Group;
+  /** Where the hind claws grip: carried things (sheep) hang from here. */
+  readonly clawAnchor = new THREE.Object3D();
   private shadow: THREE.Mesh;
   private sp: Species;
   private phase = Math.random() * 6;
@@ -289,6 +294,7 @@ export class DragonRig {
     // Wings: shoulder (arm panel) and hand (outer panel) on each side, hinged so they can beat
     // and fold. The fold line between the panels reads as a crease in the paper.
     const S = sp.span, C = sp.chord, arm = S * 0.42, hand = S - arm;
+    const wingTips: { hand: THREE.Group; tip: THREE.Vector3 }[] = [];
     for (const side of [1, -1]) {
       const shoulder = new THREE.Group();
       shoulder.position.set(L * 0.18, G * 0.55, side * G * 0.55);
@@ -335,23 +341,33 @@ export class DragonRig {
       shoulder.add(handG);
       this.body.add(shoulder);
       this.wings.push({ shoulder, hand: handG, side });
+      wingTips.push({ hand: handG, tip: new THREE.Vector3(sp.wing === 'bat' ? 4 : hand * 0.12, 0, side * hand) });
     }
 
-    // The gale: a long faceted sheath of pale wind from just ahead of the chest, trailing well past
-    // the tail, folded from a few long planes so it reads as streaks of air.
-    const gp = new Paper();
-    const g0 = L * 0.7, g1 = -L * 0.6 - sp.tail * 1.1, r0 = G * 1.2, r1 = G * 2.4;
-    for (let k = 0; k < 8; k++) {
-      const a0 = (k / 8) * Math.PI * 2, a1 = ((k + 1) / 8) * Math.PI * 2;
-      const col = k % 2 ? new THREE.Color('#c4ecf5') : new THREE.Color('#e6f4f8');
-      gp.tri([g0, Math.sin(a0) * r0, Math.cos(a0) * r0], [g1, Math.sin(a0) * r1, Math.cos(a0) * r1], [g1, Math.sin(a1) * r1, Math.cos(a1) * r1], col, 1);
-    }
-    this.galeMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
-    this.gale = new THREE.Mesh(gp.mesh(true).geometry, this.galeMat);
-    this.gale.visible = false;
-    this.body.add(this.gale);
+    printing = null;   // the rider, contrails and shadow are never patterned
 
-    printing = null;   // the gale sheath and shadow are never patterned
+    // The gale's contrails: one ribbon per wingtip, its points kept in the rig's own space.
+    const trailMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+    for (const wt of wingTips) {
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(TRAIL_N * 2 * 3), 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(TRAIL_N * 2 * 3), 3));
+      const idx: number[] = [];
+      for (let i = 0; i < TRAIL_N - 1; i++) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2);
+      geo.setIndex(idx);
+      const mesh = new THREE.Mesh(geo, trailMat);
+      mesh.frustumCulled = false;
+      mesh.visible = false;
+      this.root.add(mesh);
+      this.trails.push({ ...wt, pts: [], geo, mesh });
+    }
+
+    // The rider, astride the shoulders just behind the neck.
+    this.buildRider(car, L, G);
+
+    // The hind claws' grip, under the hips.
+    this.clawAnchor.position.set(-L * 0.3 - 5, -G * 1.3, 0);   // between the hind feet, where the claws close
+    this.body.add(this.clawAnchor);
 
     // A soft shadow on the road below.
     this.shadow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: shadowTex(), transparent: true, depthWrite: false, opacity: 0.55 }));
@@ -359,6 +375,90 @@ export class DragonRig {
     this.shadow.position.y = 0.6;
     this.root.add(this.shadow);
     this.body.position.y = FLY_HEIGHT;
+  }
+
+  /**
+   * A small Viking in faceted planes: a saddle on a blanket in the dragon's colour, legs astride,
+   * a fur-trimmed tunic, a bearded head under a plain iron helm with a nose guard, arms forward on
+   * the reins, a round shield slung at the side and a cloak in the dragon's colour.
+   */
+  private buildRider(car: Car, L: number, G: number): void {
+    const h = [...car.name].reduce((a, ch) => a * 33 + ch.charCodeAt(0), 5) >>> 0;
+    const pick = <T,>(arr: T[], salt: number): T => arr[(h >>> salt) % arr.length];
+    const team = new THREE.Color(car.skin?.body ?? car.color);
+    const tunic = new THREE.Color(pick(['#5a4632', '#4a5040', '#5c3a2e', '#3e4a52'], 1));
+    const trousers = new THREE.Color('#2e2822');
+    const fur = new THREE.Color(pick(['#8a7a66', '#6e6052', '#a49480'], 4));
+    const skinC = new THREE.Color(pick(['#e0b896', '#c99a74', '#f0caa8'], 7));
+    const beard = new THREE.Color(pick(['#c26a2e', '#d9b26a', '#5a3a22', '#9a948a', '#e8d8a0'], 10));
+    const iron = new THREE.Color('#6a6662'), leather = new THREE.Color('#4a3020');
+
+    const rider = new THREE.Group();
+    rider.position.set(L * 0.27, G * 0.88, 0);
+    const sc = clamp(G / 9, 0.85, 1.15);
+    rider.scale.setScalar(sc);
+    this.body.add(rider);
+
+    const seat = new Paper();
+    // Blanket over the back, in the dragon's colour, and the saddle on it.
+    seat.quad([3.5, 0.2, -3.6], [3.5, 0.2, 3.6], [-3.5, 0.6, 3.8], [-3.5, 0.6, -3.8], team.clone().multiplyScalar(0.8));
+    prism(seat, [-2.6, 0.9, 0], [2.6, 0.9, 0], 2.2, leather);
+    prism(seat, [-2.8, 1.2, 0], [-2.2, 2.6, 0], 1.4, leather);   // the cantle
+    // Legs astride: thigh down the flank, shin tucked back, boots.
+    for (const z of [1, -1]) {
+      prism(seat, [0.2, 1.6, z * 1.4], [2.2, -0.6, z * 3.1], 1.05, trousers);
+      prism(seat, [2.2, -0.6, z * 3.1], [0.6, -2.8, z * 3.0], 0.9, trousers);
+      prism(seat, [0.6, -2.8, z * 3.0], [1.8, -3.2, z * 3.0], 0.75, leather);
+    }
+    // The round shield slung on the left: painted boards in the dragon's colour round a bronze boss.
+    for (let k = 0; k < 8; k++) {
+      const a0 = (k / 8) * Math.PI * 2, a1 = ((k + 1) / 8) * Math.PI * 2, R = 2.8;
+      seat.tri([-1.4, 0.6, -3.9], [-1.4 + Math.cos(a0) * R, 0.6 + Math.sin(a0) * R, -3.9], [-1.4 + Math.cos(a1) * R, 0.6 + Math.sin(a1) * R, -3.9], k % 2 ? team : IVORY);
+    }
+    seat.tri([-1.4, 1.1, -4.1], [-1.9, 0.3, -4.1], [-0.9, 0.3, -4.1], GOLD);
+    rider.add(seat.mesh());
+
+    // The upper body pivots at the hips, to lean and crouch.
+    const torso = new THREE.Group();
+    torso.position.set(0, 1.6, 0);
+    rider.add(torso);
+    const up = new Paper();
+    prism(up, [0, 0, 0], [0.8, 4.4, 0], 1.9, tunic);
+    prism(up, [0.7, 3.9, 0], [0.9, 4.9, 0], 2.5, fur);              // fur collar round the shoulders
+    up.quad([1.6, 0.2, -1.6], [1.6, 0.2, 1.6], [1.8, 0.9, 1.6], [1.8, 0.9, -1.6], leather);   // belt
+    // Arms forward to the reins.
+    for (const z of [1, -1]) {
+      prism(up, [0.9, 4.2, z * 2.0], [2.8, 2.4, z * 2.1], 0.8, tunic);
+      prism(up, [2.8, 2.4, z * 2.1], [4.4, 2.0, z * 1.4], 0.7, fur);
+      prism(up, [4.4, 2.0, z * 1.4], [5.0, 2.0, z * 1.2], 0.55, leather);   // gloves
+    }
+    // Head: a faceted ball of skin, the beard below, the helm above with its nose guard.
+    const hx = 1.3, hy = 6.3;
+    prism(up, [hx, hy - 1.2, 0], [hx, hy + 0.9, 0], 1.25, skinC);
+    up.tri([hx + 1.1, hy - 0.4, -1.0], [hx + 1.1, hy - 0.4, 1.0], [hx + 1.6, hy - 2.6, 0], beard);
+    up.tri([hx + 1.1, hy - 0.4, 1.0], [hx + 0.2, hy - 0.8, 1.2], [hx + 1.6, hy - 2.6, 0], beard);
+    up.tri([hx + 0.2, hy - 0.8, -1.2], [hx + 1.1, hy - 0.4, -1.0], [hx + 1.6, hy - 2.6, 0], beard);
+    const ring: V3[] = [];
+    for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI * 2; ring.push([hx + Math.cos(a) * 1.55, hy + 0.3, Math.sin(a) * 1.55]); }
+    for (let k = 0; k < 6; k++) up.tri(ring[k], ring[(k + 1) % 6], [hx, hy + 2.3, 0], iron);
+    up.quad([hx + 1.5, hy + 0.4, -0.25], [hx + 1.5, hy + 0.4, 0.25], [hx + 1.7, hy - 1.0, 0.2], [hx + 1.7, hy - 1.0, -0.2], iron);   // nose guard
+    torso.add(up.mesh());
+
+    // The cloak, hinged at the shoulders, streaming back.
+    const cloak = new THREE.Group();
+    cloak.position.set(0.2, 4.6, 0);
+    const cp = new Paper();
+    cp.quad([0, 0, -2.1], [0, 0, 2.1], [-4.5, -3.0, 2.9], [-4.5, -3.0, -2.9], team);
+    cp.quad([-4.5, -3.0, -2.9], [-4.5, -3.0, 2.9], [-7.5, -4.4, 2.4], [-7.5, -4.4, -2.4], team.clone().multiplyScalar(0.85));
+    cloak.add(cp.mesh());
+    torso.add(cloak);
+
+    this.riderTorso = torso;
+    this.cloak = cloak;
+  }
+
+  private updateTrails(c: TrailCraft, dt: number): void {
+    trailsUpdate(this as unknown as Parameters<typeof trailsUpdate>[0], c, dt);
   }
 
   /** A still pose for pictures: wings spread in a glide, body level. */
@@ -402,9 +502,9 @@ export class DragonRig {
     for (const w of this.wings) {
       const beat = st.pos * 0.62 * flap, flex = Math.sin(time * 2.1) * 0.03 * this.glide;
       w.shoulder.rotation.x = -w.side * (0.12 + beat + flex - 0.08 * this.tuck);
-      w.shoulder.rotation.y = -w.side * 0.55 * this.tuck;   // the gale: wings swept back into a dive
+      w.shoulder.rotation.y = -w.side * 0.42 * this.tuck;   // the gale: wings swept back into a dive
       w.hand.rotation.x = -w.side * (lag.pos * 0.42 * flap + 0.05 * this.glide);
-      w.hand.rotation.y = -w.side * (0.25 * this.glide + Math.max(0, st.vel) * 0.3 * flap + 0.35 * this.tuck);   // sweep back on the upstroke
+      w.hand.rotation.y = -w.side * (0.25 * this.glide + Math.max(0, st.vel) * 0.3 * flap + 0.22 * this.tuck);   // sweep back on the upstroke
     }
 
     // Body: banks into the turn, lifts on the downstroke, noses up a touch when braking.
@@ -420,26 +520,88 @@ export class DragonRig {
     this.body.position.y = FLY_HEIGHT + c.alt + hover - st.vel * 1.4 * flap;
 
     // Neck looks into the turn; tail trails out of it, rippling.
+    // Riding the gale the dragon streamlines: the neck reaches straight forward and the tail stills.
+    const calm = 1 - 0.7 * this.tuck;
     this.neck.forEach((n, i) => {
-      n.g.rotation.y = -this.turnSmooth * 0.12 + Math.sin(time * 2 + i * 0.8) * 0.04;   // look into the turn
-      n.g.rotation.z = (i === 0 ? 0.18 : 0.06) + Math.sin(this.phase + i) * 0.03 * flap;
+      n.g.rotation.y = -this.turnSmooth * 0.12 + Math.sin(time * 2 + i * 0.8) * 0.04 * calm;   // look into the turn
+      n.g.rotation.z = ((i === 0 ? 0.18 : 0.06) + Math.sin(this.phase + i) * 0.03 * flap) * (1 - 0.8 * this.tuck);
     });
     this.tail.forEach((t, i) => {
-      t.g.rotation.y = -this.turnSmooth * 0.09 + Math.sin(time * 2.6 - i * 0.7) * 0.07 * (0.5 + this.glide);
+      t.g.rotation.y = -this.turnSmooth * 0.09 + Math.sin(time * 2.6 - i * 0.7) * 0.07 * (0.5 + this.glide) * calm;
       t.g.rotation.z = Math.sin(this.phase - i * 0.6) * 0.05 * flap;
     });
+    this.body.rotation.z -= 0.06 * this.tuck;   // nose down a touch into the dive
 
-    // The gale: the wind sheath shimmers around the dragon while it's riding it.
-    this.gale.visible = this.tuck > 0.05;
-    if (this.gale.visible) {
-      this.galeMat.opacity = this.tuck * (0.22 + Math.sin(time * 31) * 0.06 + Math.random() * 0.05);
-      this.gale.scale.set(0.95 + Math.random() * 0.1, 1, 1);
-    }
-    this.body.rotation.z -= 0.08 * this.tuck;   // nose down a touch into the dive
+    // The rider leans forward with speed, crouches flat on the gale, sways with the wingbeat and
+    // leans a little further into turns than the dragon; the cloak streams back and flutters.
+    const lean = 0.15 + clamp(speed / 900, 0, 1) * 0.25 + 0.55 * this.tuck;
+    this.riderTorso.rotation.z = -lean + st.vel * 0.04 * flap;
+    this.riderTorso.rotation.x = this.roll * 0.3;
+    this.cloak.rotation.z = -clamp(speed / 900, 0, 1) * 0.65 + 0.25 + Math.sin(time * 13 + this.phase) * 0.07 * (0.4 + clamp(speed / 900, 0, 1));
+    this.cloak.rotation.x = Math.sin(time * 9.3) * 0.08;
+
+    this.updateTrails(c, dt);
     // The shadow fades and spreads with height.
     const up = c.alt;
     (this.shadow.material as THREE.MeshBasicMaterial).opacity = clamp(0.5 - up / 300, 0.12, 0.5);
   }
+}
+
+/** Points in each contrail (one is added per frame, so about a tenth of a second of wake, so it stays well ahead of the chase camera). */
+const TRAIL_N = 7;
+const TRAIL_COLOR = new THREE.Color('#dff2f7');
+const _v = new THREE.Vector3();
+
+interface TrailCraft { pos: { x: number; y: number }; heading: number }
+
+/** Contrails off the wingtips while riding the gale: thin pale ribbons that taper and fade. */
+function trailsUpdate(rig: { root: THREE.Group; trails: { tip: THREE.Vector3; hand: THREE.Group; pts: THREE.Vector3[]; geo: THREE.BufferGeometry; mesh: THREE.Mesh }[]; tuck: number }, c: TrailCraft, dt: number): void {
+  if (dt <= 0) return;
+  rig.root.updateMatrixWorld(true);
+  const ch = Math.cos(c.heading), sh = Math.sin(c.heading);
+  const on = rig.tuck > 0.03;
+  for (const t of rig.trails) {
+    // The tip in world space, then kept in scene space (the rig moves every frame).
+    _v.copy(t.tip);
+    t.hand.localToWorld(_v);
+    t.pts.unshift(_v.clone());
+    if (t.pts.length > TRAIL_N) t.pts.pop();
+    t.mesh.visible = on && t.pts.length > 2;
+    if (!t.mesh.visible) continue;
+    const pos = t.geo.getAttribute('position') as THREE.BufferAttribute;
+    const col = t.geo.getAttribute('color') as THREE.BufferAttribute;
+    const n = t.pts.length;
+    for (let i = 0; i < TRAIL_N; i++) {
+      const p = t.pts[Math.min(i, n - 1)];
+      // Into the rig's own space (it sits at the craft's position, turned by its heading).
+      const dx = p.x - c.pos.x, dz = p.z - c.pos.y;
+      const lx = dx * ch + dz * sh, lz = -dx * sh + dz * ch;
+      const f = i / (TRAIL_N - 1), w = 0.8 * (1 - f) + 0.1;
+      pos.setXYZ(i * 2, lx, p.y + w, lz);
+      pos.setXYZ(i * 2 + 1, lx, p.y - w, lz);
+      const a = rig.tuck * 0.4 * Math.pow(1 - f, 1.5) * Math.min(1, i / 2 + 0.3);
+      col.setXYZ(i * 2, TRAIL_COLOR.r * a, TRAIL_COLOR.g * a, TRAIL_COLOR.b * a);
+      col.setXYZ(i * 2 + 1, TRAIL_COLOR.r * a, TRAIL_COLOR.g * a, TRAIL_COLOR.b * a);
+    }
+    pos.needsUpdate = true;
+    col.needsUpdate = true;
+  }
+}
+
+/** A four-sided faceted tube from a to b with radius r, capped at both ends. */
+function prism(p: Paper, a: V3, b: V3, r: number, color: THREE.Color): void {
+  const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b);
+  const d = B.clone().sub(A).normalize();
+  const ref = Math.abs(d.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0);
+  const u = new THREE.Vector3().crossVectors(d, ref).normalize(), v = new THREE.Vector3().crossVectors(d, u).normalize();
+  const ringAt = (o: THREE.Vector3): V3[] => [u, v, u.clone().negate(), v.clone().negate()].map((q) => {
+    const w = o.clone().addScaledVector(q, r);
+    return [w.x, w.y, w.z] as V3;
+  });
+  const ra = ringAt(A), rb = ringAt(B);
+  for (let k = 0; k < 4; k++) p.quad(ra[k], rb[k], rb[(k + 1) % 4], ra[(k + 1) % 4], color);
+  const ta: V3 = [A.x - d.x * r * 0.5, A.y - d.y * r * 0.5, A.z - d.z * r * 0.5], tb: V3 = [B.x + d.x * r * 0.5, B.y + d.y * r * 0.5, B.z + d.z * r * 0.5];
+  for (let k = 0; k < 4; k++) { p.tri(ra[(k + 1) % 4], ra[k], ta, color); p.tri(rb[k], rb[(k + 1) % 4], tb, color); }
 }
 
 let shadowTexCache: THREE.Texture | null = null;

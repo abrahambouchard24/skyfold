@@ -303,10 +303,10 @@ class SpeedLines {
 
   update(speed: number, boosting: boolean, dt: number): void {
     const k = clamp((speed - 600) / 300, 0, 1);
-    this.mat.opacity = k * (boosting ? 0.42 : 0.16);
+    this.mat.opacity = k * (boosting ? 0.2 : 0.1);
     this.lines.visible = k > 0;
     if (!k) return;
-    const len = 20 + k * 70 + (boosting ? 50 : 0);
+    const len = 16 + k * 50 + (boosting ? 30 : 0);
     for (let i = 0; i < this.n; i++) {
       const sd = this.seeds[i];
       sd.z += speed * 1.4 * dt;
@@ -715,12 +715,16 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
       g.strokeStyle = '#bfe8f2'; g.lineWidth = 4; g.lineCap = 'round'; g.lineJoin = 'round';
       g.beginPath(); g.moveTo(10, 54); g.lineTo(10, 10); g.lineTo(23, 21); g.lineTo(10, 32); g.lineTo(24, 54); g.stroke();
     }));
-    const stoneMat = new THREE.MeshLambertMaterial({ map: rune, emissive: 0x24343a, emissiveMap: rune });
+    // The rune only on the face toward the road; the rest is plain weathered stone.
+    const runeMat = new THREE.MeshLambertMaterial({ map: rune, emissive: 0x1a2a30, emissiveMap: rune });
+    const plain = new THREE.MeshLambertMaterial({ color: 0x5a5650 });
     for (const z of track.drsZones) {
       const i = z.from, p = pts[i], d = track.direction(i);
       for (const side of [1, -1]) {
         const off = side * (track.outer[i] + WALL_THICKNESS + 18);
-        const stone = new THREE.Mesh(new THREE.BoxGeometry(10, 46, 18).translate(0, 23, 0), stoneMat);
+        // Box faces: +x, -x, +y, -y, +z, -z; the road is toward -z for a stone on the +z side.
+        const faces = [plain, plain, plain, plain, side > 0 ? plain : runeMat, side > 0 ? runeMat : plain];
+        const stone = new THREE.Mesh(new THREE.BoxGeometry(18, 46, 10).translate(0, 23, 0), faces);
         stone.position.set(p.x + p.nx * off, 0, p.y + p.ny * off);
         stone.rotation.y = -d;
         stone.rotation.z = side * 0.04;
@@ -1554,14 +1558,25 @@ function propObject(p: Prop, spinners: { obj: THREE.Object3D; axis: 'x' | 'y' | 
       break;
     }
     case 'runestone': {
-      // A tall carved stone, its rune band glowing.
+      // A tall carved stone, its serpent band and runes cut in and painted red ochre, as the old
+      // stones were (no glow: paint on weathered granite).
       const sw = p.r * 0.9, st = p.r * 0.35;
       put(new THREE.BoxGeometry(sw, h * 0.85, st), phong(0x7d7a74), 0, h * 0.425);
       put(new THREE.CylinderGeometry(sw / 2, sw / 2, st, 10, 1, false, 0, Math.PI), phong(0x7d7a74), 0, h * 0.85).rotation.set(Math.PI / 2, 0, Math.PI / 2);
-      const rune = glowing(p.accent ?? '#8fd0e0');
-      put(new THREE.BoxGeometry(3, h * 0.6, st + 1), rune, -sw * 0.28, h * 0.45);
-      put(new THREE.BoxGeometry(3, h * 0.6, st + 1), rune, sw * 0.28, h * 0.45);
-      for (let k = 0; k < 4; k++) put(new THREE.BoxGeometry(sw * 0.36, 2.5, st + 1), rune, 0, h * (0.22 + k * 0.16)).rotation.z = k % 2 ? 0.5 : -0.5;
+      const ochre = phong(0x8e3a24), ink = phong(0x2e2a26);
+      // The serpent band round the face: up both edges and arching over the top.
+      put(new THREE.BoxGeometry(2.5, h * 0.62, st + 0.8), ochre, -sw * 0.36, h * 0.46);
+      put(new THREE.BoxGeometry(2.5, h * 0.62, st + 0.8), ochre, sw * 0.36, h * 0.46);
+      for (let k = 0; k < 5; k++) {
+        const a = Math.PI * (0.1 + k * 0.2);
+        put(new THREE.BoxGeometry(sw * 0.2, 2.5, st + 0.8), ochre, Math.cos(a) * sw * 0.36, h * 0.77 + Math.sin(a) * sw * 0.32).rotation.z = a + Math.PI / 2;
+      }
+      // A column of short carved runes down the middle.
+      for (let k = 0; k < 4; k++) {
+        const y = h * (0.22 + k * 0.13);
+        put(new THREE.BoxGeometry(1.6, h * 0.08, st + 0.6), ink, 0, y);
+        put(new THREE.BoxGeometry(sw * 0.14, 1.4, st + 0.6), ink, sw * 0.05, y + h * 0.02).rotation.z = k % 2 ? 0.6 : -0.6;
+      }
       break;
     }
     case 'longship': {
@@ -1593,7 +1608,7 @@ function propObject(p: Prop, spinners: { obj: THREE.Object3D; axis: 'x' | 'y' | 
       const mound = put(new THREE.SphereGeometry(p.r, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), phong(0x4f6a3a), 0, 0);
       mound.scale.set(1, h / p.r, 1);
       put(new THREE.BoxGeometry(18, h * 0.5, 30), phong(0x7d7a74), p.r * 0.9, h * 0.25);
-      put(new THREE.BoxGeometry(4, h * 0.36, 16), glowing(p.accent ?? '#8fd0e0'), p.r * 0.95, h * 0.2);
+      put(new THREE.BoxGeometry(4, h * 0.36, 16), phong(0x15120f), p.r * 0.95, h * 0.2);   // the dark doorway into the barrow
       break;
     }
     case 'watchtower': {
@@ -2770,14 +2785,14 @@ class Slipstreams {
           const t = d / len;
           const spread = lane * 16 * (1 - t * 0.75);
           const wave = Math.sin(t * len / 22 - time * 14 + lane) * 2.5 * (1 - t * 0.5);
-          this.pos.set(ax + ux * d + px * (spread + wave), 9 + t * 3, ay + uy * d + py * (spread + wave));
-          const thick = lane === 0 ? 2.2 : 1.4;
+          this.pos.set(ax + ux * d + px * (spread + wave), FLY_HEIGHT + 4 + t * 3, ay + uy * d + py * (spread + wave));   // up where the dragons fly, not on the road
+          const thick = lane === 0 ? 1.2 : 0.8;
           this.scl.set(DASH, thick, thick);
           this.m4.compose(this.pos, this.q, this.scl);
           this.mesh.setMatrixAt(n, this.m4);
           // Fade in off our nose and out into the leader's wake.
           const fade = Math.min(1, t * 6) * Math.min(1, (1 - t) * 4);
-          this.col.setHSL(car.hue / 360, 0.3, 0.82).multiplyScalar(strength * fade);   // pale wind streaks
+          this.col.setHSL(car.hue / 360, 0.25, 0.8).multiplyScalar(strength * fade * 0.55);   // faint wisps of wind
           this.mesh.setColorAt(n, this.col);
           n++;
         }
