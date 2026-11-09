@@ -383,18 +383,38 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
   const ground = new THREE.PlaneGeometry(gw, gh).rotateX(-Math.PI / 2);
   add(ground, basic({ map: groundTex })).position.set((b.minX + b.maxX) / 2, -1, (b.minY + b.maxY) / 2);
 
-  // Racing surface: the deck, darker toward the edges, with plate seams and lane guides.
+  // The road: worn flagstones laid in rows, each slab its own shade of the realm's stone, mossy
+  // mortar between them, darker and rougher toward the edges where fewer feet have walked.
   const road = canvas2d(256, 256, (g) => {
-    g.fillStyle = atmos.road; g.fillRect(0, 0, 256, 256);
+    let seed = 7;
+    const r = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+    const base = new THREE.Color(atmos.road);
+    g.fillStyle = '#1a1916'; g.fillRect(0, 0, 256, 256);   // the mortar
+    for (let y = 0; y < 256; y += 32) {
+      let x = (y / 32) % 2 ? -24 : 0;
+      while (x < 256) {
+        const w = 34 + r() * 30, k = 0.85 + r() * 0.35;
+        const c = base.clone().multiplyScalar(k).lerp(new THREE.Color('#6a6458'), 0.22 + r() * 0.12);
+        g.fillStyle = `#${c.getHexString()}`;
+        // A slab with slightly irregular corners.
+        g.beginPath();
+        g.moveTo(x + 2 + r() * 2, y + 2 + r() * 2);
+        g.lineTo(x + w - 2 - r() * 2, y + 2 + r() * 2);
+        g.lineTo(x + w - 2 - r() * 2, y + 30 - r() * 2);
+        g.lineTo(x + 2 + r() * 2, y + 30 - r() * 2);
+        g.closePath(); g.fill();
+        // Wear: a lighter worn patch, and a few cracks.
+        g.fillStyle = 'rgba(255,248,230,0.05)'; g.fillRect(x + w * 0.2, y + 8, w * 0.5, 14);
+        if (r() < 0.3) { g.strokeStyle = 'rgba(0,0,0,0.35)'; g.lineWidth = 1; g.beginPath(); g.moveTo(x + r() * w, y + 3); g.lineTo(x + r() * w, y + 29); g.stroke(); }
+        // Moss creeping into the joints.
+        if (r() < 0.35) { g.fillStyle = 'rgba(90,110,60,0.45)'; g.fillRect(x + r() * w, y + 28, 6 + r() * 10, 4); }
+        x += w;
+      }
+    }
     const across = g.createLinearGradient(0, 0, 256, 0);
-    across.addColorStop(0, 'rgba(0,0,0,0.3)'); across.addColorStop(0.14, 'rgba(0,0,0,0.05)');
-    across.addColorStop(0.5, 'rgba(255,255,255,0.05)');
-    across.addColorStop(0.86, 'rgba(0,0,0,0.05)'); across.addColorStop(1, 'rgba(0,0,0,0.3)');
+    across.addColorStop(0, 'rgba(0,0,0,0.35)'); across.addColorStop(0.16, 'rgba(0,0,0,0.04)');
+    across.addColorStop(0.84, 'rgba(0,0,0,0.04)'); across.addColorStop(1, 'rgba(0,0,0,0.35)');
     g.fillStyle = across; g.fillRect(0, 0, 256, 256);
-    g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(16, 0, 224, 3);
-    g.fillStyle = 'rgba(255,255,255,0.05)'; g.fillRect(16, 3, 224, 1);
-    g.fillStyle = theme.wall; g.globalAlpha = 0.28;
-    for (const u of [256 / 3, 512 / 3]) { g.fillRect(u - 1.5, 30, 3, 70); g.fillRect(u - 1.5, 158, 3, 70); }
   });
   /**
    * Jumps (sprints): road-level strips rise over each ramp to its lip, and are left out over the gap
@@ -526,13 +546,13 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
       color: 0x000000, specular: new THREE.Color(atmos.sun.color).multiplyScalar(0.55), shininess: 26,
       transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
     });
-    for (const side of [1, -1]) add(jumpify(up(ribbon(0, m, ISL(side), OUT(side), 0.3, 0.3, 128)), 0.3, side), sheenMat, 1);
+    void sheenMat;   // a stone road has no gloss
   }
 
   // Kerbs through the corners: lit and dark blocks in turn, slightly raised.
   {
     const pos: number[] = [], col: number[] = [], idx: number[] = [];
-    const lit = new THREE.Color(theme.kerb), dark = new THREE.Color('#0d0f1c');
+    const lit = new THREE.Color('#cfc4a8'), dark = new THREE.Color('#4a4640');   // bone and slate kerb stones
     for (let i = 0; i < m; i++) {
       if (Math.abs(pts[i].curve) < KERB_CURVE) continue;
       const c = Math.floor(i / 2) % 2 ? lit : dark;
@@ -556,14 +576,20 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
 
   // Barriers: a dark panel facing the track with a bright foot and a coloured top edge, the top,
   // the outer face, and a neon glow on the ground outside.
+  // Barriers: a wall of upright timber planks, darker at the foot, bound by an iron band near the
+  // top, with a thin line of the realm's colour on its cap.
   const face = canvas2d(4, 64, (g) => {
     const v = g.createLinearGradient(0, 0, 0, 64);
     v.addColorStop(0, atmos.wall[0]); v.addColorStop(1, atmos.wall[1]);
     g.fillStyle = v; g.fillRect(0, 0, 4, 64);
-    g.fillStyle = theme.wall; g.fillRect(0, 0, 4, 7);
-    g.fillStyle = theme.wallFace; g.fillRect(0, 60, 4, 4);
+    g.fillStyle = '#2a2622'; g.fillRect(0, 9, 4, 5);          // the iron band
+    g.fillStyle = 'rgba(255,240,210,0.25)'; g.fillRect(0, 9, 4, 1);
+    g.fillStyle = theme.wall; g.fillRect(0, 0, 4, 3);
+    g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(0, 58, 4, 6);
   });
   const faceTex = tex(face, false);
+  const plankMat = new THREE.MeshBasicMaterial({ map: tex(canvas2d(32, 8, (g) => { g.fillStyle = 'rgba(0,0,0,0.45)'; g.fillRect(0, 0, 2, 8); }), true),
+    transparent: true, depthWrite: false });
   const faceMat = basic({ map: faceTex });
   const topMat = basic({ color: theme.wall });
   const outerMat = basic({ color: new THREE.Color(atmos.wall[1]).multiplyScalar(0.75) });
@@ -582,20 +608,23 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
   const pulseTex = tex(pulse);
   const pulseMat = additive({ map: pulseTex });
   // Lights set into the top of the barriers.
+  // Torch flames along the wall tops: a small warm glow every few paces.
   const lamp = canvas2d(16, 64, (g) => {
-    const r = g.createRadialGradient(8, 32, 0, 8, 32, 7);
-    r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(1, 'rgba(255,255,255,0)');
+    const r = g.createRadialGradient(8, 32, 0, 8, 32, 8);
+    r.addColorStop(0, 'rgba(255,240,200,1)'); r.addColorStop(0.4, 'rgba(255,170,80,0.8)'); r.addColorStop(1, 'rgba(255,120,40,0)');
     g.fillStyle = r; g.fillRect(0, 0, 16, 64);
   });
-  const lampMat = additive({ map: tex(lamp), color: `rgb(${theme.lights})` });
+  const lampMat = additive({ map: tex(lamp), color: '#ffd8a0' });
   for (const side of [1, -1]) {
     const inner = OUT(side), outer = OUT(side, WALL_THICKNESS);
     const faceG = whole(ribbon(0, m, inner, inner, WALL_H, 0, 1e9)); faceG.setAttribute('uv', wallUv(m)); add(faceG, faceMat);
+    // Plank joints: thin dark lines up the wall every few paces.
+    add(whole(ribbon(0, m, OUT(side, -0.4), OUT(side, -0.4), WALL_H, 0, 18)), plankMat, 1);
     add(whole(ribbon(0, m, inner, outer, WALL_H, WALL_H, 1e9)), topMat);
     add(whole(ribbon(0, m, outer, outer, WALL_H, 0, 1e9)), outerMat);
-    const glowG = whole(ribbon(0, m, outer, OUT(side, WALL_THICKNESS + 46), 0.4, 0.4, 1e9)); glowG.setAttribute('uv', glowUv(m)); add(glowG, glowMat, 1);
-    add(whole(ribbon(0, m, OUT(side, -0.6), OUT(side, -0.6), WALL_H - 1, WALL_H - 6, 376)), pulseMat, 2);
-    add(whole(ribbon(0, m, OUT(side, WALL_THICKNESS / 2 - 3), OUT(side, WALL_THICKNESS / 2 + 3), WALL_H + 0.3, WALL_H + 0.3, 110)), lampMat, 2);
+    void glowMat; void pulseMat;   // no neon ground glow or rail pulses on a timber wall
+    // Torches along the top of the wall, flickering.
+    add(whole(ribbon(0, m, OUT(side, WALL_THICKNESS / 2 - 4), OUT(side, WALL_THICKNESS / 2 + 4), WALL_H + 0.3, WALL_H + 0.3, 260)), lampMat, 2);
   }
   if (track.island.some((v) => v > 1)) {
     // Islands: a raised block between the two lanes of a split, its walls in the barrier style and
@@ -611,16 +640,18 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
 
   // Cooling lane: a tinted band with chevrons flowing along it.
   const coolIn = COOL_LANE.side * (HALF_WIDTH - COOL_LANE.width), coolOut = COOL_LANE.side * HALF_WIDTH;
-  add(ribbon(COOL_LANE.from, COOL_LANE.to, coolIn, coolOut, 0.5, 0.5, 1e9), basic({ color: 0x5ad2ff, transparent: true, opacity: 0.2, depthWrite: false }), 1);
+  add(ribbon(COOL_LANE.from, COOL_LANE.to, coolIn, coolOut, 0.5, 0.5, 1e9), basic({ color: 0xc4ecf5, transparent: true, opacity: 0.22, depthWrite: false }), 1);   // frost on the stones
   const chev = canvas2d(64, 64, (g) => {
-    g.strokeStyle = 'rgba(150,235,255,0.8)'; g.lineWidth = 5; g.lineCap = 'round';
-    g.beginPath(); g.moveTo(12, 44); g.lineTo(32, 22); g.lineTo(52, 44); g.stroke();
+    // The ice rune, Isa (a single stave), with a frost glint either side.
+    g.strokeStyle = 'rgba(200,240,250,0.85)'; g.lineWidth = 5; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(32, 12); g.lineTo(32, 52); g.stroke();
+    g.lineWidth = 2; g.beginPath(); g.moveTo(18, 26); g.lineTo(22, 30); g.moveTo(46, 34); g.lineTo(42, 38); g.stroke();
   });
   const chevTex = tex(chev);
   add(ribbon(COOL_LANE.from, COOL_LANE.to, coolIn, coolOut, 0.7, 0.7, 60), additive({ map: chevTex }), 2);
   {
     const s = pts[COOL_LANE.from + 2], d = COOL_LANE.side * (HALF_WIDTH - COOL_LANE.width / 2);
-    const label = textPlane('COOL', 'rgba(200,245,255,0.9)', 46, 18);
+    const label = textPlane('FROST', 'rgba(200,240,250,0.9)', 52, 18);
     label.position.set(s.x + s.nx * d, 0.9, s.y + s.ny * d);
     label.rotation.y = -track.direction(COOL_LANE.from + 2) - Math.PI / 2;
     group.add(label);
@@ -637,7 +668,7 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
       line.rotation.y = -track.direction(i);
       group.add(line);
       if (start) {
-        const label = textPlane('WIND', 'rgba(77,255,154,0.85)', 40, 16);
+        const label = textPlane('WIND', 'rgba(200,240,250,0.85)', 40, 16);
         const d = track.direction(i);
         label.position.set(p.x - Math.cos(d) * 30, 0.9, p.y - Math.sin(d) * 30);
         label.rotation.y = -d - Math.PI / 2;
@@ -649,8 +680,9 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
   // Start line (and on a point-to-point route the finish line): a checkered band and a lit gantry.
   const lineAt = (at: number, text: string) => {
     const p = pts[at], dir = track.direction(at);
+    // A band of bone and slate stones across the road.
     const checker = canvas2d(32, 320, (g) => {
-      for (let r = 0; r < 2; r++) for (let c = 0; c < 20; c++) { g.fillStyle = (r + c) % 2 ? '#0a0a12' : '#ffffff'; g.fillRect(r * 16, c * 16, 16, 16); }
+      for (let r = 0; r < 2; r++) for (let c = 0; c < 20; c++) { g.fillStyle = (r + c) % 2 ? '#3a3632' : '#d8ccb0'; g.fillRect(r * 16, c * 16, 16, 16); }
     });
     const band = new THREE.Mesh(new THREE.PlaneGeometry(26, HALF_WIDTH * 2).rotateX(-Math.PI / 2), basic({ map: tex(checker, false) }));
     band.position.set(p.x, 0.9, p.y);
@@ -658,7 +690,7 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
     group.add(band);
     const gantry = new THREE.Group();
     const lightCol = new THREE.Color(`rgb(${theme.lights})`);
-    const postMat = new THREE.MeshPhongMaterial({ color: 0x1b2348, emissive: 0x0b1028 });
+    const postMat = new THREE.MeshLambertMaterial({ color: 0x5a3f2a });   // timber
     const span = WALL_DIST * 2 + 16;
     for (const side of [1, -1]) {
       const post = new THREE.Mesh(new THREE.BoxGeometry(10, 120, 10), postMat);
@@ -668,11 +700,25 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
     const beam = new THREE.Mesh(new THREE.BoxGeometry(12, 14, span + 10), postMat);
     beam.position.y = 120;
     gantry.add(beam);
-    const strip = new THREE.Mesh(new THREE.BoxGeometry(13, 3, span + 12), basic({ color: lightCol }));
-    strip.position.y = 114;
-    gantry.add(strip);
-    const sign = textPlane(text, '#ffffff', 150, 22, theme.wall);
-    sign.geometry.rotateX(Math.PI / 2).rotateY(Math.PI / 2);   // stand it up, facing the oncoming cars
+    // Crossed dragon-head finials on the posts, shields hung along the beam, a torch on each post.
+    void lightCol;
+    for (const side of [1, -1]) {
+      const head = new THREE.Mesh(new THREE.ConeGeometry(6, 30, 5), postMat);
+      head.position.set(0, 132, side * (span / 2 + 6)); head.rotation.x = side * 0.5;
+      gantry.add(head);
+      const torch = new THREE.Mesh(new THREE.SphereGeometry(5, 6, 5), basic({ color: 0xffb45a }));
+      torch.position.set(-8, 100, side * span / 2);
+      gantry.add(torch);
+    }
+    for (let k = -3; k <= 3; k++) {
+      if (k === 0) continue;
+      const shield = new THREE.Mesh(new THREE.CylinderGeometry(9, 9, 2, 12), new THREE.MeshLambertMaterial({ color: k % 2 ? 0xa8342a : 0xd8ccb4 }));
+      shield.rotation.z = Math.PI / 2;
+      shield.position.set(-7, 108, k * span / 8);
+      gantry.add(shield);
+    }
+    const sign = textPlane(text, '#f1e6d0', 150, 22, '#5a3f2a');
+    sign.geometry.rotateX(Math.PI / 2).rotateY(Math.PI / 2);   // stand it up, facing the oncoming dragons
     sign.position.set(-6.5, 120, 0);
     gantry.add(bothWays(sign));
     gantry.position.set(p.x, 0, p.y);
@@ -695,10 +741,10 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
   }
   for (const mesh of voxels.build()) group.add(mesh);
 
-  // Light gates: slim white arches over the track with a soft line of the accent colour inside.
+  // Gates over the course: carved timber arches, a band of the realm's rune-light inside.
   {
-    const gateMat = new THREE.MeshPhongMaterial({ color: 0xf4f7fc, emissive: 0x30343e, shininess: 60 });
-    const lineMat = additive({ color: theme.wall, opacity: 0.85 });
+    const gateMat = new THREE.MeshLambertMaterial({ color: 0x5a3f2a });
+    const lineMat = additive({ color: theme.wall, opacity: 0.5 });
     const span = WALL_DIST + 10;
     const gates = track.open ? atmos.gates * 3 : atmos.gates;
     for (let k = 1; k <= gates; k++) {
@@ -706,7 +752,12 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
       while (track.island[i] > 0 && i < m - 1) i++;
       const p = pts[i], dir = track.direction(i);
       const gate = new THREE.Group();
-      gate.add(new THREE.Mesh(new THREE.TorusGeometry(span, 6, 10, 48, Math.PI), gateMat));
+      gate.add(new THREE.Mesh(new THREE.TorusGeometry(span, 8, 5, 14, Math.PI), gateMat));   // few segments: hewn, not machined
+      for (const side of [1, -1]) {
+        const head = new THREE.Mesh(new THREE.ConeGeometry(7, 34, 5), gateMat);
+        head.position.set(side * span, 14, 0); head.rotation.z = side * 0.6;
+        gate.add(head);
+      }
       gate.add(new THREE.Mesh(new THREE.TorusGeometry(span - 7, 1.6, 6, 48, Math.PI), lineMat));
       gate.position.set(p.x, 0, p.y);
       gate.rotation.y = -dir + Math.PI / 2;   // the arch stands across the road
@@ -778,7 +829,7 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
       aurora?.animate(time);
       if (storm) this.flash = storm.animate(time);
       pulseTex.offset.y = -(time * 1100) / 376;
-      lampMat.opacity = 0.55 + 0.45 * Math.sin(time * 4);
+      lampMat.opacity = 0.72 + 0.16 * Math.sin(time * 9) + 0.12 * Math.sin(time * 23.7);   // torch flicker
       chevTex.offset.y = -time * 0.35 * 9;
       for (const t2 of stripTex) t2.offset.y = -time * (t2.userData.speed as number);
       if (water) groundTex.offset.set(-(time * 18) / 512, (time * 7) / 512);

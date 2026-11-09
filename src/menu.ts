@@ -585,7 +585,7 @@ export class Menus {
           <button class="hr-btn secondary" data-act="settings">SETTINGS</button>
           <button class="hr-btn secondary hidden" data-act="install">INSTALL</button>
         </div>
-        <p class="hr-keys">A / D or ← / →: steer &nbsp;·&nbsp; Flies on its own &nbsp;·&nbsp; S / ↓ / Space: brake &nbsp;·&nbsp; W / ↑ / Shift: breathe fire &nbsp;·&nbsp; Esc: pause &nbsp;·&nbsp; M: mute</p>
+        <p class="hr-keys">A / D or ← / →: steer &nbsp;·&nbsp; Flies on its own &nbsp;·&nbsp; S / ↓ / Space: brake &nbsp;·&nbsp; W / ↑ / Shift: call the gale &nbsp;·&nbsp; Esc: pause &nbsp;·&nbsp; M: mute</p>
       </div>`);
 
     this.start = overlay(`
@@ -610,7 +610,7 @@ export class Menus {
             ${SEASON_CHOICES.map((n) => `<button data-v="${n}">${n}</button>`).join('')}</div></div>
         </div>
         <div class="hr-btns row"><button class="hr-btn" data-act="start">START RACE</button><button class="hr-btn secondary" data-act="tune">TRAIN DRAGON</button></div>
-        <p class="hr-keys">A / D or ← / →: steer &nbsp;·&nbsp; Flies on its own &nbsp;·&nbsp; S / ↓ / Space: brake &nbsp;·&nbsp; W / ↑ / Shift: breathe fire &nbsp;·&nbsp; Esc: pause &nbsp;·&nbsp; M: mute</p>
+        <p class="hr-keys">A / D or ← / →: steer &nbsp;·&nbsp; Flies on its own &nbsp;·&nbsp; S / ↓ / Space: brake &nbsp;·&nbsp; W / ↑ / Shift: call the gale &nbsp;·&nbsp; Esc: pause &nbsp;·&nbsp; M: mute</p>
       </div>`);
     const grid = this.start.querySelector('.hr-cars')!;
     cars.forEach((car, i) => {

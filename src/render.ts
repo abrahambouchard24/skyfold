@@ -1095,11 +1095,11 @@ function drawHud(ctx: CanvasRenderingContext2D, w: number, h: number, c: Craft, 
 
   // ERS energy: violet, brighter while deploying.
   ctx.font = '700 11px system-ui, sans-serif';
-  ctx.fillStyle = c.deploying ? '#ffb06a' : '#a89d8a';
-  ctx.fillText(c.deploying ? 'BREATHING FIRE' : 'FIRE (W)', bx, y + 136);
+  ctx.fillStyle = c.deploying ? '#e6f4f8' : '#a89d8a';
+  ctx.fillText(c.deploying ? 'RIDING THE GALE' : 'GALE (W)', bx, y + 136);
   ctx.fillStyle = '#3a2e24';
   ctx.fillRect(bx + 80, y + 128, bw - 80, 6);
-  ctx.fillStyle = c.deploying ? '#ffb06a' : '#d9682a';
+  ctx.fillStyle = c.deploying ? '#e6f4f8' : '#b8d4dc';
   if (c.energy >= ENERGY_FULL) {
     // Full battery: the bar flickers with charge and a spark jumps along it.
     const flicker = Math.random();
@@ -1142,7 +1142,7 @@ function drawHud(ctx: CanvasRenderingContext2D, w: number, h: number, c: Craft, 
 
   ctx.font = '500 13px system-ui, sans-serif';
   ctx.fillStyle = 'rgba(224,214,194,0.7)';
-  const help = 'A / D or ← / →: steer   S / ↓ / Space: brake   W / ↑ / Shift: breathe fire   Hold R: restart   Esc: pause';
+  const help = 'A / D or ← / →: steer   S / ↓ / Space: brake   W / ↑ / Shift: call the gale   Hold R: restart   Esc: pause';
   if (!touch) ctx.fillText(help, 16, h - 16);
   ctx.restore();
 }

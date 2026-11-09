@@ -4,7 +4,8 @@
 // Six species with their own build (body, neck, tail, wings, horns, fins), all animated in code:
 // the wings beat while the dragon is pulling (faster as it works harder), then lock out and glide,
 // banked, through turns and when it eases off; the neck looks into the turn, the tail trails it,
-// and the whole body rises a little on each downstroke. Boost breathes fire.
+// and the whole body rises a little on each downstroke. Calling the gale (the boost) tucks the
+// wings back into a streamlined dive inside a sheath of rushing wind.
 //
 // Model space (world px): nose along +x, y up, z to the dragon's left. A DragonRig is a drop-in
 // replacement for the old craft rig: root, update(car, time, dt).
@@ -125,8 +126,10 @@ export class DragonRig {
   private neck: Seg[] = [];
   private tail: Seg[] = [];
   private wings: Wing[] = [];
-  private fire: THREE.Mesh;
-  private fireMat: THREE.MeshBasicMaterial;
+  /** The gale: a sheath of pale rushing wind around the body while the boost is on. */
+  private gale: THREE.Mesh;
+  private galeMat: THREE.MeshBasicMaterial;
+  private tuck = 0;
   private shadow: THREE.Mesh;
   private sp: Species;
   private phase = Math.random() * 6;
@@ -211,18 +214,6 @@ export class DragonRig {
     const eyes = new Paper();
     for (const side of [1, -1]) eyes.tri([hw * 2.2, hw * 0.55, side * hw * 0.62], [hw * 1.6, hw * 0.7, side * hw * 0.78], [hw * 1.7, hw * 0.35, side * hw * 0.8], glow, 1);
     head.add(eyes.mesh(true));
-    // Fire breath (boost): a folded flame cone from the mouth.
-    const fp = new Paper();
-    const fl = 26;
-    for (let k = 0; k < 6; k++) {
-      const a0 = (k / 6) * Math.PI * 2, a1 = ((k + 1) / 6) * Math.PI * 2, r = 4;
-      fp.tri([0, 0, 0], [fl, Math.sin(a0) * r, Math.cos(a0) * r], [fl, Math.sin(a1) * r, Math.cos(a1) * r], k % 2 ? new THREE.Color('#ffb347') : new THREE.Color('#ffe7a0'), 1);
-    }
-    this.fireMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
-    this.fire = new THREE.Mesh((fp.mesh(true)).geometry, this.fireMat);
-    this.fire.position.set(hw * 3.6, -0.5, 0);
-    this.fire.visible = false;
-    head.add(this.fire);
     parent.add(head);
 
     // Tail: a tapering chain from the hips, finishing in its fin.
@@ -300,6 +291,20 @@ export class DragonRig {
       this.wings.push({ shoulder, hand: handG, side });
     }
 
+    // The gale: a long faceted sheath of pale wind from just ahead of the chest, trailing well past
+    // the tail, folded from a few long planes so it reads as streaks of air.
+    const gp = new Paper();
+    const g0 = L * 0.7, g1 = -L * 0.6 - sp.tail * 1.1, r0 = G * 1.2, r1 = G * 2.4;
+    for (let k = 0; k < 8; k++) {
+      const a0 = (k / 8) * Math.PI * 2, a1 = ((k + 1) / 8) * Math.PI * 2;
+      const col = k % 2 ? new THREE.Color('#c4ecf5') : new THREE.Color('#e6f4f8');
+      gp.tri([g0, Math.sin(a0) * r0, Math.cos(a0) * r0], [g1, Math.sin(a0) * r1, Math.cos(a0) * r1], [g1, Math.sin(a1) * r1, Math.cos(a1) * r1], col, 1);
+    }
+    this.galeMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+    this.gale = new THREE.Mesh(gp.mesh(true).geometry, this.galeMat);
+    this.gale.visible = false;
+    this.body.add(this.gale);
+
     // A soft shadow on the road below.
     this.shadow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: shadowTex(), transparent: true, depthWrite: false, opacity: 0.55 }));
     this.shadow.scale.set(L + sp.tail * 0.6, 1, S * 1.5);
@@ -330,8 +335,10 @@ export class DragonRig {
     const want = clamp((Math.abs(this.turnSmooth) - 0.25) / 0.9 + (c.braking ? 0.8 : 0), 0, 1);
     if (dt > 0) this.glide += (want - this.glide) * (1 - Math.exp(-(want > this.glide ? 8 : 3) * dt));
     const effort = racing ? 0.6 + c.thrust * 0.4 : 0.45;
-    const flap = (1 - this.glide) * effort;
-    const freq = (1.5 + c.thrust * 1.3 + speed / 1100 + (c.deploying ? 0.8 : 0)) * sp.beat;
+    if (dt > 0) this.tuck += ((c.deploying ? 1 : 0) - this.tuck) * (1 - Math.exp(-7 * dt));
+    const flap = (1 - this.glide) * effort * (1 - 0.75 * this.tuck);
+    // A little slower than before, and the dragons' speed is unaffected (this only paces the art).
+    const freq = (1.5 + c.thrust * 1.3 + speed / 1100) * sp.beat * 0.78;
     const before = Math.floor(this.phase / (Math.PI * 2));
     this.phase += dt * Math.PI * 2 * freq * (0.4 + flap * 0.6);
     if (this.isPlayer && racing && flap > 0.2 && Math.floor(this.phase / (Math.PI * 2)) !== before) dragonEvents.playerBeat?.(flap);
@@ -340,10 +347,11 @@ export class DragonRig {
     // Wings: a big beat (shoulders), the hands following a beat behind and folding on the upstroke.
     // Gliding: locked out with a little dihedral, hands swept back, gently flexing in the air.
     for (const w of this.wings) {
-      const beat = s * 0.85 * flap, flex = Math.sin(time * 2.1) * 0.03 * this.glide;
-      w.shoulder.rotation.x = -w.side * (0.12 + beat + flex);
-      w.hand.rotation.x = -w.side * (s2 * 0.6 * flap + 0.05 * this.glide);
-      w.hand.rotation.y = -w.side * (0.25 * this.glide + Math.max(0, -s) * 0.3 * flap);   // sweep back
+      const beat = s * 0.7 * flap, flex = Math.sin(time * 2.1) * 0.03 * this.glide;
+      w.shoulder.rotation.x = -w.side * (0.12 + beat + flex - 0.08 * this.tuck);
+      w.shoulder.rotation.y = -w.side * 0.55 * this.tuck;   // the gale: wings swept back into a dive
+      w.hand.rotation.x = -w.side * (s2 * 0.5 * flap + 0.05 * this.glide);
+      w.hand.rotation.y = -w.side * (0.25 * this.glide + Math.max(0, -s) * 0.25 * flap + 0.35 * this.tuck);   // sweep back
     }
 
     // Body: banks into the turn, lifts on the downstroke, noses up a touch when braking.
@@ -364,12 +372,13 @@ export class DragonRig {
       t.g.rotation.z = Math.sin(this.phase - i * 0.6) * 0.05 * flap;
     });
 
-    // Boost: fire from the mouth, flickering.
-    this.fire.visible = c.deploying;
-    if (c.deploying) {
-      this.fireMat.opacity = 0.6 + Math.random() * 0.35;
-      this.fire.scale.set(0.8 + Math.random() * 0.5, 1, 1);
+    // The gale: the wind sheath shimmers around the dragon while it's riding it.
+    this.gale.visible = this.tuck > 0.05;
+    if (this.gale.visible) {
+      this.galeMat.opacity = this.tuck * (0.22 + Math.sin(time * 31) * 0.06 + Math.random() * 0.05);
+      this.gale.scale.set(0.95 + Math.random() * 0.1, 1, 1);
     }
+    this.body.rotation.z -= 0.08 * this.tuck;   // nose down a touch into the dive
     // The shadow fades and spreads with height.
     const up = c.alt;
     (this.shadow.material as THREE.MeshBasicMaterial).opacity = clamp(0.5 - up / 300, 0.12, 0.5);
