@@ -138,7 +138,7 @@ export class LobbyUI {
     const meName = mine?.name;
     const rows = [...(lobby.board ?? [])].sort((a, b) => b.points - a.points || b.wins - a.wins || a.best - b.best);
     const board = rows.length ? `<div class="ol-label">SESSION LEADERBOARD</div>
-      <table class="ol-board"><thead><tr><th></th><th>PLAYER</th><th>RACES</th><th>WINS</th><th>PODIUMS</th><th>PTS</th><th>BEST LAP</th></tr></thead><tbody>
+      <table class="ol-board"><thead><tr><th></th><th>PLAYER</th><th>RACES</th><th>WINS</th><th>TOP 3</th><th>GLORY</th><th>BEST LAP</th></tr></thead><tbody>
       ${rows.map((r, i) => `<tr class="${r.name === meName ? 'me' : ''}"><td class="${i === 0 ? 'lead' : ''}">${i + 1}</td><td>${esc(r.name)}</td>
         <td>${r.races}</td><td>${r.wins}</td><td>${r.podiums}</td><td class="${i === 0 ? 'lead' : ''}">${r.points}</td><td>${r.best ? lapTime(r.best) : '-'}</td></tr>`).join('')}
       </tbody></table>` : '';
@@ -164,7 +164,7 @@ export class LobbyUI {
             <div class="ol-row" style="margin:0 0 4px;gap:22px">
               <div><div class="ol-label">MODE</div><div class="hr-seg" data-seg="mode">
                 <button data-v="1" class="${lobby.races === 1 ? 'on' : ''}" ${isHost ? '' : 'disabled'}>SINGLE RACE</button>
-                <button data-v="season" class="${lobby.races > 1 ? 'on' : ''}" ${isHost ? '' : 'disabled'}>SEASON</button></div></div>
+                <button data-v="season" class="${lobby.races > 1 ? 'on' : ''}" ${isHost ? '' : 'disabled'}>SAGA</button></div></div>
               ${lobby.races > 1 ? `<div><div class="ol-label">RACES</div>${seg('races', SEASON_CHOICES, lobby.races)}</div>` : ''}
             </div>
             <div class="ol-label">${lobby.races > 1 ? 'OPENING TRACK' : 'TRACK'}${isHost ? '' : ' (HOST PICKS)'}</div>

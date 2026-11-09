@@ -232,16 +232,29 @@ export class Craft {
 
     // Thrust while the throttle is held. Lower gears pull at full strength right up to the
     // shift point; only the top gear fades out as it nears top speed.
+    // Skyfold: dragons have no gearbox. Pull follows one smooth curve through the same points the
+    // old gears did (strong off the line, easing as speed builds, fading out at top speed), so the
+    // pace is unchanged but there are no steps and no shift dips.
     this.thrust = 0;
     const accelerating = throttle && !brake;
     if (accelerating) {
-      const top = this.gear === GEARS.length - 1;
-      const pull = top ? Math.sqrt(clamp(1 - fwd / gear.top, 0, 1)) : fwd < gear.top ? 1 : 0;
-      const engaging = (this.shiftPause > 0 ? SHIFT_PULL : 1) * (this.stall > 0 ? 0 : this.launch > 0 ? LAUNCH_PULL : 1) * (this.pad > 0 ? PAD_PULL : 1)
+      const v = Math.max(0, fwd) / tow, last = GEARS.length - 1;
+      let accel = GEARS[0].accel;
+      for (let i = 0; i < last; i++) {
+        if (v > GEARS[i].top) {
+          const t = clamp((v - GEARS[i].top) / (GEARS[i + 1].top - GEARS[i].top), 0, 1);
+          accel = lerp(GEARS[i].accel, GEARS[i + 1].accel, t);
+        }
+      }
+      // Fade smoothly to nothing over the last stretch before top speed (no sudden drop).
+      const fadeFrom = GEARS[last - 2].top, topV = GEARS[last].top;
+      const pull = v > fadeFrom ? Math.sqrt(clamp((topV - v) / (topV - fadeFrom), 0, 1)) : 1;
+      const engaging = (this.stall > 0 ? 0 : this.launch > 0 ? LAUNCH_PULL : 1) * (this.pad > 0 ? PAD_PULL : 1)
         * (this.deploying ? 1 + (ERS_PULL - 1) * (1 + this.mods.ers) : 1) * (1 + this.mods.accel);
       this.thrust = pull * engaging;
-      fwd += engaging * gear.accel * pull * dt;
+      fwd += engaging * accel * tow * pull * dt;
     }
+    void gear; void SHIFT_PULL;
     // Above the top gear's speed (e.g. after a downhill bump) it slowly settles back.
     const vmax = GEARS[GEARS.length - 1].top * tow;
     if (fwd > vmax) fwd -= (fwd - vmax) * 0.8 * dt;

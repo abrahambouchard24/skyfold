@@ -92,7 +92,7 @@ export class GarageUI {
           <div class="gr-sub deco-label">YOUR ONLINE RECORD</div>
           <div class="gr-rec">
             <div><b>${o.races}</b><small>RACES</small></div><div><b>${o.wins}</b><small>WINS</small></div>
-            <div><b>${o.podiums}</b><small>PODIUMS</small></div><div><b>${o.best ? ordinal(o.best) : '-'}</b><small>BEST FINISH</small></div>
+            <div><b>${o.podiums}</b><small>TOP THREE</small></div><div><b>${o.best ? ordinal(o.best) : '-'}</b><small>BEST FINISH</small></div>
           </div>
           <div class="hr-btns row" style="margin-top:20px"><button class="hr-btn" data-done>DONE</button></div>
         </div>`;

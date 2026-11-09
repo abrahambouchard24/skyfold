@@ -580,7 +580,7 @@ function drawGapPanel(ctx: CanvasRenderingContext2D, hud: RaceHud): void {
     ctx.fillText(r.name, x + 70, ry);
     ctx.font = '700 15px ui-monospace, Consolas, monospace';
     // Within a second of the car ahead: green, you can get DRS on it.
-    ctx.fillStyle = r.label === 'AHEAD' && r.gap < 1 ? '#4dff9a' : r.label === 'BEHIND' && r.gap < 1 ? '#ffb02e' : '#fff';
+    ctx.fillStyle = r.label === 'AHEAD' && r.gap < 1 ? '#8fd0e0' : r.label === 'BEHIND' && r.gap < 1 ? '#d9822b' : '#f1e6d0';
     ctx.textAlign = 'right';
     ctx.fillText(r.text, x + 204, ry);
   });
@@ -608,7 +608,7 @@ function drawLapPanel(ctx: CanvasRenderingContext2D, race: RaceState, now: numbe
   ctx.fillStyle = '#a89d8a';
   ctx.fillText(`/${hud.racers}`, x + 204, y + 46);
   if (hud.catchUp > 0) {
-    ctx.fillStyle = '#4dff9a';
+    ctx.fillStyle = '#e3b26c';
     ctx.fillText(`+${Math.round(hud.catchUp * 100)}% FURY`, x + 204, y + 110);
   }
   ctx.textAlign = 'left';
@@ -684,7 +684,7 @@ function drawRaceBanners(ctx: CanvasRenderingContext2D, w: number, h: number, hu
   ctx.textAlign = 'center';
   if (hud.countdown) {
     ctx.font = '900 96px system-ui, sans-serif';
-    ctx.fillStyle = hud.countdown === 'GO' ? '#4dff9a' : '#ffffff';
+    ctx.fillStyle = hud.countdown === 'GO' ? '#e3b26c' : '#f1e6d0';
     ctx.shadowColor = 'rgba(0,0,0,0.6)';
     ctx.shadowBlur = 16;
     ctx.fillText(hud.countdown, w / 2, h * 0.38);
@@ -887,7 +887,7 @@ function drawVignette(ctx: CanvasRenderingContext2D, w: number, h: number): void
   ctx.drawImage(vignette.c, 0, 0, w, h);
 }
 
-const DRS_GLOW = '#4dff9a';
+const DRS_GLOW = '#8fd0e0';
 const ERS_GLOW = '#b86bff';
 /** The battery counts as full from here (it charges in small steps). */
 const ENERGY_FULL = 0.995;
@@ -1052,7 +1052,7 @@ function drawHud(ctx: CanvasRenderingContext2D, w: number, h: number, c: Craft, 
     ctx.save();
     roundRect(ctx, bx0, by0, 46, 20, 5);
     if (c.drsOpen) {
-      ctx.fillStyle = '#4dff9a';
+      ctx.fillStyle = '#8fd0e0';
       ctx.fill();
     } else {
       ctx.strokeStyle = 'rgba(138, 147, 192, 0.6)';
@@ -1081,10 +1081,10 @@ function drawHud(ctx: CanvasRenderingContext2D, w: number, h: number, c: Craft, 
   ctx.fillRect(bx, by, bw * sf, bh);
 
   // Heat meter: green while cool, orange once it's costing speed, flashing red when overheated.
-  const heatColor = c.overheated ? '#ff3d3d' : c.heat > 0.6 ? '#ffb02e' : '#4dff9a';
+  const heatColor = c.overheated ? '#b8452f' : c.heat > 0.6 ? '#d9822b' : '#7f9a5a';
   ctx.font = '700 11px system-ui, sans-serif';
   ctx.fillStyle = c.overheated ? heatColor : '#a89d8a';
-  ctx.fillStyle = c.cooling ? '#8feaff' : ctx.fillStyle;
+  ctx.fillStyle = c.cooling ? '#8fd0e0' : ctx.fillStyle;
   ctx.fillText(c.cooling ? 'COOLING' : c.overheated ? 'OVERHEAT' : 'HEAT', bx, y + 116);
   ctx.fillStyle = '#3a2e24';
   ctx.fillRect(bx + 80, y + 108, bw - 80, 6);
@@ -1095,11 +1095,11 @@ function drawHud(ctx: CanvasRenderingContext2D, w: number, h: number, c: Craft, 
 
   // ERS energy: violet, brighter while deploying.
   ctx.font = '700 11px system-ui, sans-serif';
-  ctx.fillStyle = c.deploying ? '#d9a6ff' : '#a89d8a';
+  ctx.fillStyle = c.deploying ? '#ffb06a' : '#a89d8a';
   ctx.fillText(c.deploying ? 'BREATHING FIRE' : 'FIRE (W)', bx, y + 136);
   ctx.fillStyle = '#3a2e24';
   ctx.fillRect(bx + 80, y + 128, bw - 80, 6);
-  ctx.fillStyle = c.deploying ? '#d9a6ff' : '#9d5cff';
+  ctx.fillStyle = c.deploying ? '#ffb06a' : '#d9682a';
   if (c.energy >= ENERGY_FULL) {
     // Full battery: the bar flickers with charge and a spark jumps along it.
     const flicker = Math.random();
@@ -1119,11 +1119,11 @@ function drawHud(ctx: CanvasRenderingContext2D, w: number, h: number, c: Craft, 
   if (c.slipstream > 0.05) {
     ctx.globalAlpha = clamp(c.slipstream * 2, 0, 1);
     ctx.font = '700 11px system-ui, sans-serif';
-    ctx.fillStyle = '#dff4ff';
+    ctx.fillStyle = '#c4ecf5';
     ctx.fillText('IN THE WAKE', bx, y + 156);
     ctx.fillStyle = '#3a2e24';
     ctx.fillRect(bx + 80, y + 148, bw - 80, 6);
-    ctx.fillStyle = '#dff4ff';
+    ctx.fillStyle = '#c4ecf5';
     ctx.fillRect(bx + 80, y + 148, (bw - 80) * c.slipstream, 6);
     ctx.globalAlpha = 1;
   }

@@ -16,7 +16,8 @@ import * as LIVERIES_MOD from './liveries';
 const WALL_H = 24;            // barrier height
 const KERB_CURVE = 1 / 900;   // corners tighter than this get kerbs (as in render.ts)
 const ENERGY_FULL = 0.995;
-const DRS_GLOW = 0x4dff9a, ERS_GLOW = 0xb86bff;
+// Tailwind shows as frost, fire (the old boost) as ember: Norse colours, not neon.
+const DRS_GLOW = 0x8fd0e0, ERS_GLOW = 0xff8a3d;
 
 /**
  * Each realm's atmosphere: time of day, sky, haze, light, the timber or stone of its barriers and
@@ -630,7 +631,7 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
     for (const [i, start] of [[z.from, true], [z.to, false]] as const) {
       const p = pts[i];
       const line = new THREE.Mesh(new THREE.PlaneGeometry(start ? 5 : 3, track.outer[i] * 2 - 12).rotateX(-Math.PI / 2),
-        basic({ map: tex(canvas2d(4, 64, (g) => { for (let k = 0; k < 64; k += 11) { g.fillStyle = '#4dff9a'; g.fillRect(0, k, 4, 6); } }), false),
+        basic({ map: tex(canvas2d(4, 64, (g) => { for (let k = 0; k < 64; k += 11) { g.fillStyle = '#8fd0e0'; g.fillRect(0, k, 4, 6); } }), false),
           transparent: true, opacity: start ? 0.9 : 0.4, depthWrite: false }));
       line.position.set(p.x, 0.9, p.y);
       line.rotation.y = -track.direction(i);
@@ -2607,7 +2608,7 @@ class Slipstreams {
           this.mesh.setMatrixAt(n, this.m4);
           // Fade in off our nose and out into the leader's wake.
           const fade = Math.min(1, t * 6) * Math.min(1, (1 - t) * 4);
-          this.col.setHSL(car.hue / 360, 1, 0.72).multiplyScalar(strength * fade);
+          this.col.setHSL(car.hue / 360, 0.3, 0.82).multiplyScalar(strength * fade);   // pale wind streaks
           this.mesh.setColorAt(n, this.col);
           n++;
         }
@@ -2646,7 +2647,7 @@ class Sparks {
       const p = list[i];
       const fade = Math.max(0, p.life / p.max);
       this.pos[i * 3] = p.x; this.pos[i * 3 + 1] = 4 + (1 - fade) * 6; this.pos[i * 3 + 2] = p.y;
-      this.c.setHSL(p.hue / 360, 1, 0.6).multiplyScalar(fade);
+      this.c.setHSL(p.hue / 360, 0.45, 0.66).multiplyScalar(fade);   // muted, like sparks and mist, not neon
       this.col[i * 3] = this.c.r; this.col[i * 3 + 1] = this.c.g; this.col[i * 3 + 2] = this.c.b;
     }
     this.geo.setDrawRange(0, n);

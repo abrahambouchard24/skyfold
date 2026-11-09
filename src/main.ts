@@ -212,7 +212,7 @@ function openDaily(): void {
       playerLivery = d.car;
       raceLaps = d.laps;
       startRound(d.track);
-      showToast('DAILY CHALLENGE', '#e8c25a');
+      showToast('DAILY CHALLENGE', '#e3b26c');
     },
     back() { menus.showFront(); },
     tune() { tuneUI.open(carSetup, carPicture(d.car, true), (s) => { carSetup = s; saveSetup(s); }, () => {}); },
@@ -614,7 +614,7 @@ function loadMission(i: number): void {
 function storyRace(i: number): void {
   loadMission(i);
   startRound(trackIndex);
-  showToast(MISSIONS[i].title, '#ff3d6e');
+  showToast(MISSIONS[i].title, '#b8452f');
 }
 
 const storyUI = new StoryUI({
@@ -686,7 +686,7 @@ function startRound(index: number): void {
   track = tracks[trackIndex];
   startRace();
   play();
-  if (season) showToast(`RACE ${season.round + 1} OF ${season.races}  ·  ${TRACKS[trackIndex].name}`, '#ffd23f');
+  if (season) showToast(`RACE ${season.round + 1} OF ${season.races}  ·  ${TRACKS[trackIndex].name}`, '#e3b26c');
 }
 
 function play(): void {
@@ -951,7 +951,7 @@ function update(dt: number): void {
       finishOrder.push(car);
       finishTimes.set(car, time - goTime);
       if (car === player) {
-        showToast(`FINISHED ${ordinal(finishOrder.length)}`, '#ffd23f');
+        showToast(`FINISHED ${ordinal(finishOrder.length)}`, '#e3b26c');
         sound.crowd(finishOrder.length === 1);
         sound.chime(true);
         if (!online && !tutorial) {
@@ -1140,12 +1140,12 @@ function resultsView(): ResultsView {
   const champ = standings[0];
   const nextTrack = TRACKS[(season.openingTrack + season.round + 1) % tracks.length].name;
   return {
-    title: last ? 'SEASON FINAL' : `RACE ${season.round + 1} OF ${season.races}`,
+    title: last ? 'THE SAGA ENDS' : `RACE ${season.round + 1} OF ${season.races}`,
     subtitle, rows, standings,
     note: last && settled ? (champ.player ? 'YOU ARE THE CHAMPION!' : `${champ.name} WINS THE SEASON`) : undefined,
     buttons: last
-      ? [{ act: 'newseason', label: 'NEW SEASON', primary: true }, { act: online ? 'lobby' : 'change', label: online ? 'BACK TO LOBBY' : 'MAIN MENU' }]
-      : [{ act: 'next', label: `NEXT: ${nextTrack}`, primary: true }, { act: online ? 'lobby' : 'change', label: online ? 'BACK TO LOBBY' : 'QUIT SEASON' }],
+      ? [{ act: 'newseason', label: 'NEW SAGA', primary: true }, { act: online ? 'lobby' : 'change', label: online ? 'BACK TO LOBBY' : 'MAIN MENU' }]
+      : [{ act: 'next', label: `NEXT: ${nextTrack}`, primary: true }, { act: online ? 'lobby' : 'change', label: online ? 'BACK TO LOBBY' : 'QUIT SAGA' }],
   };
 }
 
@@ -1187,7 +1187,7 @@ function updateDrs(ranked: Car[], racing: boolean): void {
       const gap = ahead ? car.race.gapBehind(ahead.race, track, time) : NaN;
       st.earned = zone >= 0 && drsAllowed(car) && !finishOrder.includes(car) && gap < DRS_GAP;
       st.zone = zone;
-      if (st.earned && car === player) showToast('TAILWIND', '#4dff9a');
+      if (st.earned && car === player) showToast('TAILWIND', '#8fd0e0');
     }
     if (car.craft.braking) st.earned = false;
     car.craft.drsOpen = st.earned && zone >= 0;
@@ -1277,11 +1277,11 @@ function judgeLaunches(racing: boolean): void {
         launchJudged = true;
         if (result === 'perfect') {
           player.craft.launch = LAUNCH_TIME;
-          showToast('PERFECT START!', '#4dff9a');
+          showToast('PERFECT LEAP!', '#e3b26c');
           achievements.unlock('perfect-launch');
         } else if (result === 'stall') {
           player.craft.stall = STALL_TIME;
-          showToast('JUMP START - STALLED', '#ffb02e');
+          showToast('TOO EARLY - YOUR DRAGON BALKS', '#d9822b');
         }
       }
     }
@@ -1383,7 +1383,7 @@ function emitTrail(craft: Craft, baseHue: number, span = 64): void {
   const slip = Math.abs(craft.slip);
   if (Math.random() > 0.35 + clamp(slip / 0.5, 0, 0.65)) return;
   const fx = Math.cos(craft.heading), fy = Math.sin(craft.heading);
-  const hue = lerp(baseHue, 190, 0.5);
+  const hue = lerp(baseHue, 40, 0.5);   // warm mist off the wingtips
   for (const side of [-span * 0.95, span * 0.95]) {
     const x = craft.pos.x - fx * 12 - fy * side;
     const y = craft.pos.y - fy * 12 + fx * side;
@@ -1525,7 +1525,7 @@ function startJoining(code: string, name: string): void {
     } else if (m.t === 'start') {
       guestStart(m.track, m.laps, m.entrants);
       hostResults = null;
-      if (m.title) showToast(m.title, '#ffd23f');
+      if (m.title) showToast(m.title, '#e3b26c');
     } else if (m.t === 'snap') {
       const g = online;
       g.snaps.push(m);
@@ -1633,7 +1633,7 @@ function onlineRound(trackNo: number): void {
   online.host.send({ t: 'start', track: trackIndex, laps: laps(), entrants, title });
   lobbyUI.hide();
   play();
-  if (title) showToast(title, '#ffd23f');
+  if (title) showToast(title, '#e3b26c');
 }
 
 /** Host: everyone back to the lobby. */
@@ -1849,7 +1849,7 @@ function guestFrame(dt: number): void {
   // Our finish: the results table a moment later (kept up to date while the others finish).
   if (finishOrder.includes(player) && !g.finishedAt) {
     g.finishedAt = time;
-    showToast(`FINISHED ${ordinal(finishOrder.indexOf(player) + 1)}`, '#ffd23f');
+    showToast(`FINISHED ${ordinal(finishOrder.indexOf(player) + 1)}`, '#e3b26c');
     sound.chime(true);
   }
   if (g.finishedAt && time >= g.finishedAt + RESULTS_DELAY) {

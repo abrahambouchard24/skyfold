@@ -759,7 +759,7 @@ export class Menus {
 
   /** In a season the pause menu's way out quits the season rather than just changing car. */
   setSeason(on: boolean): void {
-    this.pause.querySelector('[data-act="change"]')!.textContent = on ? 'QUIT SEASON' : 'CHANGE DRAGON';
+    this.pause.querySelector('[data-act="change"]')!.textContent = on ? 'QUIT SAGA' : 'CHANGE DRAGON';
   }
 
   /** Show the results screen, or refresh it while the rest of the field is still finishing. */
@@ -775,9 +775,9 @@ export class Menus {
         ${season ? `<td class="num pts">${r.points ? `+${r.points}` : ''}</td>` : ''}
       </tr>`).join('');
     const standings = v.standings ? `
-      <p class="hr-standings-head">SEASON STANDINGS</p>
+      <p class="hr-standings-head">THE SAGA SO FAR</p>
       <table class="hr-results">
-        <thead><tr><th></th><th>CAR</th><th class="num">THIS RACE</th><th class="num">POINTS</th></tr></thead>
+        <thead><tr><th></th><th>DRAGON</th><th class="num">THIS RACE</th><th class="num">GLORY</th></tr></thead>
         <tbody>${v.standings.map((s, i) => `
           <tr class="${s.player ? 'me' : ''}">
             <td class="pos">${i + 1}</td>
@@ -790,7 +790,7 @@ export class Menus {
       <h2 class="hr-h2">${v.title}</h2>
       <p class="hr-results-track">${v.subtitle}</p>
       <table class="hr-results">
-        <thead><tr><th></th><th>CAR</th><th class="num">TIME</th><th class="num">GAP</th><th class="num">BEST LAP</th>${season ? '<th class="num">PTS</th>' : ''}</tr></thead>
+        <thead><tr><th></th><th>DRAGON</th><th class="num">TIME</th><th class="num">GAP</th><th class="num">BEST LAP</th>${season ? '<th class="num">GLORY</th>' : ''}</tr></thead>
         <tbody>${raceRows}</tbody>
       </table>
       ${standings}

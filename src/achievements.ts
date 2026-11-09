@@ -43,7 +43,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'grand-tour', name: 'GRAND TOUR', desc: 'Finish a race on 8 different tracks', skin: 'prism', goal: 8 },
   { id: 'grand-slam', name: 'GRAND SLAM', desc: 'Win on 4 different tracks', skin: 'chrome', goal: 4 },
   { id: 'record-breaker', name: 'RECORD BREAKER', desc: 'Set a lap record on 3 tracks', skin: 'ice', goal: 3 },
-  { id: 'champion', name: 'CHAMPION', desc: 'Win a season', skin: 'royal' },
+  { id: 'champion', name: 'CHAMPION', desc: 'Win a saga', skin: 'royal' },
   { id: 'online-debut', name: 'ONLINE DEBUT', desc: 'Finish an online race', skin: 'neonnet' },
   { id: 'online-victor', name: 'ONLINE VICTOR', desc: 'Win an online race', skin: 'carbon' },
   { id: 'sky-high', name: 'SKY HIGH', desc: 'Take every jump in a sprint', skin: 'valkyrie' },
