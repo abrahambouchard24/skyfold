@@ -1143,9 +1143,23 @@ function drawHud(ctx: CanvasRenderingContext2D, w: number, h: number, c: Craft, 
   // ERS energy: violet, brighter while deploying.
   ctx.font = '700 11px system-ui, sans-serif';
   ctx.fillStyle = c.deploying ? '#e6f4f8' : '#a89d8a';
-  ctx.fillText(c.deploying ? 'RIDING THE GALE' : 'GALE (W)', bx, y + 136);
+  // While carving hard (and not riding the gale), the label says so and the bar glows as it fills.
+  const carve = c.deploying ? 0 : c.carving;
+  if (carve > 0.08) {
+    ctx.fillStyle = `rgba(196, 236, 245, ${0.55 + 0.45 * carve})`;
+    ctx.fillText('CARVING', bx, y + 136);
+  } else ctx.fillText(c.deploying ? 'RIDING THE GALE' : 'GALE (W)', bx, y + 136);
   ctx.fillStyle = '#3a2e24';
   ctx.fillRect(bx + 80, y + 128, bw - 80, 6);
+  if (carve > 0.08) {
+    ctx.save();
+    ctx.shadowColor = 'rgba(196, 236, 245, 0.9)';
+    ctx.shadowBlur = 10 * carve;
+    ctx.strokeStyle = `rgba(196, 236, 245, ${0.35 * carve})`;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(bx + 79, y + 127, bw - 78, 8);
+    ctx.restore();
+  }
   ctx.fillStyle = c.deploying ? '#e6f4f8' : '#b8d4dc';
   if (c.energy >= ENERGY_FULL) {
     // Full battery: the bar flickers with charge and a spark jumps along it.

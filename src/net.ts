@@ -38,7 +38,7 @@ export interface NetEntrant { name: string; livery: number; peer: string | null;
 export interface CarSnap {
   x: number; y: number; h: number; vx: number; vy: number;
   gear: number; rev: number; thrust: number; heat: number; over: boolean; energy: number; dep: boolean;
-  slip: number; drs: boolean; cool: boolean; drift: boolean;
+  slip: number; drs: boolean; cool: boolean; carve: number;
   /** Height above the ground (sprint jumps); missing from older hosts = 0. */
   alt?: number;
   lap: number; idx: number; next: number; lapStart: number; last: number; best: number;

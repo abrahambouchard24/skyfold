@@ -102,7 +102,7 @@ function openSettings(): void {
 const achievements = new Achievements();
 const garageUI = new GarageUI();
 achievements.onUnlock = (a) => { garageUI.notify(a); refreshSkinCards(); };
-/** Per race: did the player touch a wall, and how much battery did drifting charge. */
+/** Per race: did the player touch a wall, and the most gale gathered in a lap. */
 let touchedWall = false;
 let driftCharge = 0;
 /** Jumps the player has landed this race (a sprint: SKY HIGH needs every one). */
@@ -1725,7 +1725,7 @@ function snapshot(): Snapshot {
       x: r1(c.craft.pos.x), y: r1(c.craft.pos.y), h: r3(c.craft.heading), vx: r1(c.craft.vel.x), vy: r1(c.craft.vel.y),
       gear: c.craft.gear, rev: 0, thrust: r3(c.craft.thrust), heat: r3(c.craft.heat), over: c.craft.overheated,
       energy: r3(c.craft.energy), dep: c.craft.deploying, slip: r3(c.craft.slipstream), drs: c.craft.drsOpen,
-      cool: c.craft.cooling, drift: c.craft.drifting, alt: r1(c.craft.alt),
+      cool: c.craft.cooling, carve: Math.round(c.craft.carving * 100) / 100, alt: r1(c.craft.alt),
       lap: c.race.lap, idx: c.race.index, next: c.race.nextSector, lapStart: r3(c.race.lapStart), last: r3(c.race.lastLap), best: r3(c.race.bestLap),
     })),
     finish: finishOrder.map((c) => cars.indexOf(c)),
@@ -1907,7 +1907,7 @@ function applySnap(car: Car, a: CarSnap, b: CarSnap, t: number, raceOnly = false
   c.vel.y = lerp(a.vy, b.vy, t);
   c.alt = lerp(a.alt ?? 0, b.alt ?? 0, t);
   c.gear = b.gear; c.thrust = b.thrust; c.heat = b.heat; c.overheated = b.over; c.energy = b.energy;
-  c.deploying = b.dep; c.slipstream = b.slip; c.drsOpen = b.drs; c.cooling = b.cool; c.drifting = b.drift;
+  c.deploying = b.dep; c.slipstream = b.slip; c.drsOpen = b.drs; c.cooling = b.cool; c.carving = b.carve ?? 0;
   r.lap = b.lap; r.index = b.idx; r.nextSector = b.next; r.lapStart = b.lapStart; r.lastLap = b.last; r.bestLap = b.best;
 }
 
