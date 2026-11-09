@@ -1,19 +1,21 @@
-// Flock Raid: a free-flight game on a village green. Each dragon has a timber pen at the edge of
-// the green. Sheep graze in the middle and stand on the ridges of the longhouses dotted about it.
+// Flock Raid: a free-flight game on a village green with one big fold in the middle that every
+// dragon fills; each sheep is credited to the dragon that brought it in. Sheep graze out toward the
+// fence and stand on the ridges of the longhouses dotted about the green.
 // A dragon snatches a sheep by flying over it slowly (its claws hold two, and carrying slows it),
 // rides up over a longhouse roof to lift the ones standing there, herds sheep by sweeping past them
-// (they scatter away, and any that wander through a pen's gate count for that pen), and scores
-// every sheep that ends up in its own pen. Thieves: a hard bump shakes a carried sheep loose, and a
+// (they scatter away; one that runs into the fold counts for the dragon that last scared it), and
+// scores every sheep it brings into the fold. Thieves: a hard bump shakes a carried sheep loose, and a
 // dragon that tails a carrier closely for a moment plucks one of its sheep away.
 // Three rounds, each closed by a horn and a short lull. In the last round the bellwether comes out:
-// a big belled ram leading a flock. Pen the bellwether and its whole flock streams after it.
+// a big belled ram leading a flock. Fold the bellwether and its whole flock streams in after it,
+// every one of them credited to you.
 // Pure game logic, like craft.ts: no DOM, no drawing.
 
 import { Craft, clamp, collideCrafts, wrapAngle } from './craft';
 
 export const ARENA_R = 2600;          // the green's fence (px from the centre)
-export const PEN_RING = 2150;         // pens sit on this circle
-export const PEN_R = 200;             // a pen's radius: a sheep inside it is penned
+export const START_RING = 2150;       // dragons start round this circle, facing the fold
+export const PEN_R = 280;             // the fold's radius (it sits in the middle of the green)
 export const ROUNDS = 3;
 export const ROUND_TIME = 50;         // seconds of raiding per round
 export const LULL = 4;                // seconds between rounds (after the horn)
@@ -57,8 +59,10 @@ export interface Sheep {
   bell?: boolean;
   /** Following the bellwether (its id), or -1. */
   follows: number;
-  /** A follower streaming home after its penned bellwether: the pen it's heading for, or -1. */
+  /** A follower streaming into the fold after its bellwether: the dragon it's credited to, or -1. */
   homing: number;
+  /** The dragon that last scared it, and when (for crediting a sheep herded into the fold). */
+  scarer: number; scaredAt: number;
 }
 
 export interface Pen { x: number; y: number; angle: number }
@@ -76,6 +80,7 @@ export interface FlockDragon {
 export interface FlockEvents {
   snatch?(d: number, roof: boolean): void;
   deliver?(d: number, n: number): void;
+  /** A sheep ran into the fold; `d` is the dragon credited (-1 for nobody). */
   herded?(d: number): void;
   knock?(d: number): void;
   steal?(thief: number, victim: number): void;
@@ -94,7 +99,8 @@ function rng(seed: number): () => number {
 export class FlockGame {
   dragons: FlockDragon[] = [];
   sheep: Sheep[] = [];
-  pens: Pen[] = [];
+  /** The fold everyone fills, in the middle of the green. */
+  readonly pen: Pen = { x: 0, y: 0, angle: 0 };
   houses: House[] = [];
   /** Seconds since the countdown began. */
   time = 0;
@@ -117,18 +123,16 @@ export class FlockGame {
     this.rand = rng(seed);
     const n = entrants.length;
     entrants.forEach((e, i) => {
-      // Pens evenly round the green, the player's (entrant 0) first.
+      // Dragons start evenly round the green, facing the fold (the player, entrant 0, first).
       const a = Math.PI / 2 + (i / n) * Math.PI * 2;
-      this.pens.push({ x: Math.cos(a) * PEN_RING, y: Math.sin(a) * PEN_RING, angle: a });
-      // Each dragon starts just inside its pen, facing the middle.
       const c = e.craft;
-      c.pos = { x: Math.cos(a) * (PEN_RING - 320), y: Math.sin(a) * (PEN_RING - 320) };
+      c.pos = { x: Math.cos(a) * START_RING, y: Math.sin(a) * START_RING };
       c.vel = { x: 0, y: 0 };
       c.heading = a + Math.PI;
       c.energy = 0.5;
       this.dragons.push({ craft: c, name: e.name, color: e.color, carrying: [], score: 0, ai: e.skill === null ? null : new FlockAI(e.skill, i) });
     });
-    // Longhouses on the green, between the pens' runs, each turned its own way.
+    // Longhouses on the green, between the dragons' starting runs, each turned its own way.
     for (let k = 0; k < n; k++) {
       const a = Math.PI / 2 + ((k + 0.5) / n) * Math.PI * 2, r = 1250 + (k % 2) * 250;
       this.houses.push({ x: Math.cos(a) * r, y: Math.sin(a) * r, angle: a + Math.PI / 2 + (k % 2 ? 0.5 : -0.4), ...HOUSE });
@@ -148,7 +152,7 @@ export class FlockGame {
   private layOut(): void {
     const field = this.sheep.filter((s) => s.state === 'graze' && s.follows < 0 && !s.bell).length;
     for (let k = field; k < FIELD_SHEEP; k++) {
-      const clump = Math.floor(k / 3), ca = clump * 2.1 + 0.4 + this.round, cr = 300 + (clump % 3) * 380;
+      const clump = Math.floor(k / 3), ca = clump * 2.1 + 0.4 + this.round, cr = 950 + (clump % 3) * 450;
       this.spawn(Math.cos(ca) * cr + (this.rand() - 0.5) * 160, Math.sin(ca) * cr + (this.rand() - 0.5) * 160);
     }
     for (const h of this.houses) {
@@ -164,7 +168,7 @@ export class FlockGame {
 
   private spawn(x: number, y: number): Sheep {
     const s: Sheep = { id: this.nextId++, x, y, vx: 0, vy: 0, heading: this.rand() * Math.PI * 2, alt: 0, vAlt: 0,
-      state: 'graze', owner: -1, tx: x, ty: y, next: this.rand() * 3, fear: 0, follows: -1, homing: -1 };
+      state: 'graze', owner: -1, tx: x, ty: y, next: this.rand() * 3, fear: 0, follows: -1, homing: -1, scarer: -1, scaredAt: -99 };
     this.sheep.push(s);
     return s;
   }
@@ -172,7 +176,7 @@ export class FlockGame {
   /** The bellwether walks out onto the green with its flock behind it. */
   private releaseBellwether(): void {
     const a = this.rand() * Math.PI * 2;
-    const ram = this.spawn(Math.cos(a) * 200, Math.sin(a) * 200);
+    const ram = this.spawn(Math.cos(a) * 1800, Math.sin(a) * 1800);
     ram.bell = true;
     this.bellwether = ram.id;
     for (let k = 0; k < BELL_FLOCK; k++) {
@@ -263,9 +267,9 @@ export class FlockGame {
     }
     // Sheep.
     for (const s of this.sheep) this.moveSheep(s, dt);
-    // New sheep wander in from the middle while the green runs low (not in the last 10 s of a round).
+    // New sheep wander in at the fence while the green runs low (not in the last 10 s of a round).
     if (live && this.roundLeft > 10 && this.loose < FIELD_MIN && this.rand() < dt * 1.5) {
-      const a = this.rand() * Math.PI * 2, r = this.rand() * 500;
+      const a = this.rand() * Math.PI * 2, r = ARENA_R - 200 - this.rand() * 300;
       this.spawn(Math.cos(a) * r, Math.sin(a) * r);
     }
     this.dragons.forEach((d, i) => { d.score = this.sheep.filter((s) => s.state === 'penned' && s.owner === i).length; });
@@ -290,7 +294,7 @@ export class FlockGame {
           this.events.snatch?.(i, roof);
         }
       }
-      const pen = this.pens[i];
+      const pen = this.pen;
       if (d.carrying.length && Math.hypot(pen.x - c.pos.x, pen.y - c.pos.y) < PEN_R + 30) {
         const ids = d.carrying.filter((id) => id >= 0);
         for (const id of ids) this.penIn(this.byId(id)!, i);
@@ -346,15 +350,16 @@ export class FlockGame {
     if (id === undefined) return;
     if (id < 0) id = d.carrying.pop()!;   // the ram: both claws let go
     const s = this.byId(id)!;
-    s.state = 'falling'; s.owner = -1;
+    s.state = 'falling'; s.owner = -1; s.scarer = -1;
     s.x = d.craft.pos.x; s.y = d.craft.pos.y;
     s.vx = d.craft.vel.x * 0.35; s.vy = d.craft.vel.y * 0.35;
     s.alt = 18 + d.craft.alt; s.vAlt = 60;
     this.events.knock?.(i);
   }
 
+  /** Into the fold, credited to `owner` (-1: nobody brought it in). */
   private penIn(s: Sheep, owner: number): void {
-    const pen = this.pens[owner];
+    const pen = this.pen;
     s.state = 'penned'; s.owner = owner; s.homing = -1;
     const a = this.rand() * Math.PI * 2, r = this.rand() * (PEN_R - 50);
     s.x = pen.x + Math.cos(a) * r; s.y = pen.y + Math.sin(a) * r;
@@ -385,14 +390,13 @@ export class FlockGame {
         s.vx *= 0.3; s.vy *= 0.3;
         s.state = floor > 0 ? 'roof' : 'graze';
         s.alt = floor;
-        const pen = this.penAt(s.x, s.y);
-        if (pen >= 0) this.penIn(s, pen);
+        if (this.inFold(s.x, s.y)) this.penIn(s, this.credit(s));
       }
       return;
     }
     if (s.state === 'penned') {
-      // Mill about inside the pen.
-      const pen = this.pens[s.owner];
+      // Mill about inside the fold.
+      const pen = this.pen;
       s.next -= dt;
       if (s.next <= 0) {
         const a = this.rand() * Math.PI * 2, r = this.rand() * (PEN_R - 50);
@@ -403,7 +407,7 @@ export class FlockGame {
     }
     // A follower whose bellwether was penned trots straight to that pen.
     if (s.homing >= 0) {
-      const pen = this.pens[s.homing];
+      const pen = this.pen;
       this.amble(s, pen.x, pen.y, 150, dt);
       if (Math.hypot(pen.x - s.x, pen.y - s.y) < PEN_R - 30) this.penIn(s, s.homing);
       return;
@@ -411,13 +415,14 @@ export class FlockGame {
     // Grazing: amble between spots, drawn a little toward the other sheep (followers keep close to
     // their bellwether, wherever it is); scatter from dragons.
     let fx = 0, fy = 0, fear = 0;
-    for (const d of this.dragons) {
+    this.dragons.forEach((d, i) => {
       const dx = s.x - d.craft.pos.x, dy = s.y - d.craft.pos.y, dist = Math.hypot(dx, dy);
       if (dist < FLEE_R && dist > 1) {
         const k = (1 - dist / FLEE_R) * clamp(d.craft.speed / 300, 0.3, 1.4) * (s.bell ? 0.6 : 1);
-        fx += (dx / dist) * k; fy += (dy / dist) * k; fear = Math.max(fear, k);
+        fx += (dx / dist) * k; fy += (dy / dist) * k;
+        if (k > fear) { fear = k; s.scarer = i; s.scaredAt = this.time; }
       }
-    }
+    });
     s.fear += (Math.min(1, fear) - s.fear) * Math.min(1, dt * 4);
     const leader = s.follows >= 0 ? this.byId(s.follows) : undefined;
     if (fear > 0.05) {
@@ -467,9 +472,12 @@ export class FlockGame {
         s.y = h.y + Math.sin(h.angle) * a2 + Math.cos(h.angle) * c2;
       }
     }
-    // Herded into a pen: it belongs to that pen's dragon now (a bellwether brings its flock).
-    const pen = this.penAt(s.x, s.y);
-    if (pen >= 0) { this.penIn(s, pen); this.events.herded?.(pen); }
+    // Herded into the fold: credited to the dragon that drove it there (a bellwether brings its flock).
+    if (this.inFold(s.x, s.y)) {
+      const who = this.credit(s);
+      this.penIn(s, who);
+      this.events.herded?.(who);
+    }
   }
 
   private amble(s: Sheep, tx: number, ty: number, speed: number, dt: number): void {
@@ -481,10 +489,11 @@ export class FlockGame {
     if (Math.hypot(s.vx, s.vy) > 4) s.heading = Math.atan2(s.vy, s.vx);
   }
 
-  /** The pen a point is in, or -1. */
-  penAt(x: number, y: number): number {
-    return this.pens.findIndex((p) => Math.hypot(p.x - x, p.y - y) < PEN_R);
-  }
+  /** Whether a point is inside the fold. */
+  inFold(x: number, y: number): boolean { return Math.hypot(this.pen.x - x, this.pen.y - y) < PEN_R; }
+
+  /** Who gets a sheep that ran (or fell) into the fold: the dragon that scared it in the last 3 s. */
+  private credit(s: Sheep): number { return s.scarer >= 0 && this.time - s.scaredAt < 3 ? s.scarer : -1; }
 
   /** The bellwether while it's out and not yet penned, else null. */
   get ram(): Sheep | null {
@@ -512,7 +521,7 @@ export class FlockAI {
   constructor(public skill: number, private seed: number) {}
 
   think(g: FlockGame, me: number): { aim: number; brake: boolean; deploy: boolean } {
-    const d = g.dragons[me], c = d.craft, pen = g.pens[me];
+    const d = g.dragons[me], c = d.craft, pen = g.pen;
     const speed = c.speed;
     if (!g.live) {
       // The lull: circle easily, no hurry.

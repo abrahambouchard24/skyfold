@@ -108,12 +108,12 @@ export class FlockUI {
       <h2>Flock Raid</h2>
       <div class="sub">Three rounds · six dragons · one village green</div>
       <ul>
-        <li>Sheep graze on the green. <b>Snatch</b> one by flying low and slow over it: brake as you reach it. Your claws hold two.</li>
-        <li>Fly them to <b>your pen</b>, the one under your own banner. The arrow at the top points the way.</li>
+        <li>Sheep graze out on the green. <b>Snatch</b> one by flying low and slow over it: brake as you reach it. Your claws hold two.</li>
+        <li>Fly them into <b>the fold</b> in the middle of the green. Everyone fills the same fold, and every sheep counts for the dragon that brought it in. The arrow at the top points the way.</li>
         <li>Sheep stand on the <b>longhouse roofs</b> too: ride up over the roof slowly to lift them.</li>
-        <li>Sheep scatter from a dragon flying close: sweep behind a flock to <b>herd</b> it through any pen's gate, and it counts for that pen.</li>
+        <li>Sheep scatter from a dragon flying close: sweep behind a flock to <b>drive</b> it into the fold, and it counts for you.</li>
         <li><b>Thieves:</b> a hard bump shakes a carried sheep loose, and holding close behind a carrier plucks one of its sheep. Carrying slows you down.</li>
-        <li>Three rounds, each ended by a horn. In the last, the <b>bellwether</b> comes out with its flock: pen the belled ram and its whole flock follows it in.</li>
+        <li>Three rounds, each ended by a horn. In the last, the <b>bellwether</b> comes out with its flock: fold the belled ram and its whole flock follows it in, all of it yours.</li>
       </ul>
       <div class="fl-actions">
         <button class="hr-btn" data-fly data-default>FLY</button>
@@ -133,7 +133,7 @@ export class FlockUI {
     const title = me === 0 || rows[me].score === top ? (shared ? 'A shared win' : 'The flock is yours') : `${ordinal(me + 1)} place`;
     const table = rows.map((r, i) => `<div class="fl-row ${r.me ? 'me' : ''}"><span class="who">${ordinal(i + 1)} <i style="background:${r.color}"></i> ${r.name}</span><b>${r.score}</b></div>`).join('');
     this.hud.classList.add('hidden');
-    this.showCard(`<h2>${title}</h2><div class="sub">Sheep penned</div>${table}
+    this.showCard(`<h2>${title}</h2><div class="sub">Sheep brought in</div>${table}
       <div class="fl-actions" style="margin-top:18px"><button class="hr-btn" data-again data-default>RAID AGAIN</button><button class="hr-btn secondary" data-menu>MAIN MENU</button></div>`,
     { again: onAgain, menu: onMenu });
   }

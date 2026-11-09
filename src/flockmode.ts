@@ -74,7 +74,7 @@ export class FlockMode {
       roundOver: (round, final) => { if (!final) { s.roundHorn(false); this.ui.flash(`ROUND ${round} DONE`); } },
       bellwether: () => { s.bleat(0, 0.7); this.ui.flash('THE BELLWETHER IS OUT!'); },
       deliver: (d, n) => { if (d === 0) { s.chime(n > 1); this.ui.flash(`+${n} PENNED`); } },
-      herded: (d) => { if (d === 0) { s.chime(false); this.ui.flash('+1 HERDED IN'); } },
+      herded: (d) => { if (d === 0) { s.chime(false); this.ui.flash('+1 DRIVEN IN'); } },
       knock: (d) => { if (d === 0) { s.thud(220); this.ui.flash('SHAKEN LOOSE!'); } },
       wall: (d, impact) => { if (d === 0) s.thud(impact); },
     };
@@ -124,7 +124,7 @@ export class FlockMode {
     }
     // HUD.
     const rows: TallyRow[] = g.dragons.map((d, i) => ({ name: d.name, color: d.color, score: d.score, me: i === 0 }));
-    const pen = g.pens[0], pc = player.craft;
+    const pen = g.pen, pc = player.craft;
     const toPen = Math.atan2(pen.y - pc.pos.y, pen.x - pc.pos.x);
     const camH = this.view?.heading ?? pc.heading;
     const toGo = COUNTDOWN - g.time;

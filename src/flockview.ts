@@ -1,5 +1,5 @@
-// Flock Raid's 3D view: a village green ringed by a timber fence and standing stones, a timber
-// pen for each dragon at the edge with a banner in its colour, longhouses and birches beyond, and
+// Flock Raid's 3D view: a village green ringed by a timber fence and standing stones, the fold in
+// its middle with a pennant for every dragon, longhouses on the green, longhouses and birches beyond, and
 // folded-paper sheep grazing, fleeing, dangling from claws and milling in the pens. The dragons are
 // the race's own DragonRigs, and the camera chases the player's dragon like the race camera does.
 // It has its own renderer and canvas, shown only while a raid is on.
@@ -194,34 +194,33 @@ export class FlockView {
         rune.rotation.y = -a;
       }
     }
-    // The pens: a ring of hurdles with a gate toward the middle, hay inside, a banner in the
-    // dragon's colour on a tall pole, and a ring painted on the grass to fly for.
-    g.pens.forEach((p, i) => {
-      const color = new THREE.Color(g.dragons[i].color);
-      const gate = p.angle + Math.PI;
-      const n = 18;
+    // The fold in the middle of the green: a ring of hurdles with four wide gates, straw inside, a
+    // bronze ring on the grass to fly for, and a tall pole hung with a pennant in every dragon's colour.
+    {
+      const p = g.pen, n = 36, gates = [0, Math.PI / 2, Math.PI, Math.PI * 1.5];
+      const inGate = (a: number) => gates.some((gt) => Math.abs(wrapAngle(a - gt)) < 0.22);
       for (let k = 0; k < n; k++) {
-        const a = (k / n) * Math.PI * 2;
-        if (Math.abs(wrapAngle(a - gate)) < 0.4) continue;   // the open gate
+        const a = (k / n) * Math.PI * 2, a2 = ((k + 1) / n) * Math.PI * 2;
+        if (inGate(a)) continue;
         const x = p.x + Math.cos(a) * PEN_R, z = p.y + Math.sin(a) * PEN_R;
-        add(new THREE.BoxGeometry(8, 34, 8), postMat, x, 17, z);
-        const a2 = ((k + 1) / n) * Math.PI * 2;
-        if (Math.abs(wrapAngle(a2 - gate)) < 0.4) continue;
+        add(new THREE.BoxGeometry(9, 36, 9), postMat, x, 18, z);
+        if (inGate(a2)) continue;
         const x2 = p.x + Math.cos(a2) * PEN_R, z2 = p.y + Math.sin(a2) * PEN_R, len = Math.hypot(x2 - x, z2 - z);
-        for (const y of [12, 26]) {
+        for (const y of [12, 27]) {
           const rail = add(new THREE.BoxGeometry(len, 4, 3), railMat, (x + x2) / 2, y, (z + z2) / 2);
           rail.rotation.y = -Math.atan2(z2 - z, x2 - x);
         }
       }
-      add(new THREE.RingGeometry(PEN_R - 14, PEN_R + 4, 48).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.55 }), p.x, 0.5, p.y, false);
-      add(new THREE.CylinderGeometry(PEN_R - 20, PEN_R - 20, 1, 24), new THREE.MeshLambertMaterial({ color: 0xb8a060 }), p.x, 0.4, p.y, false);
-      add(new THREE.ConeGeometry(36, 30, 7), paper(0xd8c070), p.x - Math.cos(p.angle) * 90, 15, p.y - Math.sin(p.angle) * 90).position.add(new THREE.Vector3(Math.cos(p.angle) * 160, 0, Math.sin(p.angle) * 160));
-      const bx = p.x + Math.cos(p.angle) * (PEN_R + 40), bz = p.y + Math.sin(p.angle) * (PEN_R + 40);
-      add(new THREE.CylinderGeometry(4, 5, 260, 6), postMat, bx, 130, bz);
-      const cloth = add(new THREE.BoxGeometry(4, 90, 60), paper(color.getHex(), color.clone().multiplyScalar(0.25).getHex()), bx, 200, bz);
-      cloth.rotation.y = -p.angle + Math.PI / 2;
-      cloth.position.add(new THREE.Vector3(-Math.sin(p.angle) * 30, 0, Math.cos(p.angle) * 30));
-    });
+      add(new THREE.RingGeometry(PEN_R - 16, PEN_R + 6, 64).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xc98b3e, transparent: true, opacity: 0.6 }), p.x, 0.5, p.y, false);
+      add(new THREE.CylinderGeometry(PEN_R - 20, PEN_R - 20, 1, 32), new THREE.MeshLambertMaterial({ color: 0xb8a060 }), p.x, 0.4, p.y, false);
+      for (const [hx, hz] of [[-110, 70], [90, -100], [60, 120]]) add(new THREE.ConeGeometry(34, 28, 7), paper(0xd8c070), p.x + hx, 14, p.y + hz);
+      add(new THREE.CylinderGeometry(5, 7, 300, 6), postMat, p.x, 150, p.y);
+      g.dragons.forEach((d, i) => {
+        const color = new THREE.Color(d.color), a = (i / g.dragons.length) * Math.PI * 2;
+        const cloth = add(new THREE.BoxGeometry(3, 26, 70), paper(color.getHex(), color.clone().multiplyScalar(0.25).getHex()), p.x + Math.cos(a) * 38, 280 - i * 4, p.y + Math.sin(a) * 38);
+        cloth.rotation.y = -a + Math.PI / 2;
+      });
+    }
     // Longhouses on the green: plank walls up to the eaves and a turf roof whose ridge matches the
     // height the dragons ride over (FlockGame.groundAt), a doorway glowing at each gable.
     for (const h of g.houses) {
