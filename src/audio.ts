@@ -492,6 +492,107 @@ export class Sound {
     }
   }
 
+  /**
+   * A sheep's bleat: a nasal "baa" (a buzzy tone through two vowel formants, opening then closing)
+   * with the wobble of a sheep's voice. `pan` -1..1 places it, `pitch` varies the sheep.
+   */
+  bleat(pan = 0, pitch = 1): void {
+    const ctx = this.live();
+    if (!ctx) return;
+    const t = ctx.currentTime, len = 0.55 + Math.random() * 0.2, f0 = (310 + Math.random() * 90) * pitch;
+    const osc = ctx.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(f0 * 0.92, t);
+    osc.frequency.linearRampToValueAtTime(f0, t + 0.08);
+    osc.frequency.linearRampToValueAtTime(f0 * 0.86, t + len);
+    // The bleat's tremble: a fast vibrato that deepens as the call goes on.
+    const lfo = ctx.createOscillator(), lfoGain = ctx.createGain();
+    lfo.frequency.value = 17 + Math.random() * 5;
+    lfoGain.gain.setValueAtTime(2, t);
+    lfoGain.gain.linearRampToValueAtTime(f0 * 0.06, t + len);
+    lfo.connect(lfoGain).connect(osc.frequency);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.09, t + 0.04);
+    g.gain.setValueAtTime(0.08, t + len * 0.6);
+    g.gain.linearRampToValueAtTime(0, t + len);
+    const panner = ctx.createStereoPanner();
+    panner.pan.value = Math.max(-1, Math.min(1, pan));
+    for (const [from, to, q] of [[700, 1050, 6], [1700, 2300, 8]] as const) {
+      const f = ctx.createBiquadFilter();
+      f.type = 'bandpass'; f.Q.value = q;
+      f.frequency.setValueAtTime(from, t);
+      f.frequency.linearRampToValueAtTime(to, t + 0.12);   // "b-aa": the mouth opens
+      f.frequency.linearRampToValueAtTime(from * 0.9, t + len);
+      osc.connect(f).connect(g);
+    }
+    g.connect(panner).connect(this.sfx);
+    osc.start(t); lfo.start(t);
+    osc.stop(t + len + 0.05); lfo.stop(t + len + 0.05);
+  }
+
+  /** Claws closing on a sheep: a quick swoop of air, a muffled thump of wool, and a startled bleat. */
+  snatch(): void {
+    const ctx = this.live();
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    const src = this.noiseSource();
+    const band = ctx.createBiquadFilter();
+    band.type = 'bandpass'; band.Q.value = 1.2;
+    band.frequency.setValueAtTime(2400, t);
+    band.frequency.exponentialRampToValueAtTime(500, t + 0.22);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.16, t + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+    src.connect(band).connect(g).connect(this.sfx);
+    src.start(t); src.stop(t + 0.3);
+    const thump = ctx.createOscillator(), tg = ctx.createGain();
+    thump.frequency.setValueAtTime(140, t + 0.06);
+    thump.frequency.exponentialRampToValueAtTime(60, t + 0.2);
+    tg.gain.setValueAtTime(0, t + 0.06);
+    tg.gain.linearRampToValueAtTime(0.25, t + 0.07);
+    tg.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
+    thump.connect(tg).connect(this.sfx);
+    thump.start(t + 0.06); thump.stop(t + 0.26);
+    setTimeout(() => this.bleat(0, 1.15), 90);
+  }
+
+  /**
+   * A round's horn: one long blast on a cow horn (a rough low tone and its octave through a
+   * resonant body), rising at the end; the final round gets two blasts, the second higher.
+   */
+  roundHorn(final = false): void {
+    const ctx = this.live();
+    if (!ctx) return;
+    const blasts = final ? [[0, 98, 0.9], [1.05, 131, 1.3]] : [[0, 98, 1.2]];
+    for (const [at, f, len] of blasts) {
+      const t = ctx.currentTime + at;
+      const body = ctx.createBiquadFilter();
+      body.type = 'lowpass'; body.Q.value = 5;
+      body.frequency.setValueAtTime(380, t);
+      body.frequency.linearRampToValueAtTime(1300, t + 0.2);
+      body.frequency.linearRampToValueAtTime(1000, t + len);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.2, t + 0.1);
+      g.gain.setValueAtTime(0.18, t + len - 0.25);
+      g.gain.linearRampToValueAtTime(0, t + len);
+      body.connect(g).connect(this.sfx);
+      for (const [mul, v] of [[1, 1], [2, 0.35], [1.5, 0.12]] as const) {
+        const o = ctx.createOscillator();
+        o.type = 'sawtooth';
+        o.frequency.setValueAtTime(f * mul * 0.93, t);
+        o.frequency.linearRampToValueAtTime(f * mul, t + 0.12);
+        o.frequency.setValueAtTime(f * mul, t + len - 0.3);
+        o.frequency.linearRampToValueAtTime(f * mul * 1.04, t + len);   // the player's breath pushing up at the end
+        const og = ctx.createGain(); og.gain.value = v;
+        o.connect(og).connect(body);
+        o.start(t); o.stop(t + len + 0.05);
+      }
+    }
+  }
+
   /** Two rising notes on a completed lap; three for a best lap. */
   chime(best: boolean): void {
     const notes = best ? [784, 988, 1319] : [784, 1047];
