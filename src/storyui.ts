@@ -16,7 +16,7 @@ export interface StoryHandlers {
   exit(): void;
   /** The save changed (upgrade bought, name set, progress reset). */
   saved(save: Save): void;
-  /** Open the TUNE CAR screen (it returns to the story screen when done). */
+  /** Open the TRAIN DRAGON screen (it returns to the story screen when done). */
   tune(back: () => void): void;
 }
 
@@ -259,7 +259,7 @@ export class StoryUI {
         ${journal ? `<p class="st-journal-head">THE STORY SO FAR</p><div class="st-journal">${journal}</div>` : ''}
         <div class="st-actions">
           ${s.done.includes('tryout') ? '<button class="hr-btn" data-garage>GARAGE</button>' : ''}
-          <button class="hr-btn secondary" data-tune>TUNE CAR</button>
+          <button class="hr-btn secondary" data-tune>TRAIN DRAGON</button>
           <button class="hr-btn secondary" data-exit>MAIN MENU</button>
         </div>
         <div style="text-align:center"><button class="st-link" data-reset>RESET STORY PROGRESS</button></div>

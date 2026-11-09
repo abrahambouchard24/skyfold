@@ -512,17 +512,17 @@ function drawMinimap(ctx: CanvasRenderingContext2D, w: number, h: number, track:
   const x = w - boxW - 24, y = 24;
   const center = track.open ? openRoute(track) : trackPaths(track).center;
   ctx.save();
-  ctx.fillStyle = 'rgba(8,10,22,0.7)';
+  ctx.fillStyle = 'rgba(26,20,16,0.78)';
   roundRect(ctx, x, y, boxW, boxH, 12);
   ctx.fill();
   ctx.translate(x + boxW / 2, y + boxH / 2);
   ctx.scale(scale, scale);
   ctx.translate(-(b.minX + b.maxX) / 2, -(b.minY + b.maxY) / 2);
   ctx.lineJoin = 'round';
-  ctx.strokeStyle = '#3a4278';
+  ctx.strokeStyle = '#5a4a3a';
   ctx.lineWidth = (9 * k) / scale;
   ctx.stroke(center);
-  ctx.strokeStyle = '#8a93c0';
+  ctx.strokeStyle = '#a89d8a';
   ctx.lineWidth = (3 * k) / scale;
   ctx.stroke(center);
   const s = track.pts[0];
@@ -566,13 +566,13 @@ function drawGapPanel(ctx: CanvasRenderingContext2D, hud: RaceHud): void {
   if (!rows.length) return;
   const x = 24, y = 152;
   ctx.save();
-  ctx.fillStyle = 'rgba(8,10,22,0.7)';
+  ctx.fillStyle = 'rgba(26,20,16,0.78)';
   roundRect(ctx, x, y, 220, 16 + rows.length * 24, 12);
   ctx.fill();
   rows.forEach((r, i) => {
     const ry = y + 28 + i * 24;
     ctx.font = '600 11px system-ui, sans-serif';
-    ctx.fillStyle = '#8a93c0';
+    ctx.fillStyle = '#a89d8a';
     ctx.textAlign = 'left';
     ctx.fillText(r.label, x + 16, ry);
     ctx.font = '800 13px system-ui, sans-serif';
@@ -590,22 +590,22 @@ function drawGapPanel(ctx: CanvasRenderingContext2D, hud: RaceHud): void {
 function drawLapPanel(ctx: CanvasRenderingContext2D, race: RaceState, now: number, hud: RaceHud): void {
   const x = 24, y = 24;
   ctx.save();
-  ctx.fillStyle = 'rgba(8,10,22,0.7)';
+  ctx.fillStyle = 'rgba(26,20,16,0.78)';
   roundRect(ctx, x, y, 220, 120, 12);
   ctx.fill();
   ctx.font = '600 13px system-ui, sans-serif';
-  ctx.fillStyle = '#8a93c0';
+  ctx.fillStyle = '#a89d8a';
   const sprintMe = hud.sprint?.cars.find((c) => c.me);
   ctx.fillText(hud.sprint ? 'KM' : 'LAP', x + 16, y + 28);
-  ctx.font = '800 24px system-ui, sans-serif';
+  ctx.font = '800 24px "Alegreya Sans", system-ui, sans-serif';
   ctx.fillStyle = '#fff';
   ctx.fillText(hud.sprint ? `${(hud.sprint.km * (sprintMe?.f ?? 0)).toFixed(1)}/${hud.sprint.km.toFixed(1)}` : `${Math.min(race.lap + 1, hud.laps)}/${hud.laps}`,
     x + (hud.sprint ? 46 : 50), y + 30);
   ctx.textAlign = 'right';
-  ctx.fillStyle = hud.position === 1 ? '#ffd23f' : '#fff';
+  ctx.fillStyle = hud.position === 1 ? '#e3b26c' : '#fff';
   ctx.fillText(`P${hud.position}`, x + 204, y + 30);
   ctx.font = '600 13px system-ui, sans-serif';
-  ctx.fillStyle = '#8a93c0';
+  ctx.fillStyle = '#a89d8a';
   ctx.fillText(`/${hud.racers}`, x + 204, y + 46);
   if (hud.catchUp > 0) {
     ctx.fillStyle = '#4dff9a';
@@ -616,14 +616,14 @@ function drawLapPanel(ctx: CanvasRenderingContext2D, race: RaceState, now: numbe
   ctx.fillStyle = '#fff';
   ctx.fillText(formatTime(race.current(now)), x + 16, y + 66);
   ctx.font = '600 14px ui-monospace, Consolas, monospace';
-  ctx.fillStyle = '#8a93c0';
+  ctx.fillStyle = '#a89d8a';
   if (hud.sprint) {
     // A sprint has no laps to compare: show the best run instead, and how far along this one is.
     ctx.fillText(`${Math.round((sprintMe?.f ?? 0) * 100)}% DONE`, x + 16, y + 90);
   } else {
     ctx.fillText(`LAST ${race.lastLap ? formatTime(race.lastLap) : '-:--.---'}`, x + 16, y + 90);
   }
-  ctx.fillStyle = race.bestLap ? '#c77dff' : '#8a93c0';
+  ctx.fillStyle = race.bestLap ? '#c77dff' : '#a89d8a';
   ctx.fillText(`BEST ${race.bestLap ? formatTime(race.bestLap) : '-:--.---'}`, x + 16, y + 110);
   ctx.restore();
 }
@@ -638,7 +638,7 @@ function drawStripCue(ctx: CanvasRenderingContext2D, w: number, kind: NonNullabl
   ctx.font = '700 12px "Alegreya Sans SC", system-ui, sans-serif';
   const tw = ctx.measureText(text).width + text.length * 2.4, pw = tw + 30;
   ctx.globalAlpha = 0.85 + Math.sin(time * 8) * 0.15;
-  ctx.fillStyle = 'rgba(6,18,24,0.78)';
+  ctx.fillStyle = 'rgba(24,19,15,0.82)';
   roundRect(ctx, w / 2 - pw / 2, y - 11, pw, 22, 11);
   ctx.fill();
   ctx.strokeStyle = color;
@@ -656,7 +656,7 @@ function drawStripCue(ctx: CanvasRenderingContext2D, w: number, kind: NonNullabl
 function drawSprintStrip(ctx: CanvasRenderingContext2D, w: number, sp: NonNullable<RaceHud['sprint']>, y: number): void {
   const half = Math.min(260, w * 0.2), x0 = w / 2 - half, x1 = w / 2 + half;
   ctx.save();
-  ctx.fillStyle = 'rgba(8,10,22,0.7)';
+  ctx.fillStyle = 'rgba(26,20,16,0.78)';
   roundRect(ctx, x0 - 14, y - 12, half * 2 + 28, 24, 12);
   ctx.fill();
   ctx.strokeStyle = 'rgba(168,116,58,0.55)';
@@ -691,19 +691,19 @@ function drawRaceBanners(ctx: CanvasRenderingContext2D, w: number, h: number, hu
     if (hud.launchHint) {
       ctx.shadowBlur = 0;
       ctx.font = '700 16px system-ui, sans-serif';
-      ctx.fillStyle = '#c8d2ff';
+      ctx.fillStyle = '#e0d6c2';
       ctx.fillText('Hold the brake (S / Space), release it right on GO for a turbo start', w / 2, h * 0.38 + 40);
     }
   }
   if (hud.banner) {
-    ctx.fillStyle = 'rgba(8,10,22,0.8)';
+    ctx.fillStyle = 'rgba(26,20,16,0.85)';
     roundRect(ctx, w / 2 - 210, h * 0.3 - 50, 420, 96, 14);
     ctx.fill();
     ctx.font = '900 40px system-ui, sans-serif';
-    ctx.fillStyle = '#ffd23f';
+    ctx.fillStyle = '#e3b26c';
     ctx.fillText(hud.banner, w / 2, h * 0.3 + 2);
     ctx.font = '600 15px system-ui, sans-serif';
-    ctx.fillStyle = '#c8d2ff';
+    ctx.fillStyle = '#e0d6c2';
     ctx.fillText('R: race again   ·   Esc: menu', w / 2, h * 0.3 + 32);
   }
   ctx.restore();
@@ -713,7 +713,7 @@ function drawRaceBanners(ctx: CanvasRenderingContext2D, w: number, h: number, hu
 function drawRestartHold(ctx: CanvasRenderingContext2D, w: number, h: number, k: number): void {
   const bw = 260, bh = 8, x = (w - bw) / 2, y = h * 0.34;
   ctx.save();
-  ctx.fillStyle = 'rgba(8,10,22,0.75)';
+  ctx.fillStyle = 'rgba(26,20,16,0.8)';
   roundRect(ctx, x - 16, y - 34, bw + 32, bh + 50, 12);
   ctx.fill();
   ctx.font = '800 13px system-ui, sans-serif';
@@ -722,7 +722,7 @@ function drawRestartHold(ctx: CanvasRenderingContext2D, w: number, h: number, k:
   ctx.fillText(k >= 1 ? 'RESTARTING' : 'HOLD R TO RESTART', w / 2, y - 12);
   ctx.fillStyle = '#252b52';
   ctx.fillRect(x, y, bw, bh);
-  ctx.fillStyle = '#ffd23f';
+  ctx.fillStyle = '#e3b26c';
   ctx.fillRect(x, y, bw * k, bh);
   ctx.restore();
 }
@@ -1038,12 +1038,12 @@ function drawHud(ctx: CanvasRenderingContext2D, w: number, h: number, c: Craft, 
   ctx.translate(w - 24, h - 24);
   ctx.scale(hudScale(w, h), hudScale(w, h));
   const x = -236, y = -168;
-  ctx.fillStyle = 'rgba(8,10,22,0.7)';
+  ctx.fillStyle = 'rgba(26,20,16,0.78)';
   roundRect(ctx, x, y, 236, 168, 12);
   ctx.fill();
 
   ctx.font = '600 13px system-ui, sans-serif';
-  ctx.fillStyle = '#8a93c0';
+  ctx.fillStyle = '#a89d8a';
   ctx.fillText('SPEED', x + 16, y + 26);
   ctx.fillText('GEAR', x + 168, y + 26);
 
@@ -1071,27 +1071,27 @@ function drawHud(ctx: CanvasRenderingContext2D, w: number, h: number, c: Craft, 
   ctx.fillStyle = '#fff';
   ctx.fillText(String(Math.round(c.speed / 4)), x + 16, y + 68);
   ctx.font = '600 14px system-ui, sans-serif';
-  ctx.fillStyle = '#8a93c0';
+  ctx.fillStyle = '#a89d8a';
   ctx.fillText('km/h', x + 100, y + 68);
 
   ctx.font = '800 44px system-ui, sans-serif';
-  ctx.fillStyle = c.rev > 0.9 ? '#ffd23f' : '#6ff3ff';
+  ctx.fillStyle = c.rev > 0.9 ? '#e3b26c' : '#8fd0e0';
   ctx.fillText(String(c.gear + 1), x + 172, y + 70);
 
   // Rev bar: fills through the gear's speed band; the gearbox shifts up near the end.
   const bx = x + 16, by = y + 86, bw = 204, bh = 10;
-  ctx.fillStyle = '#1b2040';
+  ctx.fillStyle = '#3a2e24';
   ctx.fillRect(bx, by, bw, bh);
-  ctx.fillStyle = c.rev > 0.9 ? '#ffd23f' : '#3fa9ff';
+  ctx.fillStyle = c.rev > 0.9 ? '#e3b26c' : '#3fa9ff';
   ctx.fillRect(bx, by, bw * c.rev, bh);
 
   // Heat meter: green while cool, orange once it's costing speed, flashing red when overheated.
   const heatColor = c.overheated ? '#ff3d3d' : c.heat > 0.6 ? '#ffb02e' : '#4dff9a';
   ctx.font = '700 11px system-ui, sans-serif';
-  ctx.fillStyle = c.overheated ? heatColor : '#8a93c0';
+  ctx.fillStyle = c.overheated ? heatColor : '#a89d8a';
   ctx.fillStyle = c.cooling ? '#8feaff' : ctx.fillStyle;
   ctx.fillText(c.cooling ? 'COOLING' : c.overheated ? 'OVERHEAT' : 'HEAT', bx, y + 116);
-  ctx.fillStyle = '#1b2040';
+  ctx.fillStyle = '#3a2e24';
   ctx.fillRect(bx + 80, y + 108, bw - 80, 6);
   ctx.globalAlpha = c.overheated ? 0.55 + 0.45 * Math.sin(performance.now() / 90) : 1;
   ctx.fillStyle = heatColor;
@@ -1100,9 +1100,9 @@ function drawHud(ctx: CanvasRenderingContext2D, w: number, h: number, c: Craft, 
 
   // ERS energy: violet, brighter while deploying.
   ctx.font = '700 11px system-ui, sans-serif';
-  ctx.fillStyle = c.deploying ? '#d9a6ff' : '#8a93c0';
+  ctx.fillStyle = c.deploying ? '#d9a6ff' : '#a89d8a';
   ctx.fillText(c.deploying ? 'BOOSTING' : 'BOOST (W)', bx, y + 136);
-  ctx.fillStyle = '#1b2040';
+  ctx.fillStyle = '#3a2e24';
   ctx.fillRect(bx + 80, y + 128, bw - 80, 6);
   ctx.fillStyle = c.deploying ? '#d9a6ff' : '#9d5cff';
   if (c.energy >= ENERGY_FULL) {
@@ -1126,7 +1126,7 @@ function drawHud(ctx: CanvasRenderingContext2D, w: number, h: number, c: Craft, 
     ctx.font = '700 11px system-ui, sans-serif';
     ctx.fillStyle = '#dff4ff';
     ctx.fillText('SLIPSTREAM', bx, y + 156);
-    ctx.fillStyle = '#1b2040';
+    ctx.fillStyle = '#3a2e24';
     ctx.fillRect(bx + 80, y + 148, bw - 80, 6);
     ctx.fillStyle = '#dff4ff';
     ctx.fillRect(bx + 80, y + 148, (bw - 80) * c.slipstream, 6);
@@ -1135,7 +1135,7 @@ function drawHud(ctx: CanvasRenderingContext2D, w: number, h: number, c: Craft, 
 
   // Gear pips.
   for (let i = 0; i < GEARS.length; i++) {
-    ctx.fillStyle = i <= c.gear ? '#6ff3ff' : '#2a3060';
+    ctx.fillStyle = i <= c.gear ? '#8fd0e0' : '#2a3060';
     ctx.fillRect(x + 168 + i * 11, y + 34, 8, 4);
   }
   ctx.restore();
@@ -1151,7 +1151,7 @@ function drawHud(ctx: CanvasRenderingContext2D, w: number, h: number, c: Craft, 
   }
 
   ctx.font = '500 13px system-ui, sans-serif';
-  ctx.fillStyle = 'rgba(200,210,255,0.7)';
+  ctx.fillStyle = 'rgba(224,214,194,0.7)';
   const help = 'A / D or ← / →: steer   S / ↓ / Space: brake   W / ↑ / Shift: boost   Hold R: restart   Esc: pause';
   if (!touch) ctx.fillText(help, 16, h - 16);
   ctx.restore();

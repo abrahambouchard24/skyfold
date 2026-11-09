@@ -120,74 +120,70 @@ function build(track: Track): Scenery {
   };
 
   let ground: GroundKind = 'tarmac';
+  // Long halls lined up beside the road, and villages of them around the realm.
+  const halls = (n: number, margin = 900) => scatter(n, (x, y) => {
+    const w = between(180, 260);
+    return { kind: 'longhouse', x, y, r: w * 0.55, h: between(90, 120), w, d: w * 0.42, rot: rand() * Math.PI };
+  }, margin);
+  const runes = (n: number, accent = '#8fd0e0', margin = 700) =>
+    scatter(n, (x, y) => ({ kind: 'runestone', x, y, r: 34, h: between(80, 130), accent, rot: rand() * Math.PI }), margin);
+
   switch (track.name) {
     case 'MIDGARD': {
-      // A futurist arena: marble stands under gold arches along the main straight, a palace for a
-      // pit building, light pylons, holo screens and a monument in the infield.
-      ground = 'marble';
-      row(-44, 40, 10, -1, WALL_DIST + 85, (q) => ({ kind: 'arena-stand', r: 80, h: 70, w: 180, d: 90, rot: q.rot }));
-      row(-50, 46, 16, -1, WALL_DIST + 190, () => ({ kind: 'pylon', r: 20, h: 240 }));
-      { const q = beside(-6, 1, WALL_DIST + 150); place({ kind: 'pit-palace', ...q, r: 230, h: 80, w: 440, d: 120 }, 0); }
-      { const q = beside(70, -1, WALL_DIST + 140); place({ kind: 'holo', ...q, r: 120, h: 110, w: 240, text: 'SKYFOLD' }, 0); }
-      place({ kind: 'monument', x: cx, y: cy, r: 150, h: 360 }) || scatter(1, (x, y) => ({ kind: 'monument', x, y, r: 150, h: 360 }), 300);
-      scatter(10, (x, y) => ({ kind: 'pylon', x, y, r: 20, h: 240 }), 400);
-      scatter(6, (x, y) => ({ kind: 'holo', x, y, r: 120, h: 110, w: 220, text: 'APEX', rot: rand() * Math.PI }), 500);
-      scatter(40, (x, y) => ({ kind: 'cypress', x, y, r: 20, h: 110 }), 900);
+      // The world of men: a fjord-side village of turf-roofed longhouses behind a palisade, rune
+      // stones by the road, a great mead hall in the infield, pines on the hills.
+      ground = 'garden';
+      row(-44, 40, 9, -1, WALL_DIST + 80, () => ({ kind: 'palisade', r: 90, h: 70, w: 170 }));
+      row(-50, 46, 24, -1, WALL_DIST + 200, (q) => ({ kind: 'watchtower', r: 40, h: 160, rot: q.rot }));
+      place({ kind: 'mead-hall', x: cx, y: cy, r: 260, h: 190, w: 480, d: 190 }) || scatter(1, (x, y) => ({ kind: 'mead-hall', x, y, r: 260, h: 190, w: 480, d: 190 }), 500);
+      clumps(5, 4, 520, (x, y) => { const w = between(180, 250); return { kind: 'longhouse', x, y, r: w * 0.55, h: 110, w, d: w * 0.42, rot: rand() * Math.PI }; });
+      row(10, m - 1, 30, 1, WALL_DIST + 60, () => ({ kind: 'runestone', r: 32, h: 100 }));
+      scatter(12, (x, y) => ({ kind: 'brazier', x, y, r: 16, h: 40 }), 400);
+      trees(60);
+      scatter(10, (x, y) => ({ kind: 'peak', x, y, r: between(320, 520), h: 300 }), 1500, 600);
       break;
     }
     case 'ASGARD': {
-      // A marble colosseum right round the oval, a great obelisk in the middle, and the blimp.
+      // The home of the gods: gold-roofed halls all round the oval, Valhalla in the middle, the
+      // rainbow bridge arching overhead, braziers burning.
       ground = 'marble';
-      for (let i = 0; i < m; i += 9) {
-        const q = beside(i, -1, WALL_DIST + 135);
-        place({ kind: 'colosseum', ...q, r: 125, h: 150, w: 268, d: 80 }, 0);
+      for (let i = 0; i < m; i += 11) {
+        const q = beside(i, -1, WALL_DIST + 140);
+        place({ kind: 'mead-hall', ...q, r: 120, h: 130, w: 230, d: 90 }, 0);
       }
-      place({ kind: 'obelisk', x: cx, y: cy, r: 70, h: 560, accent: '#ffd23f' });
-      for (const [dx, dy] of [[-420, 0], [420, 0], [0, -260], [0, 260]]) place({ kind: 'statue', x: cx + dx, y: cy + dy, r: 50, h: 150 }, 0);
-      scatter(10, (x, y) => ({ kind: 'pylon', x, y, r: 20, h: 280 }), 500);
-      overlays.push({ kind: 'blimp', x: cx, y: cy, r: 1400, h: 0, text: 'APEX', seed: rand() });
+      place({ kind: 'mead-hall', x: cx, y: cy, r: 330, h: 300, w: 620, d: 260 });
+      scatter(4, (x, y) => ({ kind: 'rainbow', x, y, r: 300, h: 300, rot: rand() * Math.PI }), 700);
+      scatter(10, (x, y) => ({ kind: 'gold-tower', x, y, r: 50, h: between(300, 480) }), 600);
+      row(0, m - 1, 18, 1, WALL_DIST + 60, () => ({ kind: 'brazier', r: 18, h: 50, accent: '#ffd27a' }));
       break;
     }
     case 'JOTUNHEIM': {
-      // New York, reimagined: deco towers with gold crowns, a colossus with a torch, park terraces,
-      // the elevated line, steam from the streets.
-      ground = 'city';
-      place({ kind: 'colossus', x: cx, y: cy, r: 150, h: 520 }) || scatter(1, (x, y) => ({ kind: 'colossus', x, y, r: 150, h: 520 }), 600);
-      scatter(46, (x, y) => {
-        const w = between(150, 280), d = between(150, 280);
-        return { kind: 'deco-tower', x, y, r: Math.hypot(w, d) / 2, h: between(320, 860), w, d,
-          color: pick(['#1c2a44', '#22314f', '#2a2a3c', '#1e3340']) };
-      }, 800, 1200);
-      scatter(5, (x, y) => ({ kind: 'park', x, y, r: 190, h: 6, w: 320, d: 240, layer: 0 }), 500);
-      row(0, m - 1, 14, 1, WALL_DIST + 120, (q) => ({ kind: 'rail', r: 70, h: 120, w: 150, rot: q.rot }));
-      scatter(18, (x, y) => ({ kind: 'steam', x, y, r: 18, h: 90 }), 300);
+      // Giants' country: crags and peaks, rune stones as tall as towers, boulders the giants threw.
+      ground = 'rock';
+      scatter(14, (x, y) => ({ kind: 'peak', x, y, r: between(300, 560), h: 340 }), 1400, 500);
+      row(0, m - 1, 26, -1, WALL_DIST + 110, () => ({ kind: 'runestone', r: 70, h: between(260, 380), accent: '#8fd0e0' }));
+      row(13, m - 1, 26, 1, WALL_DIST + 110, () => ({ kind: 'runestone', r: 60, h: between(220, 320), accent: '#8fd0e0' }));
+      rocks(40, '#5a5c62');
+      scatter(5, (x, y) => ({ kind: 'stone-ring', x, y, r: 220, h: 140 }), 600);
+      trees(20, true);
       break;
     }
     case 'NIFLHEIM': {
-      // Arctic night under the aurora: snowfields, birch and pine, ice monoliths, lit pavilions
-      // shaped like Sámi lavvu tents, and reindeer.
+      // Mist and ice under the aurora: snowfields, frozen pines and birch, ice spires, burial mounds
+      // with frost-lit doors, and reindeer.
       ground = 'snow';
       scatter(12, (x, y) => ({ kind: 'peak', x, y, r: between(300, 560), h: 320, color: 'snow' }), 1400, 500);
       clumps(6, 10, 520, (x, y) => ({ kind: rand() < 0.5 ? 'birch' : 'pine-snow', x, y, r: between(22, 40), h: 60 }));
       scatter(30, (x, y) => ({ kind: rand() < 0.5 ? 'birch' : 'pine-snow', x, y, r: between(22, 40), h: 60 }), 900);
-      scatter(10, (x, y) => ({ kind: 'ice', x, y, r: between(40, 70), h: between(140, 260) }), 800);
-      clumps(3, 3, 360, (x, y) => ({ kind: 'lavvu', x, y, r: 70, h: 120 }), 500);
+      scatter(12, (x, y) => ({ kind: 'ice', x, y, r: between(40, 70), h: between(140, 260) }), 800);
+      scatter(6, (x, y) => ({ kind: 'burial-mound', x, y, r: between(90, 130), h: 60 }), 600);
       clumps(4, 5, 300, (x, y) => ({ kind: 'reindeer', x, y, r: 26, h: 40, rot: rand() * Math.PI * 2 }), 500);
       break;
     }
     case 'VANAHEIM': {
-      // A white marble city on the sea: islands with domed temples and colonnades, sea-glass towers
-      // with gold crowns, the crowned lighthouse spire, and glowing sea life in the water.
+      // The green isles of the Vanir: islands with longhouses and watchtowers on a grey-green sea,
+      // longships under sail between them.
       ground = 'water';
-      let top = 0;
-      track.pts.forEach((p, i) => { if (p.y < track.pts[top].y) top = i; });
-      for (const off of [520, 650, 800, 1000]) {
-        const q = beside(top, -1, off);
-        if (place({ kind: 'spire', x: q.x, y: q.y, r: 170, h: 460 }, 0)) {
-          overlays.push({ kind: 'beam', x: q.x, y: q.y, r: 2200, h: 460, seed: rand() });
-          break;
-        }
-      }
       let isles = 0;
       for (let k = 0; k < 1400 && isles < 15; k++) {
         const x = b.minX - 400 + rand() * (b.maxX - b.minX + 800), y = b.minY - 400 + rand() * (b.maxY - b.minY + 800);
@@ -195,92 +191,80 @@ function build(track: Track): Scenery {
         if (!place({ kind: 'isle', x, y, r, h: 8, layer: 0 })) continue;
         isles++;
         const what = isles % 3;
-        // Buildings on the island (inside its footprint, so they skip the clearance checks).
-        if (what === 0) props.push({ kind: 'dome-temple', x, y, r: r * 0.55, h: 150, seed: rand() });
-        else if (what === 1) props.push({ kind: 'sea-tower', x, y, r: 60, h: between(320, 520), seed: rand() });
-        else props.push({ kind: 'colonnade', x, y, r: r * 0.7, h: 70, w: r * 1.2, rot: rand() * Math.PI, seed: rand() });
+        if (what === 0) props.push({ kind: 'longhouse', x, y, r: r * 0.5, h: 110, w: r * 0.9, d: r * 0.38, rot: rand() * Math.PI, seed: rand() });
+        else if (what === 1) props.push({ kind: 'watchtower', x, y, r: 40, h: 170, seed: rand() });
+        else props.push({ kind: 'pine', x, y, r: 40, h: 40, seed: rand() });
       }
-      scatter(40, (x, y) => ({ kind: 'sea-glow', x, y, r: 12, h: 4 }), 1000);
-      scatter(6, (x, y) => ({ kind: 'arch', x, y, r: 90, h: 160, w: 150, rot: rand() * Math.PI }), 700);
+      scatter(10, (x, y) => ({ kind: 'longship', x, y, r: 110, h: 90, w: 220, rot: rand() * Math.PI }), 700);
       break;
     }
     case 'SVARTALFHEIM': {
-      // The crystal biome of a sci-fi war zone: great violet and emerald crystal spires, wrecked mechs
-      // and a crashed dropship half buried, cracked shield domes, scorched ground, a storm overhead.
+      // The dwarves' halls: dark crags, great gem crystals, forge braziers and smoking lava rock.
       ground = 'scorched';
       scatter(10, (x, y) => ({ kind: 'peak', x, y, r: between(280, 480), h: 260, color: 'violet' }), 1300, 400);
-      const shard = () => pick(['#a46bff', '#37e0a0', '#c88bff', '#2fd0c0']);
-      clumps(14, 5, 460, (x, y) => { const c = shard(); return { kind: 'crystal', x, y, r: between(70, 140), h: between(220, 520), color: c, accent: c }; });
-      // Great shards rearing up right beside the track.
-      row(0, m - 1, 37, -1, WALL_DIST + 130, () => { const c = shard(); return { kind: 'crystal', r: between(80, 120), h: between(320, 560), color: c, accent: c }; });
-      row(18, m - 1, 41, 1, WALL_DIST + 130, () => { const c = shard(); return { kind: 'crystal', r: between(70, 110), h: between(260, 460), color: c, accent: c }; });
-      scatter(4, (x, y) => ({ kind: 'mech-wreck', x, y, r: 110, h: 150, rot: rand() * Math.PI * 2 }), 700);
-      scatter(1, (x, y) => ({ kind: 'dropship', x, y, r: 260, h: 140, rot: rand() * Math.PI * 2 }), 900);
-      scatter(3, (x, y) => ({ kind: 'shield-dome', x, y, r: 170, h: 170 }), 600);
-      scatter(10, (x, y) => ({ kind: 'crater', x, y, r: between(60, 120), h: 2, layer: 0 }), 800);
+      const gem = () => pick(['#a46bff', '#7fd0c0', '#c88bff', '#8fd0e0']);
+      clumps(12, 5, 460, (x, y) => { const c = gem(); return { kind: 'crystal', x, y, r: between(70, 140), h: between(220, 480), color: c, accent: c }; });
+      row(0, m - 1, 37, -1, WALL_DIST + 130, () => { const c = gem(); return { kind: 'crystal', r: between(80, 120), h: between(300, 520), color: c, accent: c }; });
+      row(18, m - 1, 30, 1, WALL_DIST + 80, () => ({ kind: 'brazier', r: 18, h: 50, accent: '#ffb45a' }));
+      scatter(14, (x, y) => ({ kind: 'lava-rock', x, y, r: between(50, 90), h: 20 }), 700);
       rocks(24, '#2a2234');
       break;
     }
     case 'MUSPELHEIM': {
-      // A sacred city of the sun: a terraced pyramid arcology, gold-tipped obelisks with glowing glyph
-      // bands, guardian statues along the straights, palms and teal reflecting pools.
-      ground = 'sand';
-      place({ kind: 'ziggurat', x: cx, y: cy, r: 460, h: 520 }) ||
-        scatter(1, (x, y) => ({ kind: 'ziggurat', x, y, r: 460, h: 520 }), 900, 400);
-      scatter(4, (x, y) => ({ kind: 'ziggurat', x, y, r: between(200, 280), h: 280 }), 1000, 300);
-      scatter(10, (x, y) => ({ kind: 'obelisk', x, y, r: 40, h: between(240, 380), accent: '#4fe3ff' }), 800);
-      row(0, m - 1, 22, -1, WALL_DIST + 70, () => ({ kind: 'statue', r: 40, h: 120 }));
-      scatter(5, (x, y) => ({ kind: 'pool', x, y, r: 150, h: 3, w: 260, d: 140, rot: rand() * Math.PI, layer: 0 }), 600);
-      clumps(8, 5, 300, (x, y) => ({ kind: 'palm', x, y, r: 26, h: 120 }));
-      rocks(12, '#9a7650');
+      // The realm of fire: black rock, rivers of lava rock, fire pillars and burning braziers.
+      ground = 'scorched';
+      scatter(10, (x, y) => ({ kind: 'peak', x, y, r: between(300, 520), h: 300 }), 1400, 500);
+      const flame = () => pick(['#ff6a2a', '#ff9a3d', '#ffc06a']);
+      clumps(8, 4, 420, (x, y) => { const c = flame(); return { kind: 'crystal', x, y, r: between(60, 110), h: between(200, 380), color: c, accent: c }; });
+      scatter(40, (x, y) => ({ kind: 'lava-rock', x, y, r: between(50, 110), h: 20 }), 800);
+      row(0, m - 1, 22, -1, WALL_DIST + 70, () => ({ kind: 'brazier', r: 20, h: 60, accent: '#ff7a2a' }));
+      rocks(20, '#2a2220');
       break;
     }
     // --- sprints: long routes, so landmarks line the way at intervals -------------------------------
     case 'IRONWOOD': {
-      // An enchanted forest: ancient trees crowding the route, giant glowing mushrooms, fairy lights
-      // drifting in the glades, rings of standing stones.
+      // The iron forest: dark ancient trees crowding the route, rune stones in the glades, wisps of
+      // frost-light drifting, rings of standing stones.
       ground = 'garden';
-      const cap = () => pick(['#ff6bd8', '#4fe3ff', '#b98cff', '#7dffb0']);
       row(0, m - 1, 52, -1, WALL_DIST + 110, () => ({ kind: 'ancient-tree', r: between(80, 120), h: between(200, 300) }));
       row(26, m - 1, 52, 1, WALL_DIST + 110, () => ({ kind: 'ancient-tree', r: between(80, 120), h: between(200, 300) }));
-      row(13, m - 1, 61, -1, WALL_DIST + 60, () => { const c = cap(); return { kind: 'mushroom', r: between(40, 70), h: between(70, 130), color: c, accent: c }; });
-      row(40, m - 1, 67, 1, WALL_DIST + 60, () => { const c = cap(); return { kind: 'mushroom', r: between(40, 70), h: between(70, 130), color: c, accent: c }; });
+      row(13, m - 1, 61, -1, WALL_DIST + 60, () => ({ kind: 'runestone', r: 32, h: 100 }));
       scatter(40, (x, y) => ({ kind: 'ancient-tree', x, y, r: between(90, 140), h: between(220, 340) }), 900, 1400);
-      scatter(60, (x, y) => { const c = cap(); return { kind: 'wisp', x, y, r: 10, h: between(30, 110), color: c, accent: c }; }, 400);
+      scatter(50, (x, y) => ({ kind: 'wisp', x, y, r: 9, h: between(30, 110), color: '#9fe8e0', accent: '#9fe8e0' }), 400);
       scatter(4, (x, y) => ({ kind: 'stone-ring', x, y, r: 150, h: 70 }), 500);
       break;
     }
     case 'JOMSBORG': {
-      // A futurist Camelot: curtain walls and round towers along the route, banners, a great keep,
-      // and the sword in the stone by the start.
+      // The sea-fortress of the Jomsvikings: palisades and watchtowers along the route, longhouses,
+      // longships drawn up, banners in the wind.
       ground = 'garden';
       for (let i = 0; i < m; i += 70) {
         const t = beside(i, -1, WALL_DIST + 140);
-        place({ kind: 'castle-tower', ...t, r: 60, h: between(220, 340) }, 0);
+        place({ kind: 'watchtower', ...t, r: 45, h: between(170, 230) }, 0);
         const w = beside(i + 35, -1, WALL_DIST + 110);
-        place({ kind: 'castle-wall', ...w, r: 95, h: 90, w: 180 }, 0);
+        place({ kind: 'palisade', ...w, r: 95, h: 80, w: 180 }, 0);
       }
-      row(20, m - 1, 45, 1, WALL_DIST + 60, () => ({ kind: 'banner', r: 26, h: 150, color: pick(['#3d7bff', '#ff3d6e', '#ffd23f', '#f3ead2']) }));
-      place({ kind: 'keep', x: cx, y: cy, r: 300, h: 360 }) || scatter(1, (x, y) => ({ kind: 'keep', x, y, r: 300, h: 360 }), 600);
-      { const q = beside(30, 1, WALL_DIST + 200); place({ kind: 'sword-stone', ...q, r: 80, h: 200 }, 0); }
-      scatter(70, (x, y) => ({ kind: 'cypress', x, y, r: 18, h: 110 }), 900, 1400);
+      row(20, m - 1, 45, 1, WALL_DIST + 60, () => ({ kind: 'banner', r: 26, h: 150, color: pick(['#a8342a', '#2f4a6a', '#d8ccb4']) }));
+      halls(18, 1200);
+      scatter(10, (x, y) => ({ kind: 'longship', x, y, r: 110, h: 90, w: 220, rot: rand() * Math.PI }), 900, 1400);
+      trees(50);
       break;
     }
     case 'HELHEIM': {
-      // Fire temples and columned halls of a reimagined Persia: winged guardian bulls along the
-      // straights, eternal flames, palm groves, and a great winged-disc monument.
-      ground = 'sand';
-      row(0, m - 1, 60, -1, WALL_DIST + 70, () => ({ kind: 'lamassu', r: 45, h: 90 }));
-      row(30, m - 1, 60, 1, WALL_DIST + 70, () => ({ kind: 'lamassu', r: 45, h: 90 }));
-      scatter(14, (x, y) => ({ kind: 'fire-temple', x, y, r: 140, h: 150 }), 900);
-      scatter(10, (x, y) => ({ kind: 'columns', x, y, r: 170, h: 220, rot: rand() * Math.PI }), 900);
-      place({ kind: 'faravahar', x: cx, y: cy, r: 220, h: 300 }) || scatter(1, (x, y) => ({ kind: 'faravahar', x, y, r: 220, h: 300 }), 600);
-      clumps(12, 5, 320, (x, y) => ({ kind: 'palm', x, y, r: 26, h: 120 }));
+      // The road to Hel: grey mist, dead pines, burial mounds and rune stones lit cold blue, ice, and
+      // braziers burning with pale fire.
+      ground = 'rock';
+      scatter(30, (x, y) => ({ kind: 'burial-mound', x, y, r: between(80, 140), h: 60, accent: '#8fb8e0' }), 900, 1400);
+      row(0, m - 1, 40, -1, WALL_DIST + 70, () => ({ kind: 'runestone', r: 34, h: 110, accent: '#8fb8e0' }));
+      row(20, m - 1, 40, 1, WALL_DIST + 70, () => ({ kind: 'brazier', r: 18, h: 50, accent: '#8fd0ff' }));
+      scatter(16, (x, y) => ({ kind: 'ice', x, y, r: between(40, 70), h: between(140, 240) }), 800);
+      trees(50, true, 1200);
+      rocks(30, '#3a3c42');
       break;
     }
     case 'BIFROST': {
       // The rainbow bridge: the road runs between floating islands under the aurora, with rainbow
-      // arches and gold spires of a sky citadel, above a sea of cloud.
+      // arches and the gold spires of Asgard, above a sea of cloud.
       ground = 'snow';
       scatter(46, (x, y) => ({ kind: 'float-isle', x, y, r: between(90, 170), h: between(140, 520) }), 1200, 1600);
       scatter(10, (x, y) => ({ kind: 'rainbow', x, y, r: between(220, 320), h: 300, rot: rand() * Math.PI }), 900);
@@ -288,44 +272,37 @@ function build(track: Track): Scenery {
       break;
     }
     case 'YGGDRASIL': {
-      // The golden city in the jungle: stepped temples with gold shrines, jungle giants, waterfalls,
-      // golden idols and overgrown ruins.
+      // Down the World Tree: the great ash itself at the heart, ancient trees, waterfalls off its
+      // branches, rune stones and old ruins.
       ground = 'garden';
-      row(0, m - 1, 48, -1, WALL_DIST + 100, () => ({ kind: 'jungle-tree', r: between(70, 110), h: between(200, 300) }));
-      row(24, m - 1, 48, 1, WALL_DIST + 100, () => ({ kind: 'jungle-tree', r: between(70, 110), h: between(200, 300) }));
-      scatter(10, (x, y) => ({ kind: 'meso-temple', x, y, r: between(200, 300), h: between(240, 360) }), 900, 300);
+      place({ kind: 'world-tree', x: cx, y: cy, r: 520, h: 1100 }) || scatter(1, (x, y) => ({ kind: 'world-tree', x, y, r: 520, h: 1100 }), 1200, 600);
+      row(0, m - 1, 48, -1, WALL_DIST + 100, () => ({ kind: 'ancient-tree', r: between(70, 110), h: between(200, 300) }));
+      row(24, m - 1, 48, 1, WALL_DIST + 100, () => ({ kind: 'ancient-tree', r: between(70, 110), h: between(200, 300) }));
       scatter(8, (x, y) => ({ kind: 'waterfall', x, y, r: 120, h: 200, w: 200, rot: rand() * Math.PI }), 800);
-      row(12, m - 1, 90, -1, WALL_DIST + 60, () => ({ kind: 'statue', r: 40, h: 120, color: '#d9b25b' }));
+      row(12, m - 1, 90, -1, WALL_DIST + 60, () => ({ kind: 'runestone', r: 34, h: 110, accent: '#9fe8c0' }));
       scatter(16, (x, y) => ({ kind: 'ruin', x, y, r: 60, h: 90, rot: rand() * Math.PI }), 700);
-      clumps(10, 5, 300, (x, y) => ({ kind: 'palm', x, y, r: 26, h: 120 }));
       break;
     }
     case 'ALFHEIM': {
-      // Babylon in the sky: terraced gardens with waterfalls between slim gold towers, cypress rows,
-      // above the clouds.
+      // The light elves' groves: birch and ancient trees, stone rings, still pools, drifting light.
       ground = 'garden';
-      // Cypress avenues line both sides of the track; terraces rise just beyond them.
-      row(0, m - 1, 9, -1, WALL_DIST + 45, () => ({ kind: 'cypress', r: 18, h: 110 }));
-      row(4, m - 1, 9, 1, WALL_DIST + 45, () => ({ kind: 'cypress', r: 18, h: 110 }));
-      row(10, m - 1, 46, -1, WALL_DIST + 260, (q) => { const w = between(260, 360); return { kind: 'terrace', r: w * 0.62, h: between(220, 380), w, d: w * 0.8, rot: q.rot }; });
-      row(30, m - 1, 52, 1, WALL_DIST + 260, (q) => { const w = between(240, 320); return { kind: 'terrace', r: w * 0.62, h: between(200, 340), w, d: w * 0.8, rot: q.rot }; });
-      scatter(30, (x, y) => {
-        const w = between(240, 400);
-        return { kind: 'terrace', x, y, r: w * 0.62, h: between(200, 420), w, d: w * between(0.7, 1) };
-      }, 900, 1200);
-      scatter(16, (x, y) => ({ kind: 'gold-tower', x, y, r: 55, h: between(320, 520) }), 800);
-      scatter(40, (x, y) => ({ kind: 'cypress', x, y, r: 18, h: 100 }), 700);
-      scatter(4, (x, y) => ({ kind: 'pool', x, y, r: 120, h: 3, w: 200, d: 110, rot: rand() * Math.PI, layer: 0 }), 500);
+      row(0, m - 1, 9, -1, WALL_DIST + 45, () => ({ kind: 'birch', r: 22, h: 70 }));
+      row(4, m - 1, 9, 1, WALL_DIST + 45, () => ({ kind: 'birch', r: 22, h: 70 }));
+      scatter(30, (x, y) => ({ kind: 'ancient-tree', x, y, r: between(90, 140), h: between(220, 340) }), 900, 1200);
+      scatter(6, (x, y) => ({ kind: 'stone-ring', x, y, r: 160, h: 80 }), 600);
+      scatter(6, (x, y) => ({ kind: 'pool', x, y, r: 120, h: 3, w: 200, d: 110, rot: rand() * Math.PI, layer: 0 }), 500);
+      scatter(60, (x, y) => ({ kind: 'wisp', x, y, r: 9, h: between(30, 120), color: '#fff3c0', accent: '#fff3c0' }), 400);
+      scatter(6, (x, y) => ({ kind: 'waterfall', x, y, r: 120, h: 220, w: 200, rot: rand() * Math.PI }), 800);
       break;
     }
   }
   // Sprints: landmarks stand on the island at every split, between the jump lane and the bypass.
   const ISLE_MARK: Record<string, (r: number) => Omit<Prop, 'seed' | 'x' | 'y'>> = {
     'IRONWOOD': (r) => ({ kind: 'ancient-tree', r, h: 260 }),
-    'JOMSBORG': (r) => ({ kind: 'castle-tower', r: r * 0.55, h: 300 }),
-    'HELHEIM': (r) => ({ kind: 'fire-temple', r: r * 0.85, h: 170 }),
+    'JOMSBORG': (r) => ({ kind: 'watchtower', r: r * 0.45, h: 220 }),
+    'HELHEIM': (r) => ({ kind: 'burial-mound', r: r * 0.8, h: 70, accent: '#8fb8e0' }),
     'BIFROST': (r) => ({ kind: 'gold-tower', r: r * 0.5, h: 460 }),
-    'YGGDRASIL': (r) => ({ kind: 'meso-temple', r: r * 0.75, h: 260 }),
+    'YGGDRASIL': (r) => ({ kind: 'runestone', r: r * 0.5, h: 180, accent: '#9fe8c0' }),
   };
   const mark = ISLE_MARK[track.name];
   if (mark) {

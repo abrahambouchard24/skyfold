@@ -66,7 +66,7 @@ const RUNOFF = 1600;              // px of road past the finish line
 /** Kerb width at the track edge through corners. */
 export const KERB_WIDTH = 21;
 
-const NEON: TrackTheme = { wall: '#3fe0d0', wallFace: '#f3ead2', lights: '255, 214, 140', kerb: '#e8c25a', surface: '#1f262b' };   // Apex Arena: marble, teal and gold
+const NEON: TrackTheme = { wall: '#c98b3e', wallFace: '#d8ccb4', lights: '255, 200, 130', kerb: '#8a5a2b', surface: '#2a2826' };   // Midgard: bronze on timber
 
 export const TRACKS: TrackDef[] = [
   {
@@ -103,7 +103,7 @@ export const TRACKS: TrackDef[] = [
   {
     name: 'ASGARD',
     blurb: 'Round the golden walls of the gods: flat out, slipstream battles',
-    theme: { wall: '#e8c25a', wallFace: '#f6efe0', lights: '255, 226, 170', kerb: '#c9a24a', surface: '#2a2826' },
+    theme: { wall: '#e3b878', wallFace: '#efe6d2', lights: '255, 226, 170', kerb: '#c98b3e', surface: '#2c2a28' },
     control: [
       [0, 1400],
       [2000, 1400],
@@ -126,7 +126,7 @@ export const TRACKS: TrackDef[] = [
     name: 'JOTUNHEIM',
     blurb: 'Crags of the giants: square turns between standing stones',
     scale: 1.51,
-    theme: { wall: '#f2b84b', wallFace: '#f1e3c4', lights: '255, 196, 110', kerb: '#3fe0d0', surface: '#22232a' },
+    theme: { wall: '#8fd0e0', wallFace: '#c8ccd0', lights: '200, 230, 255', kerb: '#5a6670', surface: '#26292c' },
     control: [
       [0, 1000],
       [1300, 1000],
@@ -158,7 +158,7 @@ export const TRACKS: TrackDef[] = [
   {
     name: 'NIFLHEIM',
     blurb: 'Mist and ice under the northern lights: long sweepers',
-    theme: { wall: '#7dffd0', wallFace: '#eef6ff', lights: '200, 235, 255', kerb: '#9fb6d6', surface: '#20252c' },
+    theme: { wall: '#9fe8f0', wallFace: '#eef6ff', lights: '200, 235, 255', kerb: '#7f96ad', surface: '#20252c' },
     control: [
       [0, 1500],
       [1800, 1500],
@@ -183,7 +183,7 @@ export const TRACKS: TrackDef[] = [
   {
     name: 'VANAHEIM',
     blurb: 'Green isles of the Vanir: fast sweepers, one big hairpin',
-    theme: { wall: '#5fe6d6', wallFace: '#f0f7f4', lights: '255, 214, 120', kerb: '#e8c25a', surface: '#1c2a30' },
+    theme: { wall: '#6fc4b0', wallFace: '#e0e6e0', lights: '255, 220, 150', kerb: '#3f7f70', surface: '#1f2a2c' },
     control: [
       [0, 1400],      // start/finish on the quay
       [1600, 1400],
@@ -211,7 +211,7 @@ export const TRACKS: TrackDef[] = [
   {
     name: 'SVARTALFHEIM',
     blurb: 'Dwarf forges and crystal caves: tight switchbacks',
-    theme: { wall: '#b98cff', wallFace: '#e6dcff', lights: '160, 220, 255', kerb: '#5fd8ff', surface: '#1f1d2c' },
+    theme: { wall: '#b98cff', wallFace: '#c8bfd8', lights: '200, 170, 255', kerb: '#6a5a8a', surface: '#1f1d26' },
     control: [
       [0, 1200],
       [1400, 1200],
@@ -244,7 +244,7 @@ export const TRACKS: TrackDef[] = [
     name: 'MUSPELHEIM',
     blurb: 'The realm of fire: long straights, heavy braking',
     scale: 1.49,
-    theme: { wall: '#f0b24a', wallFace: '#f3dfb8', lights: '255, 190, 110', kerb: '#c85a2a', surface: '#2c2620' },
+    theme: { wall: '#ff7a2a', wallFace: '#d8b89a', lights: '255, 150, 70', kerb: '#8a2f1a', surface: '#2a2220' },
     control: [
       [0, 1500],
       [2500, 1500],
@@ -275,7 +275,7 @@ export const TRACKS: TrackDef[] = [
     name: 'ALFHEIM',
     blurb: 'Terraced groves of the light elves: one long carousel',
     scale: 1.44,
-    theme: { wall: '#6fe0a0', wallFace: '#efe6cf', lights: '255, 230, 160', kerb: '#e8c25a', surface: '#232a24' },
+    theme: { wall: '#a6e8a0', wallFace: '#e6ecd8', lights: '230, 255, 200', kerb: '#c98b3e', surface: '#232a24' },
     control: [
       [0, 1300],
       [1700, 1300],
@@ -313,7 +313,7 @@ export const TRACKS: TrackDef[] = [
     sprint: true, samples: 26, jumps: 20,
     forks: [['jump', 'charge'], ['plain', 'cool'], ['jump', 'plain'], ['charge', 'cool']],
     curveForks: [['plain', 'charge'], ['plain', 'cool']],
-    theme: { wall: '#9dffb8', wallFace: '#eaf7e6', lights: '210, 255, 190', kerb: '#c8a0ff', surface: '#1e2622' },
+    theme: { wall: '#8fd0a0', wallFace: '#c8d0c0', lights: '190, 240, 200', kerb: '#5a4a3a', surface: '#1e2420' },
     // Generated route: rows across the world joined by sweeping U-turns, start to finish.
     control: [
       [0, 0], [520, 0], [1040, 0], [1560, 0], [2100, 0], [2620, 0], [3140, 0], [3660, 0],
@@ -342,7 +342,7 @@ export const TRACKS: TrackDef[] = [
     sprint: true, samples: 26, jumps: 20,
     forks: [['jump', 'plain'], ['plain', 'charge'], ['jump', 'cool']],
     curveForks: [['plain', 'cool'], ['plain', 'charge']],
-    theme: { wall: '#e8c25a', wallFace: '#ece6da', lights: '255, 230, 170', kerb: '#3d6fd8', surface: '#262a33' },
+    theme: { wall: '#c98b3e', wallFace: '#d8ccb4', lights: '255, 210, 150', kerb: '#3f6f9e', surface: '#262a2e' },
     // Generated route: rows across the world joined by sweeping U-turns, start to finish.
     control: [
       [0, 0], [520, 0], [1040, 0], [1560, 0], [2094, 0], [2620, 0], [3140, 0], [3660, 0],
@@ -372,7 +372,7 @@ export const TRACKS: TrackDef[] = [
     sprint: true, samples: 26, jumps: 20,
     forks: [['plain', 'cool'], ['jump', 'charge'], ['charge', 'cool']],
     curveForks: [['plain', 'charge'], ['plain', 'cool']],
-    theme: { wall: '#ff9a3d', wallFace: '#f6e2c4', lights: '255, 180, 90', kerb: '#2fb5a8', surface: '#2c2420' },
+    theme: { wall: '#8fb8e0', wallFace: '#b8c0cc', lights: '170, 200, 255', kerb: '#3a4250', surface: '#1c1f24' },
     // Generated route: rows across the world joined by sweeping U-turns, start to finish.
     control: [
       [0, 0], [520, 0], [1040, 0], [1560, 0], [2080, 0], [2600, 0], [3120, 0], [3640, 0],
@@ -437,7 +437,7 @@ export const TRACKS: TrackDef[] = [
     sprint: true, samples: 26, jumps: 20,
     forks: [['cool', 'charge'], ['jump', 'plain'], ['plain', 'cool'], ['jump', 'charge']],
     curveForks: [['plain', 'cool'], ['plain', 'charge']],
-    theme: { wall: '#f2c24a', wallFace: '#f4e6c0', lights: '255, 220, 140', kerb: '#2fae6b', surface: '#24271e' },
+    theme: { wall: '#b8e08a', wallFace: '#e0d8b8', lights: '230, 240, 170', kerb: '#8a5a2b', surface: '#24261e' },
     // Generated route: rows across the world joined by sweeping U-turns, start to finish.
     control: [
       [0, 0], [520, 0], [1040, 0], [1560, 0], [2080, 0], [2600, 0], [3120, 0], [3640, 0],

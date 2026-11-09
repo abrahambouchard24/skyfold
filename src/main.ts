@@ -153,12 +153,12 @@ let trackIndex = 0;
 let track = tracks[0];
 /** The field. The player picks one on the start screen; the rest are AI. hue = exhaust flame color. */
 const LIVERIES = [
-  { name: '01 RED', url: 'sprites/craft-red.png', color: '#ff3d6e', hue: 190 },
-  { name: '02 CYAN', url: 'sprites/craft-cyan.webp', color: '#3ff0ff', hue: 190 },
-  { name: '03 GREEN', url: 'sprites/craft-green.png', color: '#2fd16b', hue: 120 },
-  { name: '04 ORANGE', url: 'sprites/craft-orange.png', color: '#ff8a1f', hue: 35 },
-  { name: '05 PURPLE', url: 'sprites/craft-purple.png', color: '#a46bff', hue: 275 },
-  { name: '06 BLUE', url: 'sprites/craft-blue.png', color: '#3d7bff', hue: 215 },
+  { name: '01 FAFNIR', url: 'sprites/craft-red.png', color: '#b8452f', hue: 15 },
+  { name: '02 NIDHOGG', url: 'sprites/craft-cyan.webp', color: '#6fa8c4', hue: 195 },
+  { name: '03 JORMUN', url: 'sprites/craft-green.png', color: '#5f8a4a', hue: 100 },
+  { name: '04 SURTR', url: 'sprites/craft-orange.png', color: '#d9822b', hue: 30 },
+  { name: '05 HRAESVELG', url: 'sprites/craft-purple.png', color: '#86719e', hue: 270 },
+  { name: '06 SKOLL', url: 'sprites/craft-blue.png', color: '#4a6f94', hue: 210 },
 ].map((l) => ({ ...l, sprite: loadSprite(l.url), card: undefined as string | undefined }));
 // The selection cards show each car's 3D model (falling back to the top-down sprite without WebGL).
 try { if (chase) renderCarCards(LIVERIES).forEach((url, i) => { LIVERIES[i].card = url; }); } catch { /* sprites it is */ }
@@ -1116,13 +1116,13 @@ function resultsView(): ResultsView {
     const g = loadGhost(track.name, trackSig(track.pts));
     return {
       title: 'TIME TRIAL', subtitle: `${subtitle}  ·  BEST ${formatTime(raceBestLap)}${g ? `  ·  GHOST ${formatTime(g.time)}` : ''}`, rows,
-      buttons: [{ act: 'restart', label: 'GO AGAIN', primary: true }, { act: 'change', label: 'CHANGE CAR' }],
+      buttons: [{ act: 'restart', label: 'FLY AGAIN', primary: true }, { act: 'change', label: 'CHANGE DRAGON' }],
     };
   }
   if (!season) {
     return {
       title: 'RESULTS', subtitle, rows,
-      buttons: [{ act: 'restart', label: 'RACE AGAIN', primary: true }, { act: 'change', label: 'CHANGE CAR' }],
+      buttons: [{ act: 'restart', label: 'RACE AGAIN', primary: true }, { act: 'change', label: 'CHANGE DRAGON' }],
     };
   }
   const gained = racePoints();

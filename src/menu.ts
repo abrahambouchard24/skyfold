@@ -48,7 +48,7 @@ export interface MenuHandlers {
   story(): void;
   /** The Online window on the front menu. */
   online(): void;
-  /** Open the TUNE CAR screen for the selected car. */
+  /** Open the TRAIN DRAGON screen for the selected car. */
   tune(car: number): void;
   /** The Settings screen (front menu and pause menu). */
   settings(): void;
@@ -334,7 +334,7 @@ const CSS = `
 .hr-note { font-weight: 300; letter-spacing: 0.24em; color: #e6c08a; }
 
 /* Front windows as folded dioramas: the paper art fills the window, the craft sit on it. */
-.hr-window .scene { background: #0b2a30; }
+.hr-window .scene { background: #1c2228; }
 .hr-window .scene svg.paper { position: absolute; inset: 0; width: 100%; height: 100%; }
 .sc-story img { top: 50%; }
 .sc-story .vs { top: 56%; }
@@ -461,22 +461,22 @@ const ridge = (x: number, w: number, h: number, base: number, color: string) =>
 
 const SCENE_STORY = (() => {
   // Dusk: pleated sky bands from plum to amber, a fanned paper sun, folded hills and a dark deck.
-  let svg = pleatBand(0, 70, '#3a1d4a', 9, 1) + pleatBand(70, 140, '#7a2f4f', 9, 2) + pleatBand(140, 196, '#c8563f', 9, 3);
+  let svg = pleatBand(0, 70, '#1d2a3a', 9, 1) + pleatBand(70, 140, '#2f4a5e', 9, 2) + pleatBand(140, 196, '#6f8a8a', 9, 3);
   const cx = 150, cy = 200, R = 74;
   for (let k = 0; k < 10; k++) {
     const a0 = Math.PI + (k / 10) * Math.PI, a1 = Math.PI + ((k + 1) / 10) * Math.PI;
-    svg += poly([[cx, cy], [cx + Math.cos(a0) * R, cy + Math.sin(a0) * R], [cx + Math.cos(a1) * R, cy + Math.sin(a1) * R]], k % 2 ? '#f6c25a' : '#ffd98a');
+    svg += poly([[cx, cy], [cx + Math.cos(a0) * R, cy + Math.sin(a0) * R], [cx + Math.cos(a1) * R, cy + Math.sin(a1) * R]], k % 2 ? '#cfc4a8' : '#e6dcc4');
   }
-  svg += ridge(40, 150, 62, 214, '#1d4a52') + ridge(250, 170, 78, 214, '#163d45') + ridge(150, 120, 40, 214, '#24575f');
-  svg += poly([[-10, 212], [310, 212], [310, 440], [-10, 440]], '#0f2a30');
-  svg += poly([[-10, 212], [310, 212], [150, 300]], '#143439');
+  svg += ridge(40, 150, 62, 214, '#3a4650') + ridge(250, 170, 78, 214, '#2e3a44') + ridge(150, 120, 40, 214, '#46545c');
+  svg += poly([[-10, 212], [310, 212], [310, 440], [-10, 440]], '#1c2228');
+  svg += poly([[-10, 212], [310, 212], [150, 300]], '#232a30');
   svg += `<line x1="-10" y1="212" x2="310" y2="212" stroke="#c98b3e" stroke-width="2"/>`;
   return `<svg class="paper" viewBox="0 0 300 440" preserveAspectRatio="xMidYMid slice">${svg}</svg>`;
 })();
 
 const SCENE_QUICK = (() => {
   // Night teal paper, and a folded road strip racing up and across, its kerb in gold.
-  let svg = pleatBand(0, 440, '#0f3a42', 6, 4);
+  let svg = pleatBand(0, 440, '#22303a', 6, 4);
   svg += poly([[-40, 330], [340, 150], [340, 250], [-40, 430]], '#26343c');
   svg += poly([[-40, 330], [340, 150], [340, 200], [-40, 380]], '#33454f');   // the crease down the road's middle
   svg += `<g class="kerb">${Array.from({ length: 14 }, (_, i) => {
@@ -499,17 +499,17 @@ const SCENE_ONLINE = (() => {
   const r = seeded(9);
   const pts = [[-10, -10], [150, -10], [310, -10], [-10, 220], [130, 200], [310, 230], [-10, 450], [160, 450], [310, 450]];
   const tris = [[0, 1, 4], [1, 2, 4], [2, 5, 4], [0, 4, 3], [3, 4, 7], [4, 5, 7], [3, 7, 6], [5, 8, 7]];
-  for (const [a, b, c] of tris) svg += poly([pts[a], pts[b], pts[c]], shade('#12434c', 0.75 + r() * 0.35));
+  for (const [a, b, c] of tris) svg += poly([pts[a], pts[b], pts[c]], shade('#2c3a44', 0.75 + r() * 0.35));
   svg += `<path d="M60 205 Q150 110 240 205" fill="none" stroke="#c98b3e" stroke-width="2" stroke-dasharray="2 7" stroke-linecap="round"/>`;
   return `<svg class="paper" viewBox="0 0 300 440" preserveAspectRatio="xMidYMid slice">${svg}</svg>`;
 })();
 
 const SCENE_SEASON = (() => {
   // A trophy folded from gold paper, under two paper spotlights, on a stepped paper podium.
-  let svg = pleatBand(0, 440, '#123c44', 5, 6);
+  let svg = pleatBand(0, 440, '#2a2a2e', 5, 6);
   svg += poly([[95, -10], [125, -10], [175, 330], [40, 330]], 'rgba(255,248,225,0.07)');
   svg += poly([[175, -10], [205, -10], [260, 330], [125, 330]], 'rgba(255,248,225,0.06)');
-  const G = ['#fff0bf', '#f2cf6f', '#d9a640', '#b5822a', '#8f6420'];
+  const G = ['#f0c890', '#d6a462', '#b07a3e', '#8a5a2b', '#6a421f'];
   // Cup: a faceted bowl (four planes a side), handles, stem and base.
   const cup = [
     poly([[110, 120], [150, 120], [150, 205]], G[1]), poly([[110, 120], [150, 205], [124, 186]], G[2]),
@@ -519,12 +519,12 @@ const SCENE_SEASON = (() => {
     poly([[190, 128], [210, 132], [204, 160], [188, 166], [188, 154], [198, 150], [200, 138], [190, 136]], G[1]),
     poly([[143, 205], [157, 205], [160, 238], [140, 238]], G[2]), poly([[150, 205], [157, 205], [160, 238], [150, 238]], G[1]),
     poly([[124, 238], [176, 238], [184, 252], [116, 252]], G[1]), poly([[150, 238], [176, 238], [184, 252], [150, 252]], G[0]),
-    poly([[108, 252], [192, 252], [192, 276], [108, 276]], '#173a40'), `<line x1="108" y1="252" x2="192" y2="252" stroke="#c98b3e" stroke-width="2"/>`,
+    poly([[108, 252], [192, 252], [192, 276], [108, 276]], '#2a2420'), `<line x1="108" y1="252" x2="192" y2="252" stroke="#c98b3e" stroke-width="2"/>`,
     poly([[140, 150], [160, 150], [150, 170]], '#8fd0e0'),
   ];
   svg += `<g class="trophy">${cup.join('')}</g>`;
   // Podium steps.
-  svg += poly([[60, 330], [240, 330], [240, 440], [60, 440]], '#0f2c33') + poly([[60, 330], [240, 330], [150, 360]], '#163b42');
+  svg += poly([[60, 330], [240, 330], [240, 440], [60, 440]], '#262220') + poly([[60, 330], [240, 330], [150, 360]], '#322c28');
   return `<svg class="paper" viewBox="0 0 300 440" preserveAspectRatio="xMidYMid slice">${svg}</svg>`;
 })();
 
@@ -562,23 +562,19 @@ export class Menus {
         <h1 class="hr-title">SKYFOLD</h1>
         <p class="hr-sub">DRAGON RACING</p>
         <div class="hr-front">
-          <button class="hr-window" data-act="story" style="--c:#ff7a3d">
-            <div class="scene sc-story">${SCENE_STORY}
-              <img class="me" src="${cars[0]?.card ?? cars[0]?.url ?? ''}" alt=""><span class="vs">VS</span><img class="him" src="${cars[3]?.card ?? cars[3]?.url ?? ''}" alt=""></div>
-            <div class="label"><b>STORY</b><small>From the county speedway to the top of the Apex Series. Your first season starts with one race against a legend.</small></div>
-          </button>
+          <!-- Story mode: hidden until Skyfold has its own saga. -->
           <button class="hr-window" data-act="quick" style="--c:#4fe3ff">
             <div class="scene sc-quick">${SCENE_QUICK}<img src="${cars[0]?.card ?? cars[0]?.url ?? ''}" alt=""></div>
-            <div class="label"><b>QUICK RACE</b><small>One race. Pick your car, your track and your laps, and go.</small></div>
+            <div class="label"><b>QUICK RACE</b><small>One race. Choose your dragon and your realm, and fly.</small></div>
           </button>
           <button class="hr-window" data-act="online" style="--c:#7dffb0">
             <div class="scene sc-online">${SCENE_ONLINE}<img class="a" src="${cars[0]?.card ?? cars[0]?.url ?? ''}" alt="">${DART}${DART}${DART}
               <img class="b" src="${cars[1]?.card ?? cars[1]?.url ?? ''}" alt=""></div>
-            <div class="label"><b>ONLINE</b><small>Host a race, send the code, and race your friends live.</small></div>
+            <div class="label"><b>ONLINE</b><small>Raise a hall, send the rune-code, and race your friends live.</small></div>
           </button>
           <button class="hr-window" data-act="season" style="--c:#ffd23f">
             <div class="scene sc-season">${SCENE_SEASON}${sparks}</div>
-            <div class="label"><b>SEASON</b><small>A championship across the circuits. Points for every finish, a title for the best.</small></div>
+            <div class="label"><b>SAGA</b><small>A saga across the realms. Glory for every finish, a name in the sagas for the best.</small></div>
           </button>
         </div>
         <div class="hr-btns row hr-front-actions">
@@ -596,7 +592,7 @@ export class Menus {
       <button class="hr-btn secondary hr-back" data-act="front">◂ BACK</button>
       <div class="hr-panel">
         <h1 class="hr-title" data-setup-title>QUICK RACE</h1>
-        <p class="hr-sub">CHOOSE YOUR CAR</p>
+        <p class="hr-sub">CHOOSE YOUR DRAGON</p>
         <div class="hr-cars"></div>
         <p class="hr-sub">YOUR SKINS</p>
         <div class="hr-skins-row"></div>
@@ -613,7 +609,7 @@ export class Menus {
           <div class="hr-option" data-opt="races"><label>RACES</label><div class="hr-seg" data-seg="races">
             ${SEASON_CHOICES.map((n) => `<button data-v="${n}">${n}</button>`).join('')}</div></div>
         </div>
-        <div class="hr-btns row"><button class="hr-btn" data-act="start">START RACE</button><button class="hr-btn secondary" data-act="tune">TUNE CAR</button></div>
+        <div class="hr-btns row"><button class="hr-btn" data-act="start">START RACE</button><button class="hr-btn secondary" data-act="tune">TRAIN DRAGON</button></div>
         <p class="hr-keys">A / D or ← / →: steer &nbsp;·&nbsp; Accelerates on its own &nbsp;·&nbsp; S / ↓ / Space: brake &nbsp;·&nbsp; W / ↑ / Shift: boost &nbsp;·&nbsp; Esc: pause &nbsp;·&nbsp; M: mute</p>
       </div>`);
     const grid = this.start.querySelector('.hr-cars')!;
@@ -664,7 +660,7 @@ export class Menus {
         <div class="hr-btns">
           <button class="hr-btn" data-act="resume">RESUME</button>
           <button class="hr-btn secondary" data-act="restart">RESTART RACE</button>
-          <button class="hr-btn secondary" data-act="change">CHANGE CAR</button>
+          <button class="hr-btn secondary" data-act="change">CHANGE DRAGON</button>
           <button class="hr-btn secondary" data-act="settings">SETTINGS</button>
         </div>
       </div>`);
@@ -726,8 +722,8 @@ export class Menus {
     this.start.querySelector<HTMLElement>('[data-opt="dist"]')!.style.display = km ? '' : 'none';
     this.start.querySelector('.hr-dist')!.textContent = km ? `${km} KM · ONE RUN` : '';
     this.start.querySelector('[data-track-head]')!.textContent = this.races > 1 ? 'CHOOSE THE OPENING TRACK' : 'CHOOSE YOUR TRACK';
-    this.start.querySelector('[data-act="start"]')!.textContent = this.trial ? 'START TRIAL' : this.races > 1 ? 'START SEASON' : 'START RACE';
-    this.start.querySelector('[data-setup-title]')!.textContent = this.trial ? 'TIME TRIAL' : this.races > 1 ? 'SEASON' : 'QUICK RACE';
+    this.start.querySelector('[data-act="start"]')!.textContent = this.trial ? 'START TRIAL' : this.races > 1 ? 'START SAGA' : 'START RACE';
+    this.start.querySelector('[data-setup-title]')!.textContent = this.trial ? 'TIME TRIAL' : this.races > 1 ? 'SAGA' : 'QUICK RACE';
   }
 
   /** Show the player's best lap on each track card ('' where there isn't one yet). */
@@ -751,7 +747,7 @@ export class Menus {
     const restart = this.pause.querySelector<HTMLElement>('[data-act="restart"]')!;
     restart.style.display = role === 'guest' ? 'none' : '';
     this.pause.querySelector('[data-act="change"]')!.textContent =
-      role === 'host' ? 'BACK TO LOBBY' : role === 'guest' ? 'LEAVE RACE' : 'CHANGE CAR';
+      role === 'host' ? 'BACK TO LOBBY' : role === 'guest' ? 'LEAVE RACE' : 'CHANGE DRAGON';
   }
 
   get pauseOpen(): boolean { return !this.pause.classList.contains('hidden'); }
@@ -763,7 +759,7 @@ export class Menus {
 
   /** In a season the pause menu's way out quits the season rather than just changing car. */
   setSeason(on: boolean): void {
-    this.pause.querySelector('[data-act="change"]')!.textContent = on ? 'QUIT SEASON' : 'CHANGE CAR';
+    this.pause.querySelector('[data-act="change"]')!.textContent = on ? 'QUIT SEASON' : 'CHANGE DRAGON';
   }
 
   /** Show the results screen, or refresh it while the rest of the field is still finishing. */

@@ -1,5 +1,5 @@
 // Achievements and the car skins they unlock. Progress is kept in the browser.
-// Each achievement unlocks one skin; equip it in the Garage and your car wears it everywhere,
+// Each achievement unlocks one skin; pick it with your dragon and it wears it everywhere,
 // online included (other players see it too).
 
 /** A skin's colours: hull, dark trim, bright accent stripes, and the glow of the thrusters and pads. */
@@ -12,23 +12,23 @@ export interface Skin { id: string; name: string; colors: SkinColors | null }
 // Palettes in the game's look: marble, ivory, deep sea teal and gold, with neon as the accent.
 export const SKINS: Skin[] = [
   { id: 'stock', name: 'STOCK LIVERY', colors: null },
-  { id: 'lime', name: 'TRITON', colors: { body: '#6fd6b8', trim: '#12302c', accent: '#e8d9a8', glow: '#7dffd8', pattern: 'verdigris' } },
-  { id: 'graphite', name: 'HADES', colors: { body: '#2a2d36', trim: '#121318', accent: '#c9a24a', glow: '#ffcf7a', pattern: 'obsidian' } },
-  { id: 'gold', name: 'MIDAS', colors: { body: '#e2b54a', trim: '#2a1f0c', accent: '#fff4d6', glow: '#ffe08a', pattern: 'aureus' } },
-  { id: 'lightning', name: 'ZEUS', colors: { body: '#f2efe6', trim: '#1e3a6b', accent: '#4fc3ff', glow: '#9fe3ff', pattern: 'zeus' } },
-  { id: 'ghost', name: 'ATHENA', colors: { body: '#f1eee8', trim: '#b9b2a6', accent: '#c9a24a', glow: '#fff3d6', pattern: 'marble' } },
-  { id: 'sunset', name: 'HELIOS', colors: { body: '#ff7a45', trim: '#3a1424', accent: '#ffd27a', glow: '#ff9fd6', pattern: 'sunfire' } },
-  { id: 'prism', name: 'IRIS', colors: { body: '#c9b8ff', trim: '#2a2244', accent: '#7dffe0', glow: '#ffb3ec', pattern: 'opal' } },
-  { id: 'chrome', name: 'HERMES', colors: { body: '#d8dde6', trim: '#6a707c', accent: '#ffffff', glow: '#cfe8ff', pattern: 'platinum' } },
-  { id: 'ice', name: 'ATLANTIS', colors: { body: '#1f6f78', trim: '#0b2a2e', accent: '#e2c27a', glow: '#5fffe6', pattern: 'atlantis' } },
-  { id: 'royal', name: 'AUGUSTUS', colors: { body: '#3a1f6e', trim: '#140a2a', accent: '#e8c25a', glow: '#c9a6ff', pattern: 'imperial' } },
-  { id: 'neonnet', name: 'DAEDALUS', colors: { body: '#16242a', trim: '#070d10', accent: '#3fffb0', glow: '#3fffd8', pattern: 'circuit' } },
-  { id: 'carbon', name: 'NYX', colors: { body: '#1c1d22', trim: '#0a0a0d', accent: '#ff2d55', glow: '#ff6a85', pattern: 'vanta' } },
+  { id: 'lime', name: 'NJORD', colors: { body: '#6fd6b8', trim: '#12302c', accent: '#e8d9a8', glow: '#7dffd8', pattern: 'verdigris' } },
+  { id: 'graphite', name: 'HEL', colors: { body: '#2a2d36', trim: '#121318', accent: '#c9a24a', glow: '#ffcf7a', pattern: 'obsidian' } },
+  { id: 'gold', name: 'ANDVARI', colors: { body: '#e2b54a', trim: '#2a1f0c', accent: '#fff4d6', glow: '#ffe08a', pattern: 'aureus' } },
+  { id: 'lightning', name: 'THOR', colors: { body: '#f2efe6', trim: '#1e3a6b', accent: '#4fc3ff', glow: '#9fe3ff', pattern: 'zeus' } },
+  { id: 'ghost', name: 'FRIGG', colors: { body: '#f1eee8', trim: '#b9b2a6', accent: '#c9a24a', glow: '#fff3d6', pattern: 'marble' } },
+  { id: 'sunset', name: 'SOL', colors: { body: '#ff7a45', trim: '#3a1424', accent: '#ffd27a', glow: '#ff9fd6', pattern: 'sunfire' } },
+  { id: 'prism', name: 'FREYJA', colors: { body: '#c9b8ff', trim: '#2a2244', accent: '#7dffe0', glow: '#ffb3ec', pattern: 'opal' } },
+  { id: 'chrome', name: 'HERMOD', colors: { body: '#d8dde6', trim: '#6a707c', accent: '#ffffff', glow: '#cfe8ff', pattern: 'platinum' } },
+  { id: 'ice', name: 'AEGIR', colors: { body: '#1f6f78', trim: '#0b2a2e', accent: '#e2c27a', glow: '#5fffe6', pattern: 'atlantis' } },
+  { id: 'royal', name: 'ODIN', colors: { body: '#3a1f6e', trim: '#140a2a', accent: '#e8c25a', glow: '#c9a6ff', pattern: 'imperial' } },
+  { id: 'neonnet', name: 'VOLUND', colors: { body: '#16242a', trim: '#070d10', accent: '#3fffb0', glow: '#3fffd8', pattern: 'circuit' } },
+  { id: 'carbon', name: 'NOTT', colors: { body: '#1c1d22', trim: '#0a0a0d', accent: '#ff2d55', glow: '#ff6a85', pattern: 'vanta' } },
   { id: 'valkyrie', name: 'VALKYRIE', colors: { body: '#eef3f8', trim: '#8fa6bd', accent: '#c9e6ff', glow: '#9ff7e6', pattern: 'valkyrie' } },
-  { id: 'medusa', name: 'MEDUSA', colors: { body: '#1f6b4a', trim: '#0c241a', accent: '#e3c26a', glow: '#7dffb8', pattern: 'medusa' } },
-  { id: 'poseidon', name: 'POSEIDON', colors: { body: '#123f73', trim: '#071a33', accent: '#e8c25a', glow: '#6fe8ff', pattern: 'poseidon' } },
-  { id: 'vesta', name: 'VESTA', colors: { body: '#7a1424', trim: '#2a060c', accent: '#ffd27a', glow: '#ffb347', pattern: 'vesta' } },
-  { id: 'anubis', name: 'ANUBIS', colors: { body: '#121216', trim: '#060608', accent: '#e3b85a', glow: '#4f7dff', pattern: 'anubis' } },
+  { id: 'medusa', name: 'JORMUNGANDR', colors: { body: '#1f6b4a', trim: '#0c241a', accent: '#e3c26a', glow: '#7dffb8', pattern: 'medusa' } },
+  { id: 'poseidon', name: 'RAN', colors: { body: '#123f73', trim: '#071a33', accent: '#e8c25a', glow: '#6fe8ff', pattern: 'poseidon' } },
+  { id: 'vesta', name: 'LOGI', colors: { body: '#7a1424', trim: '#2a060c', accent: '#ffd27a', glow: '#ffb347', pattern: 'vesta' } },
+  { id: 'anubis', name: 'VIDAR', colors: { body: '#121216', trim: '#060608', accent: '#e3b85a', glow: '#4f7dff', pattern: 'anubis' } },
 ];
 
 export interface Achievement { id: string; name: string; desc: string; skin: string; goal?: number }

@@ -17,7 +17,7 @@ export interface LobbyHandlers {
   setRaces(races: number): void;
   start(): void;
   leave(): void;
-  /** Open the TUNE CAR screen for my car. */
+  /** Open the TRAIN DRAGON screen for my car. */
   tune(): void;
   /** Wear a skin ('stock' = the car's own colours). */
   equip(skin: string): void;
@@ -157,7 +157,7 @@ export class LobbyUI {
             ${board}
           </div>
           <div>
-            <div class="ol-label">YOUR CAR</div>
+            <div class="ol-label">YOUR DRAGON</div>
             <div class="ol-cars">${cars}</div>
             <div class="ol-label" style="margin-top:8px">YOUR SKINS</div>
             <div class="ol-cars ol-skins">${skinCards(this.skins, this.equipped)}</div>
@@ -183,7 +183,7 @@ export class LobbyUI {
         ${isHost ? '<div class="ol-wait" style="margin:10px 0 0">Keep this tab open and in front while racing: your browser runs the race for everyone.</div>' : ''}
         <div class="ol-row" style="margin:18px 0 0">
           ${isHost ? `<button class="hr-btn" data-start>${lobby.races > 1 ? 'START SEASON' : 'START RACE'}</button>` : '<div class="ol-wait">WAITING FOR THE HOST TO START…</div>'}
-          <button class="hr-btn secondary" data-tune>TUNE CAR</button>
+          <button class="hr-btn secondary" data-tune>TRAIN DRAGON</button>
           <button class="hr-btn secondary" data-garage>GARAGE</button>
           <button class="hr-btn secondary" data-leave>LEAVE</button>
         </div>

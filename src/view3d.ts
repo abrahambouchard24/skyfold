@@ -19,9 +19,9 @@ const ENERGY_FULL = 0.995;
 const DRS_GLOW = 0x4dff9a, ERS_GLOW = 0xb86bff;
 
 /**
- * Each circuit's atmosphere: time of day, sky, haze, light, and the clean architecture it is
- * built from. The look is restrained on purpose: light or neutral surfaces, one accent colour
- * (the track theme's), crisp glowing lines, and a quiet skyline sitting back in the haze.
+ * Each realm's atmosphere: time of day, sky, haze, light, the timber or stone of its barriers and
+ * the mountains in the distance. Northern and weathered: cold skies, low suns, mist, with one
+ * accent colour (the track theme's) for rune-light and fire.
  */
 interface Atmos {
   sky: [string, string, string];   // zenith, mid, horizon
@@ -41,70 +41,70 @@ interface Atmos {
 }
 
 const ATMOS: Record<string, Atmos> = {
-  'MIDGARD': {          // a teal and gold dusk over the marble arena
-    sky: ['#0e2a44', '#2f7f8f', '#ffd9a0'], sun: { color: '#ffd9a0', elev: 0.1, azim: 2.4, size: 300, light: 1.7 }, stars: 0,
-    fog: '#8fb7bd', fogNear: 2200, fogFar: 9500, hemi: ['#e8f4f0', '#3a3a48', 1.7], ground: '#d8d0c0',
-    road: '#2c3440', wall: ['#f4efe4', '#cdbf9f'], skyline: 'towers', skylineColor: '#6f9aa4', windows: '#ffe2a6', gates: 3,
+  'MIDGARD': {          // a cold, bright evening over the fjord village
+    sky: ['#24384c', '#6f8a98', '#e8c89a'], sun: { color: '#ffd8a0', elev: 0.1, azim: 2.4, size: 280, light: 1.6 }, stars: 0,
+    fog: '#9aa8a8', fogNear: 2000, fogFar: 9000, hemi: ['#e6ece6', '#3a3a36', 1.6], ground: '#b8bca0',
+    road: '#2e2c2a', wall: ['#8a6a4a', '#4a3a2a'], skyline: 'peaks', skylineColor: '#4a5a64', windows: '#ffb45a', gates: 2,
   },
-  'ASGARD': {  // golden hour over the colosseum
-    sky: ['#2c2a62', '#c8686a', '#ffd79a'], sun: { color: '#ffc27a', elev: 0.07, azim: 0.9, size: 420, light: 1.8 }, stars: 0,
-    fog: '#e3a77e', fogNear: 2000, fogFar: 9000, hemi: ['#ffe2c4', '#4a3040', 1.6], ground: '#e0d2b8',
-    road: '#36323c', wall: ['#fbf4ea', '#d6c2a8'], skyline: 'towers', skylineColor: '#a8768a', windows: '#ffe7c4', gates: 2,
+  'ASGARD': {           // golden light over the halls of the gods
+    sky: ['#2a3a5a', '#8aa0c0', '#ffe2a8'], sun: { color: '#fff0c0', elev: 0.22, azim: 1.9, size: 360, light: 2.0 }, stars: 0,
+    fog: '#e8dcc0', fogNear: 2400, fogFar: 10000, hemi: ['#fff6e0', '#5a4a3a', 1.8], ground: '#e0d4b8',
+    road: '#34302c', wall: ['#e8d6b0', '#a8743a'], skyline: 'peaks', skylineColor: '#a89a88', windows: '#ffd27a', gates: 3,
   },
-  'JOTUNHEIM': {            // twilight on the deco skyline, every window gold
-    sky: ['#060d1e', '#1d3b6a', '#f0a868'], sun: { color: '#ffb070', elev: 0.04, azim: 4.2, size: 360, light: 1.2 }, stars: 40,
-    fog: '#3a4a6a', fogNear: 1600, fogFar: 8000, hemi: ['#b8c8ff', '#1a1a28', 1.4], ground: '#5a6478',
-    road: '#22262f', wall: ['#e8e2d4', '#a89a80'], skyline: 'city', skylineColor: '#1c2a44', windows: '#ffd88a', gates: 4,
+  'JOTUNHEIM': {        // a grey, cold day among the giants' crags
+    sky: ['#3a4450', '#7a8690', '#b8bcc0'], sun: { color: '#e8ecf0', elev: 0.3, azim: 2.8, size: 220, light: 1.3 }, stars: 0,
+    fog: '#8a9096', fogNear: 1600, fogFar: 7500, hemi: ['#d8dce0', '#3a3c40', 1.5], ground: '#8a8c88',
+    road: '#2a2c2e', wall: ['#8a8c90', '#4a4c50'], skyline: 'peaks', skylineColor: '#4a5058', windows: '#8fd0e0', gates: 2,
   },
-  'NIFLHEIM': {            // polar night, moonlight on snow, the aurora overhead
-    sky: ['#02040c', '#08203a', '#1f5a5a'], sun: { color: '#bfe8ff', elev: 0.02, azim: 3.6, size: 140, light: 0.95 }, stars: 600,
-    fog: '#13283a', fogNear: 1800, fogFar: 9000, hemi: ['#a8c8ff', '#1a2030', 1.6], ground: '#8fa3be',
-    road: '#2a3240', wall: ['#eef4fb', '#b8c8da'], skyline: 'peaks', skylineColor: '#1a3044', windows: '#ffd9a0', gates: 2, aurora: true,
+  'NIFLHEIM': {         // polar night, moonlight on snow, the aurora overhead
+    sky: ['#050a1a', '#14304a', '#3a6a7a'], sun: { color: '#cfe6ff', elev: 0.32, azim: 2.2, size: 160, light: 0.8 }, stars: 380,
+    fog: '#1a3044', fogNear: 1400, fogFar: 7000, hemi: ['#a8c8e8', '#18202c', 1.2], ground: '#c8d6e6',
+    road: '#2a3240', wall: ['#b8c8da', '#5a6a7a'], skyline: 'peaks', skylineColor: '#1a3044', windows: '#9fe8f0', gates: 2, aurora: true,
   },
-  'VANAHEIM': {        // dusk on the sea, marble and sea glass
-    sky: ['#082636', '#2f8f9a', '#ffd9a0'], sun: { color: '#ffcf8a', elev: 0.05, azim: 5.5, size: 380, light: 1.5 }, stars: 40,
-    fog: '#4f8f98', fogNear: 2000, fogFar: 9000, hemi: ['#d4f0f0', '#1a3038', 1.6], ground: '#1f6a78',
-    road: '#283a44', wall: ['#f6f1e6', '#cdbf9f'], skyline: 'towers', skylineColor: '#3a7a84', windows: '#9ff0ff', gates: 3,
+  'VANAHEIM': {         // a grey-green sea at dusk among the islands
+    sky: ['#1e3040', '#4a7078', '#d8c49a'], sun: { color: '#ffd8a0', elev: 0.08, azim: 2.6, size: 300, light: 1.4 }, stars: 0,
+    fog: '#7a9088', fogNear: 1800, fogFar: 8500, hemi: ['#d8e6e0', '#2a3a3a', 1.5], ground: '#5a7a70',
+    road: '#28302e', wall: ['#7a8a70', '#3a4a3a'], skyline: 'peaks', skylineColor: '#2a4044', windows: '#ffc070', gates: 2,
   },
-  'SVARTALFHEIM': {       // a violet storm over the crystal war zone
-    sky: ['#05030c', '#21143a', '#5a3a6a'], sun: { color: '#d8b8ff', elev: 0.1, azim: 1.6, size: 160, light: 0.95 }, stars: 0,
-    fog: '#2a1a3a', fogNear: 2000, fogFar: 9000, hemi: ['#c8b4ff', '#120c1c', 1.35], ground: '#4a4058',
-    road: '#221e2c', wall: ['#d8d0ec', '#8a7aa8'], skyline: 'mesas', skylineColor: '#1a1028', windows: '#c8a8ff', gates: 2, lightning: true,
+  'SVARTALFHEIM': {     // under the mountain: a violet gloom lit by gems and forges, a storm above
+    sky: ['#0c0814', '#2a1a3a', '#5a3a5a'], sun: { color: '#c8a8ff', elev: 0.25, azim: 2.0, size: 180, light: 0.9 }, stars: 120,
+    fog: '#2a1a34', fogNear: 1400, fogFar: 6500, hemi: ['#b8a0d8', '#1a1420', 1.2], ground: '#3a3044',
+    road: '#221e28', wall: ['#5a4a6a', '#2a2234'], skyline: 'peaks', skylineColor: '#1a1028', windows: '#c8a8ff', gates: 2, lightning: true,
   },
-  'MUSPELHEIM': {          // the golden afternoon of the sacred city
-    sky: ['#1f4f9a', '#e2a35c', '#ffe2a8'], sun: { color: '#fff0cc', elev: 0.22, azim: 0.4, size: 300, light: 2.2 }, stars: 0,
-    fog: '#f0d2a0', fogNear: 3600, fogFar: 14000, hemi: ['#fff1dc', '#6a5038', 1.8], ground: '#ead2a4',
-    road: '#463e38', wall: ['#fff8ec', '#e2c9a2'], skyline: 'dunes', skylineColor: '#d8b483', windows: '#9ff0ff', gates: 3,
+  'MUSPELHEIM': {       // the realm of fire: a red-black sky, ember haze
+    sky: ['#1a0806', '#5a1a0e', '#d8582a'], sun: { color: '#ff8a40', elev: 0.12, azim: 2.3, size: 340, light: 1.3 }, stars: 0,
+    fog: '#4a1a10', fogNear: 1400, fogFar: 6500, hemi: ['#ffb080', '#2a1410', 1.4], ground: '#3a2a26',
+    road: '#2a2220', wall: ['#5a3a2a', '#2a1a14'], skyline: 'peaks', skylineColor: '#2a0e08', windows: '#ff8a40', gates: 2,
   },
-  'IRONWOOD': {          // fae twilight: a mint-green sky, mist between the ancient trees
-    sky: ['#06121c', '#14404a', '#c8f0d0'], sun: { color: '#d8fff0', elev: 0.1, azim: 2.0, size: 200, light: 1.1 }, stars: 200,
-    fog: '#1a3a3a', fogNear: 1500, fogFar: 7500, hemi: ['#b8ffe0', '#10201a', 1.6], ground: '#2f5a46',
-    road: '#202a28', wall: ['#e8fff4', '#9cc8b4'], skyline: 'dunes', skylineColor: '#0f2a28', windows: '#fff0a0', gates: 3,
+  'IRONWOOD': {         // twilight in the iron forest, mist between the trees
+    sky: ['#101a18', '#2a4038', '#7a9a80'], sun: { color: '#d8f0d0', elev: 0.15, azim: 2.4, size: 200, light: 1.0 }, stars: 60,
+    fog: '#3a5048', fogNear: 1200, fogFar: 6000, hemi: ['#c8e0c8', '#1a2420', 1.3], ground: '#3a4a38',
+    road: '#202826', wall: ['#5a5a4a', '#2a2a22'], skyline: 'peaks', skylineColor: '#1a2a24', windows: '#9fe8e0', gates: 2,
   },
-  'JOMSBORG': {        // a bright morning over the castle city
-    sky: ['#2a6fd0', '#8fc4f0', '#fff4d8'], sun: { color: '#fff8e8', elev: 0.35, azim: 2.6, size: 220, light: 2.0 }, stars: 0,
-    fog: '#dfe8f0', fogNear: 2600, fogFar: 12000, hemi: ['#f4f8ff', '#5a6a48', 1.9], ground: '#7fa060',
-    road: '#33363f', wall: ['#fffaf0', '#d8ccb0'], skyline: 'towers', skylineColor: '#9fb6d8', windows: '#ffe8a0', gates: 3,
+  'JOMSBORG': {         // a grey sea morning over the fortress
+    sky: ['#3a4a58', '#8a9aa8', '#d8d4c4'], sun: { color: '#f0ece0', elev: 0.25, azim: 1.8, size: 240, light: 1.5 }, stars: 0,
+    fog: '#9aa4a8', fogNear: 1800, fogFar: 8500, hemi: ['#e8ecec', '#3a3a36', 1.6], ground: '#8a9a80',
+    road: '#2c2e30', wall: ['#7a5a3a', '#3e2a1c'], skyline: 'peaks', skylineColor: '#5a6a74', windows: '#ffb45a', gates: 2,
   },
-  'HELHEIM': {          // a fire-lit dusk over the temples
-    sky: ['#160c2a', '#8a3a3a', '#ffb070'], sun: { color: '#ffc080', elev: 0.06, azim: 0.6, size: 380, light: 1.6 }, stars: 60,
-    fog: '#b8705a', fogNear: 2200, fogFar: 10000, hemi: ['#ffd8b8', '#40242a', 1.6], ground: '#c8a070',
-    road: '#3a302c', wall: ['#fff2e0', '#d8b890'], skyline: 'mesas', skylineColor: '#6a3a3a', windows: '#ffb060', gates: 3,
+  'HELHEIM': {          // the misty road to Hel: blue-grey gloom, cold light
+    sky: ['#0a0e14', '#1e2830', '#4a5660'], sun: { color: '#b8d0f0', elev: 0.2, azim: 2.5, size: 150, light: 0.8 }, stars: 200,
+    fog: '#2a343c', fogNear: 1100, fogFar: 5500, hemi: ['#a8b8d0', '#14181c', 1.1], ground: '#3a4048',
+    road: '#1e2226', wall: ['#4a5058', '#22262c'], skyline: 'peaks', skylineColor: '#141a20', windows: '#8fb8e0', gates: 2,
   },
-  'BIFROST': {             // dusk above the clouds, the aurora overhead
-    sky: ['#0a0628', '#3a2a7a', '#ffb8d8'], sun: { color: '#ffd8f0', elev: 0.05, azim: 4.0, size: 320, light: 1.5 }, stars: 300,
-    fog: '#8a7ab8', fogNear: 2400, fogFar: 11000, hemi: ['#e8dcff', '#2a2048', 1.6], ground: '#d8d0f0',
+  'BIFROST': {          // dusk above the clouds, the aurora overhead
+    sky: ['#120e2a', '#4a3a7a', '#e8a8c8'], sun: { color: '#ffd0e8', elev: 0.08, azim: 2.4, size: 300, light: 1.3 }, stars: 160,
+    fog: '#6a5a90', fogNear: 2200, fogFar: 9500, hemi: ['#e8d8ff', '#2a2440', 1.4], ground: '#e8e0f0',
     road: '#26223a', wall: ['#f6f0ff', '#c4b4e8'], skyline: 'clouds', skylineColor: '#f0e0ff', windows: '#e0d0ff', gates: 4, aurora: true,
   },
-  'YGGDRASIL': {           // a humid golden afternoon in the jungle
-    sky: ['#1f5a8a', '#8fd0c0', '#ffe8a8'], sun: { color: '#fff0c0', elev: 0.25, azim: 1.2, size: 260, light: 2.0 }, stars: 0,
-    fog: '#b8d8b0', fogNear: 1800, fogFar: 8500, hemi: ['#f0ffe0', '#304a28', 1.8], ground: '#3f6a3a',
-    road: '#2c2e26', wall: ['#fff6dc', '#d8c890'], skyline: 'peaks', skylineColor: '#4a7a5a', windows: '#ffe08a', gates: 3,
+  'YGGDRASIL': {        // green-gold light falling through the World Tree
+    sky: ['#1a2a1a', '#5a7a4a', '#e8d898'], sun: { color: '#fff0b0', elev: 0.3, azim: 2.0, size: 260, light: 1.6 }, stars: 0,
+    fog: '#7a8a5a', fogNear: 1600, fogFar: 7500, hemi: ['#e8f0c8', '#2a3020', 1.6], ground: '#5a6a40',
+    road: '#2a2a22', wall: ['#7a6a4a', '#3a3222'], skyline: 'peaks', skylineColor: '#3a4a30', windows: '#ffe08a', gates: 2,
   },
-  'ALFHEIM': {     // morning in the sky gardens, above the clouds
-    sky: ['#2a6fc0', '#9fd0f0', '#fff2d8'], sun: { color: '#fff4e0', elev: 0.3, azim: 3.1, size: 260, light: 2.0 }, stars: 0,
-    fog: '#e6eef4', fogNear: 2200, fogFar: 10000, hemi: ['#f4f8ff', '#4a6a48', 1.8], ground: '#7faa6a',
-    road: '#34383f', wall: ['#fffaf0', '#d8ccb0'], skyline: 'clouds', skylineColor: '#ffffff', windows: '#fff0c8', gates: 3,
+  'ALFHEIM': {          // a soft dawn in the light elves' groves
+    sky: ['#2a3a58', '#a8b8d0', '#ffe8c8'], sun: { color: '#fff4dc', elev: 0.12, azim: 2.1, size: 280, light: 1.7 }, stars: 0,
+    fog: '#d8dcd0', fogNear: 2000, fogFar: 9000, hemi: ['#f4f4e8', '#3a4034', 1.7], ground: '#a8c090',
+    road: '#2e302c', wall: ['#d8ccb4', '#8a7a5a'], skyline: 'peaks', skylineColor: '#8a98a8', windows: '#fff0c8', gates: 2,
   },
 };
 const DEFAULT_ATMOS = ATMOS['MIDGARD'];
@@ -1371,6 +1371,118 @@ function propObject(p: Prop, spinners: { obj: THREE.Object3D; axis: 'x' | 'y' | 
       break;
     }
     // --- Fae Forest ------------------------------------------------------------------------------------
+    // --- The Nine Realms: Norse props ----------------------------------------------------------------
+    case 'longhouse': case 'mead-hall': {
+      // A long timber hall under a steep turf (or, for the mead hall, gold-shingled) roof, with
+      // crossed dragon-head gables at each end and a warm glow in the doorway.
+      const hall = p.kind === 'mead-hall';
+      const L2 = p.w ?? p.r * 2.2, W2 = p.d ?? p.r * 0.9, wallH = h * 0.38;
+      put(new THREE.BoxGeometry(L2, wallH, W2), phong(0x5a3f2a), 0, wallH / 2);
+      for (let x = -L2 / 2 + 10; x < L2 / 2; x += 22) put(new THREE.BoxGeometry(3, wallH, W2 + 1), phong(0x3e2a1c), x, wallH / 2);
+      const roof = new THREE.CylinderGeometry(W2 * 0.78, W2 * 0.78, L2 * 1.04, 3, 1);
+      roof.rotateZ(Math.PI / 2);
+      const r3 = put(roof, phong(hall ? GOLD_C : 0x4f6a3a), 0, wallH + W2 * 0.36);
+      r3.scale.set(1, 1.15, 1);
+      for (const end of [-1, 1]) {
+        for (const side of [-1, 1]) {
+          const horn = put(new THREE.ConeGeometry(5, h * 0.32, 5), phong(hall ? GOLD_C : 0x3e2a1c), end * L2 * 0.52, wallH + W2 * 0.9, side * 7);
+          horn.rotation.z = -end * 0.5; horn.rotation.x = side * 0.35;
+        }
+      }
+      put(new THREE.BoxGeometry(2, wallH * 0.62, W2 * 0.3), glowing('#ffb45a'), L2 / 2 + 1, wallH * 0.31);
+      if (hall) put(new THREE.BoxGeometry(L2 * 1.02, 3, W2 + 4), phong(GOLD_C), 0, wallH);
+      break;
+    }
+    case 'runestone': {
+      // A tall carved stone, its rune band glowing.
+      const sw = p.r * 0.9, st = p.r * 0.35;
+      put(new THREE.BoxGeometry(sw, h * 0.85, st), phong(0x7d7a74), 0, h * 0.425);
+      put(new THREE.CylinderGeometry(sw / 2, sw / 2, st, 10, 1, false, 0, Math.PI), phong(0x7d7a74), 0, h * 0.85).rotation.set(Math.PI / 2, 0, Math.PI / 2);
+      const rune = glowing(p.accent ?? '#8fd0e0');
+      put(new THREE.BoxGeometry(3, h * 0.6, st + 1), rune, -sw * 0.28, h * 0.45);
+      put(new THREE.BoxGeometry(3, h * 0.6, st + 1), rune, sw * 0.28, h * 0.45);
+      for (let k = 0; k < 4; k++) put(new THREE.BoxGeometry(sw * 0.36, 2.5, st + 1), rune, 0, h * (0.22 + k * 0.16)).rotation.z = k % 2 ? 0.5 : -0.5;
+      break;
+    }
+    case 'longship': {
+      // A dragon-prowed longship: a lapstrake hull, a striped square sail and a row of shields.
+      const L2 = p.w ?? p.r * 2.4, B = L2 * 0.22;
+      const hull = put(new THREE.SphereGeometry(1, 12, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), phong(0x5a3a22), 0, h * 0.18);
+      hull.scale.set(L2 / 2, h * 0.22, B / 2);
+      put(new THREE.BoxGeometry(L2 * 0.92, 3, B * 0.92), phong(0x7a5434), 0, h * 0.18);
+      for (const end of [-1, 1]) {
+        const post = put(new THREE.CylinderGeometry(2, 4, h * 0.5, 6), phong(0x5a3a22), end * L2 * 0.48, h * 0.38);
+        post.rotation.z = -end * 0.45;
+      }
+      put(new THREE.ConeGeometry(6, 18, 5), phong(GOLD_C), L2 * 0.6, h * 0.62).rotation.z = -1.2;
+      put(new THREE.CylinderGeometry(2.5, 3, h * 1.1, 6), phong(0x4a3424), 0, h * 0.7);
+      const sailMat = new THREE.MeshPhongMaterial({ color: 0xe8dcc4, flatShading: true, side: THREE.DoubleSide });
+      const sail = put(new THREE.BoxGeometry(4, h * 0.6, L2 * 0.42), sailMat, 0, h * 0.85);
+      void sail;
+      for (let k = 0; k < 3; k++) put(new THREE.BoxGeometry(5, h * 0.08, L2 * 0.42), phong(0xa8342a), 0, h * (0.62 + k * 0.18));
+      for (let x = -L2 * 0.36; x <= L2 * 0.36; x += L2 * 0.12) {
+        for (const side of [-1, 1]) {
+          const sh = put(new THREE.CylinderGeometry(6, 6, 2, 10), phong(x % 2 ? 0xa8342a : 0xd8ccb4), x, h * 0.3, side * B * 0.5);
+          sh.rotation.x = Math.PI / 2;
+        }
+      }
+      g.rotation.y += Math.PI / 2;
+      break;
+    }
+    case 'burial-mound': {
+      const mound = put(new THREE.SphereGeometry(p.r, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), phong(0x4f6a3a), 0, 0);
+      mound.scale.set(1, h / p.r, 1);
+      put(new THREE.BoxGeometry(18, h * 0.5, 30), phong(0x7d7a74), p.r * 0.9, h * 0.25);
+      put(new THREE.BoxGeometry(4, h * 0.36, 16), glowing(p.accent ?? '#8fd0e0'), p.r * 0.95, h * 0.2);
+      break;
+    }
+    case 'watchtower': {
+      // Four timber legs, a lookout platform, a pitched roof and a brazier burning on top.
+      const r = p.r;
+      for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) put(new THREE.CylinderGeometry(3, 4, h, 6), phong(0x4a3424), x * r * 0.4, h / 2, z * r * 0.4);
+      put(new THREE.BoxGeometry(r * 1.1, 6, r * 1.1), phong(0x5a3f2a), 0, h * 0.8);
+      for (const [x, z, rx] of [[0, -1, 0], [0, 1, 0]] as const) put(new THREE.BoxGeometry(r * 1.1, 10, 3), phong(0x3e2a1c), x, h * 0.84, z * r * 0.55).rotation.x = rx;
+      put(new THREE.ConeGeometry(r * 0.85, h * 0.3, 4), phong(0x4f6a3a), 0, h + h * 0.15).rotation.y = Math.PI / 4;
+      put(new THREE.SphereGeometry(6, 6, 5), glowing('#ffb45a'), 0, h * 0.86);
+      break;
+    }
+    case 'palisade': {
+      // A run of sharpened logs.
+      const ww = p.w ?? 180;
+      for (let x = -ww / 2; x <= ww / 2; x += 11) {
+        const lh = h * (0.85 + ((x * 7.3) % 1 + 1) % 1 * 0.2);
+        put(new THREE.CylinderGeometry(5, 5.5, lh, 6), phong(0x5a3f2a), x, lh / 2);
+        put(new THREE.ConeGeometry(5, 10, 6), phong(0x6b4c32), x, lh + 5);
+      }
+      break;
+    }
+    case 'brazier': {
+      for (let k = 0; k < 3; k++) {
+        const a = (k / 3) * Math.PI * 2;
+        const leg = put(new THREE.CylinderGeometry(1.6, 1.6, h, 5), phong(0x2a2a2e), Math.cos(a) * 8, h / 2, Math.sin(a) * 8);
+        leg.rotation.set(Math.sin(a) * 0.2, 0, -Math.cos(a) * 0.2);
+      }
+      put(new THREE.CylinderGeometry(p.r * 0.7, p.r * 0.4, 10, 8), phong(0x3a3a40), 0, h);
+      put(new THREE.ConeGeometry(p.r * 0.55, p.r * 1.4, 6), glowing(p.accent ?? '#ff9a3d'), 0, h + 5 + p.r * 0.7);
+      break;
+    }
+    case 'lava-rock': {
+      put(new THREE.DodecahedronGeometry(p.r * 0.7, 0), phong(0x2a2422), 0, p.r * 0.25).scale.set(1, 0.6, 1);
+      put(new THREE.DodecahedronGeometry(p.r * 0.5, 0), glowing('#ff6a2a'), 0, p.r * 0.1).scale.set(1.1, 0.25, 1.1);
+      break;
+    }
+    case 'world-tree': {
+      // Yggdrasil: a vast ash, its trunk a twist of roots, its crown in several tiers, roots glowing.
+      put(new THREE.CylinderGeometry(p.r * 0.18, p.r * 0.36, h * 0.65, 9), phong(0x5a4636), 0, h * 0.325);
+      for (let k = 0; k < 6; k++) {
+        const a = (k / 6) * Math.PI * 2;
+        const root = put(new THREE.CylinderGeometry(p.r * 0.05, p.r * 0.11, p.r * 0.9, 6), phong(0x5a4636), Math.cos(a) * p.r * 0.4, p.r * 0.12, Math.sin(a) * p.r * 0.4);
+        root.rotation.set(Math.sin(a) * 1.2, 0, -Math.cos(a) * 1.2);
+        put(new THREE.BoxGeometry(p.r * 0.5, 2, 4), glowing('#9fe8c0'), Math.cos(a) * p.r * 0.7, 2, Math.sin(a) * p.r * 0.7).rotation.y = -a;
+      }
+      for (const [y, s2] of [[0.62, 0.9], [0.8, 0.7], [0.95, 0.45]]) put(new THREE.SphereGeometry(p.r * s2, 10, 7), phong(0x3f5a32), 0, h * y).scale.set(1, 0.55, 1);
+      break;
+    }
     case 'ancient-tree': {
       put(new THREE.CylinderGeometry(p.r * 0.22, p.r * 0.34, h * 0.6, 7), phong(0x4a3426), 0, h * 0.3);
       for (const [x, y, z, s2] of [[0, 0.68, 0, 0.75], [p.r * 0.4, 0.58, p.r * 0.2, 0.55], [-p.r * 0.35, 0.6, -p.r * 0.25, 0.55]]) {

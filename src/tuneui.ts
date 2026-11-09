@@ -1,4 +1,4 @@
-// The TUNE CAR screen: four trade-off sliders, presets, and stat bars that move as you tune.
+// The TRAIN DRAGON screen: four trade-off sliders, presets, and stat bars that move as you tune.
 
 import { installDeco } from './deco';
 import { PRESETS, SLIDERS, STEPS, Setup, setupMods, statBars } from './setup';
@@ -65,7 +65,7 @@ export class TuneUI {
     const presets = PRESETS.map((p, i) => `<button data-preset="${i}">${p.name}</button>`).join('');
     this.el.innerHTML = `
       <div class="tn-card deco-panel">
-        <h2 class="deco-title">TUNE CAR</h2>
+        <h2 class="deco-title">TRAIN DRAGON</h2>
         <div class="tn-sub">EVERY GAIN COSTS SOMETHING · THE MIDDLE IS THE STANDARD CAR</div>
         <div class="tn-cols">
           <div><img class="tn-car" src="${this.carUrl}" alt=""><div data-stats></div>

@@ -36,7 +36,7 @@ export interface Species {
 
 /** One species per racer livery (01-06), in livery order. */
 export const SPECIES: Species[] = [
-  { name: 'WYVERN', body: 34, girth: 9, neck: 22, neckSegs: 3, tail: 40, tailSegs: 5, span: 64, chord: 30, wing: 'bat', fingers: 3, horns: 'swept', tailFin: 'spade', crest: false, beat: 1 },
+  { name: 'LINDWORM', body: 34, girth: 9, neck: 22, neckSegs: 3, tail: 40, tailSegs: 5, span: 64, chord: 30, wing: 'bat', fingers: 3, horns: 'swept', tailFin: 'spade', crest: false, beat: 1 },
   { name: 'SKY SERPENT', body: 40, girth: 6.5, neck: 26, neckSegs: 4, tail: 62, tailSegs: 7, span: 46, chord: 22, wing: 'feather', fingers: 5, horns: 'antler', tailFin: 'fan', crest: true, beat: 1.25 },
   { name: 'STONE DRAKE', body: 30, girth: 12, neck: 16, neckSegs: 2, tail: 32, tailSegs: 4, span: 56, chord: 34, wing: 'bat', fingers: 3, horns: 'ram', tailFin: 'none', crest: true, beat: 0.9 },
   { name: 'EMBERWING', body: 32, girth: 8, neck: 20, neckSegs: 3, tail: 44, tailSegs: 5, span: 68, chord: 26, wing: 'feather', fingers: 6, horns: 'spikes', tailFin: 'flame', crest: false, beat: 1.1 },
@@ -106,7 +106,8 @@ function loft(p: Paper, secs: { x: number; w: number; h: number; y: number }[], 
 
 // --- the rig -------------------------------------------------------------------------------------------
 
-const IVORY = new THREE.Color('#f3ead2'), GOLD = new THREE.Color('#d9b25b'), INK = new THREE.Color('#1a2024');
+// Bone for membranes and horns, weathered bronze for spars and claws.
+const IVORY = new THREE.Color('#e6dcc4'), GOLD = new THREE.Color('#a8743a'), INK = new THREE.Color('#1a2024');
 /** How high a dragon flies above the road. */
 export const FLY_HEIGHT = 22;
 

@@ -150,7 +150,7 @@ export class DailyUI {
         </div>
         <div class="btns">
           <button class="hr-btn" data-go>${st.tries ? 'TRY AGAIN' : 'START'}</button>
-          <button class="hr-btn secondary" data-tune>TUNE CAR</button>
+          <button class="hr-btn secondary" data-tune>TRAIN DRAGON</button>
           <button class="hr-btn secondary" data-back>BACK</button>
         </div>
       </div>`;
