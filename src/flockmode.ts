@@ -42,6 +42,7 @@ export class FlockMode {
   private finished = false;
   private beeped = 0;
   private savedBeat: typeof dragonEvents.playerBeat = null;
+  private bleatWait = 1;
 
   constructor(private deps: FlockDeps) {}
 
@@ -65,7 +66,7 @@ export class FlockMode {
     for (const c of this.cars) c.race.lapStart = -1;
     const s = this.deps.sound;
     this.game.events = {
-      snatch: (d) => { if (d === 0) { s.pop(); this.ui.flash('SNATCHED!'); } },
+      snatch: (d) => { if (d === 0) { s.snatch(); this.ui.flash('SNATCHED!'); } },
       deliver: (d, n) => { if (d === 0) { s.chime(n > 1); this.ui.flash(`+${n} PENNED`); } },
       herded: (d) => { if (d === 0) { s.chime(false); this.ui.flash('+1 HERDED IN'); } },
       knock: (d) => { if (d === 0) { s.thud(220); this.ui.flash('SHAKEN LOOSE!'); } },
@@ -112,6 +113,7 @@ export class FlockMode {
       const pc = player.craft;
       sound.engine(0, 0, pc.thrust, clamp(pc.speed / 880, 0, 1));
       sound.gale(g.started && pc.deploying);
+      this.bleats(dtReal);
       if (g.over) this.finish();
     }
     // HUD.
@@ -123,6 +125,28 @@ export class FlockMode {
     const call = toGo > 0 ? String(Math.ceil(toGo)) : toGo > -0.8 ? 'FLY!' : null;
     if (!this.finished) this.ui.update(g.left, rows, g.dragons[0].carrying.length, toPen - camH, call);
     this.view?.render(g, this.cars, player, g.time, this.deps.pixelRatio());
+  }
+
+  /**
+   * Now and then a sheep near the player bleats, panned to where it is and pitched its own way;
+   * frightened ones bleat more often. Never more than a few a second.
+   */
+  private bleats(dt: number): void {
+    const g = this.game, pc = this.player?.craft;
+    if (!g || !pc) return;
+    this.bleatWait -= dt;
+    if (this.bleatWait > 0) return;
+    const near = g.sheep.filter((s) => s.state !== 'penned' && Math.hypot(s.x - pc.pos.x, s.y - pc.pos.y) < 900);
+    if (!near.length) { this.bleatWait = 0.6; return; }
+    const s = near[Math.floor(Math.random() * near.length)];
+    const camH = this.view?.heading ?? pc.heading;
+    // Pan: where the sheep is relative to the way the camera looks (right of it = +).
+    const rel = Math.atan2(s.y - pc.pos.y, s.x - pc.pos.x) - camH;
+    const pan = clamp(Math.sin(rel), -1, 1);
+    const pitch = 0.85 + ((s.id * 0.37) % 0.35);
+    this.deps.sound.bleat(pan, pitch);
+    const frightened = near.some((o) => o.fear > 0.4);
+    this.bleatWait = frightened ? 0.35 + Math.random() * 0.4 : 1.2 + Math.random() * 2.2;
   }
 
   /** Dev: step the raid by hand (animation frames stop while the tab is hidden), then draw it. */
@@ -147,7 +171,7 @@ export class FlockMode {
     const rank = g.ranking();
     const rows: TallyRow[] = rank.map((i) => ({ name: g.dragons[i].name, color: g.dragons[i].color, score: g.dragons[i].score, me: i === 0 }));
     const won = g.dragons[rank[0]].score === g.dragons[0].score;
-    this.deps.sound.beep(true);
+    this.deps.sound.roundHorn(true);
     this.deps.sound.crowd(won);
     this.deps.sound.gale(false);
     this.ui.results(rows, () => this.start(), () => this.exit());
