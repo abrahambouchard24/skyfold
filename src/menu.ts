@@ -448,6 +448,11 @@ const CSS = `
 .sc-flock, .sc-trial, .sc-daily, .sc-tutorial, .sc-hoard, .sc-settings { background: #1c2228; }
 .sc-flock img { position: absolute; left: 22%; top: 18%; width: 60%; height: auto; filter: drop-shadow(0 12px 10px rgba(0,0,0,0.5)); animation: hr-bob 1.6s ease-in-out infinite; }
 .sc-flock .lift { animation: hr-bob 1.6s ease-in-out infinite; }
+.sc-onesheep { background: #1c2228; }
+.sc-onesheep img { position: absolute; height: auto; filter: drop-shadow(0 10px 8px rgba(0,0,0,0.55)); }
+.sc-onesheep .carrier { left: 18%; top: 4%; width: 64%; animation: hr-bob 1.5s ease-in-out infinite; }
+.sc-onesheep .chaser { left: -6%; top: 46%; width: 46%; opacity: 0.85; animation: hr-bob 1.3s ease-in-out infinite 0.4s; }
+.sc-onesheep .halo { animation: hr-forge 1.6s ease-in-out infinite alternate; }
 .sc-trial img { position: absolute; width: 58%; height: auto; }
 .sc-trial .me { left: 32%; top: 46%; filter: drop-shadow(0 10px 8px rgba(0,0,0,0.6)); animation: hr-bob 1.2s ease-in-out infinite; }
 .sc-trial .ghost { left: 6%; top: 40%; opacity: 0.38; filter: grayscale(1) sepia(1) hue-rotate(150deg) saturate(2.4) brightness(1.3); animation: hr-bob 1.2s ease-in-out infinite 0.3s; }
@@ -604,6 +609,19 @@ const SCENE_FLOCK = (() => {
   for (const [x, y, k, fl] of [[62, 268, 1.1, false], [118, 280, 1, true], [228, 272, 1.15, true]] as const) svg += paperSheep(x, y, k, fl);
   // The carried sheep, up under where the dragon flies.
   svg += `<g class="lift">${paperSheep(156, 168, 0.85)}</g>`;
+  return svgWrap(svg);
+})();
+
+const SCENE_ONESHEEP = (() => {
+  // Dusk slate paper, a folded road sweeping away, and one sheep held high in a warm halo: the prize
+  // every dragon on the course is after (the carrier and a rival closing in are laid over as images).
+  let svg = pleatBand(0, 120, '#2a3440', 8, 81) + pleatBand(120, 230, '#3e4a54', 8, 82);
+  svg += ridge(50, 190, 60, 236, '#2e3a44') + ridge(250, 210, 80, 236, '#26323a');
+  svg += poly([[-10, 234], [310, 234], [310, 440], [-10, 440]], '#1c2228');
+  svg += poly([[-40, 420], [180, 236], [230, 236], [120, 440]], '#2a333a') + poly([[-40, 420], [180, 236], [196, 236], [30, 440]], '#323c44');
+  svg += `<ellipse class="halo" cx="150" cy="196" rx="58" ry="58" fill="rgba(240,200,140,0.16)"/>`;
+  svg += `<ellipse cx="150" cy="196" rx="34" ry="34" fill="rgba(240,200,140,0.14)"/>`;
+  svg += paperSheep(146, 200, 1.5);
   return svgWrap(svg);
 })();
 
@@ -770,6 +788,10 @@ export class Menus {
           <button class="hr-window" data-act="flock" style="--c:#7aa25a">
             <div class="scene sc-flock">${SCENE_FLOCK}<img src="${cars[2]?.card ?? cars[2]?.url ?? ''}" alt=""></div>
             <div class="label"><b>FLOCK RAID</b><small>Snatch sheep in your claws and pen the most before the horn.</small></div>
+          </button>
+          <button class="hr-window" data-act="onesheep" style="--c:#e6c08a">
+            <div class="scene sc-onesheep">${SCENE_ONESHEEP}<img class="carrier" src="${cars[0]?.card ?? cars[0]?.url ?? ''}" alt=""><img class="chaser" src="${cars[4]?.card ?? cars[4]?.url ?? ''}" alt=""></div>
+            <div class="label"><b>ONE SHEEP</b><small>One sheep, one race. Carry it to score, and steal it from whoever has it.</small></div>
           </button>
           <button class="hr-window" data-act="trial" style="--c:#8fd0e0">
             <div class="scene sc-trial">${SCENE_TRIAL}<img class="ghost" src="${cars[0]?.card ?? cars[0]?.url ?? ''}" alt=""><img class="me" src="${cars[0]?.card ?? cars[0]?.url ?? ''}" alt=""></div>
