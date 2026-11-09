@@ -1,63 +1,63 @@
-// Story mode, "Rookie Season": the characters, the missions (built from the normal race rules
-// with different goals and set-ups), the garage upgrades, and the player's saved progress.
+// The saga, "The Runt's Saga": the characters, the flights (built from the normal race rules with
+// different goals and set-ups), the rookery's training, and the player's saved progress.
 // Pure data and logic: the screens live in storyui.ts and the racing in main.ts.
 
 import { Mods, NO_MODS } from './craft';
 
 // --- characters ---------------------------------------------------------------------------------
 
-export type Speaker = 'player' | 'lupis' | 'charlie' | 'sophi' | 'judah' | 'rook' | 'announcer';
+export type Speaker = 'player' | 'hilda' | 'brand' | 'sigrun' | 'viggo' | 'aske' | 'skald';
 
 export interface Character { name: string; role: string; color: string }
 
 /** Who's who. The player's name is filled in from the save. */
 export const CHARACTERS: Record<Speaker, Character> = {
-  player:    { name: 'YOU', role: 'Rookie, Leopard GP', color: '#ff3d6e' },
-  charlie:   { name: 'CHARLIE', role: 'County speedway legend', color: '#ff8a1f' },
-  lupis:     { name: 'MR. LUPIS', role: 'Team Secretary, Leopard GP', color: '#ffd23f' },
-  sophi:     { name: 'SOPHI', role: 'Team Mechanic, Leopard GP', color: '#4fe3ff' },
-  judah:     { name: 'JUDAH', role: 'Two-time champion, Vanta Racing', color: '#a46bff' },
-  rook:      { name: 'ROOK', role: 'Judah\'s teammate, Vanta Racing', color: '#3d7bff' },
-  announcer: { name: 'ANNOUNCER', role: 'Apex Series broadcast', color: '#8a93c0' },
+  player: { name: 'YOU', role: 'Young rider, the Raven Hall', color: '#c8433a' },
+  hilda:  { name: 'HILDA', role: 'Old dragon-rider of the fjord', color: '#d9873a' },
+  brand:  { name: 'BRAND', role: 'Steward of the Raven Hall', color: '#d9b25b' },
+  sigrun: { name: 'SIGRUN', role: 'Dragon-keeper of the Raven Hall', color: '#8fd0e0' },
+  viggo:  { name: 'VIGGO', role: 'Twice crowned rider, the Serpent Hall', color: '#9a7ad0' },
+  aske:   { name: 'ASKE', role: 'Viggo\'s shield-brother, the Serpent Hall', color: '#5a86c8' },
+  skald:  { name: 'THE SKALD', role: 'Singer of the flights', color: '#a8b0a0' },
 };
 
 /**
  * A line of dialogue. `if` makes it conditional on how the race actually went, so the
- * post-race talk matches what happened. Text can use {name} and {place} (e.g. P3).
+ * post-flight talk matches what happened. Text can use {name} and {place} (e.g. 3RD).
  */
 export interface Line { who: Speaker; text: string; if?: Cond }
 
 // --- the field ----------------------------------------------------------------------------------
 
 /**
- * Livery index per car in the race (see LIVERIES in main.ts): 0 red (the player, Leopard GP),
- * 1 cyan, 2 green, 3 orange, 4 purple, 5 blue.
+ * Dragon (livery) index per rider in the flight (see LIVERIES in main.ts): 0 the player's red,
+ * 1 frost blue, 2 green, 3 amber, 4 violet, 5 storm blue.
  */
 export interface Entrant {
   name: string;
   livery: number;
-  /** Driving skill, 0.7 (cautious) to 1 (at the limit). */
+  /** Riding skill, 0.7 (cautious) to 1 (at the limit). */
   skill: number;
-  /** Extra pace on top of the mission's AI buff (Judah's edge). */
+  /** Extra pace on top of the flight's AI buff (Viggo's edge). */
   edge?: number;
-  /** Also gets the player's own garage upgrades, so upgrades can't buy a win against them. */
+  /** Also gets the player's own training, so training can't buy a win against them. */
   matchPlayer?: boolean;
-  /** A story character this car belongs to, so goals can name it. */
+  /** A saga character this dragon belongs to, so goals can name it. */
   who?: Speaker;
 }
 
-const CHARLIE = (skill: number): Entrant => ({ name: 'CHARLIE', livery: 3, skill, who: 'charlie' });
-const JUDAH = (skill: number, edge: number, matchPlayer = false): Entrant => ({ name: 'JUDAH', livery: 4, skill, edge, matchPlayer, who: 'judah' });
-const ROOK = (skill: number): Entrant => ({ name: 'ROOK', livery: 5, skill, who: 'rook' });
-/** Local racers and other teams' drivers, to fill out a grid. */
+const HILDA = (skill: number): Entrant => ({ name: 'HILDA', livery: 3, skill, who: 'hilda' });
+const VIGGO = (skill: number, edge: number, matchPlayer = false): Entrant => ({ name: 'VIGGO', livery: 4, skill, edge, matchPlayer, who: 'viggo' });
+const ASKE = (skill: number): Entrant => ({ name: 'ASKE', livery: 5, skill, who: 'aske' });
+/** Riders of the fjords and the other halls, to fill out a flight. */
 const LOCALS: Entrant[] = [
-  { name: 'MAGS', livery: 2, skill: 0.8 },
-  { name: 'DUTCH', livery: 1, skill: 0.8 },
-  { name: 'KENJI', livery: 5, skill: 0.8 },
-  { name: 'BEA', livery: 3, skill: 0.8 },
-  { name: 'VOSS', livery: 4, skill: 0.8 },
+  { name: 'ASTRID', livery: 2, skill: 0.8 },
+  { name: 'GUNNAR', livery: 1, skill: 0.8 },
+  { name: 'EINAR', livery: 5, skill: 0.8 },
+  { name: 'RAGNA', livery: 3, skill: 0.8 },
+  { name: 'TORVI', livery: 4, skill: 0.8 },
 ];
-/** n filler drivers whose skills spread across [lo, hi], skipping liveries already used. */
+/** n other riders whose skills spread across [lo, hi], skipping dragons already used. */
 function fillers(n: number, lo: number, hi: number, taken: number[]): Entrant[] {
   const out: Entrant[] = [];
   for (const e of LOCALS) {
@@ -69,14 +69,14 @@ function fillers(n: number, lo: number, hi: number, taken: number[]): Entrant[] 
   return out;
 }
 
-// --- missions -----------------------------------------------------------------------------------
+// --- flights ------------------------------------------------------------------------------------
 
 export type Goal =
   | { kind: 'win' }
   | { kind: 'top'; n: number }
   | { kind: 'beat'; who: Speaker }
   | { kind: 'lap'; seconds: number }
-  | { kind: 'cool' }               // finish without ever overheating
+  | { kind: 'cool' }               // finish without your dragon ever overheating
   | { kind: 'and'; goals: Goal[] };
 
 export interface Mission {
@@ -86,296 +86,296 @@ export interface Mission {
   track: string;
   laps: number;
   rivals: Entrant[];
-  /** Where the player starts: from the back, from pole, or a random slot. */
+  /** Where the player starts: at the back of the line, at the front, or anywhere. */
   grid: 'back' | 'pole' | 'random';
-  /** Pace bump for every AI car (fraction), the main way difficulty climbs through the story. */
+  /** Pace bump for every AI dragon (fraction), the main way difficulty climbs through the saga. */
   aiBuff: number;
-  /** Heat the player's car starts with (the sabotage mission). */
+  /** Heat the player's dragon starts with (the poisoning). */
   startHeat?: number;
   goal: Goal;
   bonus?: Goal;
   points: number;
   bonusPoints: number;
-  /** A note on the result card the first time this mission is completed. */
+  /** A note on the result card the first time this flight is completed. */
   unlocks?: string;
   intro: Line[];
   win: Line[];
   lose: Line[];
 }
 
-export const CHAPTERS = ['COUNTY CUP', 'LEOPARD GP', 'THE CLIMB', 'THE APEX'];
+export const CHAPTERS = ['THE FJORD FLIGHTS', 'THE RAVEN HALL', 'THE CLIMB', 'THE CROWN OF THE SKY'];
 /** One line under each chapter's title card. */
 export const CHAPTER_TAGLINES = [
-  'A Tuesday night. A county speedway. One borrowed seat.',
-  'A team on its last legs, and a champion who wants you gone.',
-  'Every race a little faster. Every rival a little meaner.',
-  'One title. One rival. Everything on the line.',
+  'A cold night on the fjord. A runt of a dragon. One borrowed saddle.',
+  'A hall on its last silver, and a champion who wants you gone.',
+  'Every realm a little wilder. Every rival a little meaner.',
+  'One crown. One rival. Everything on the wing.',
 ];
 
 export const MISSIONS: Mission[] = [
-  // ---- Chapter 1: County Cup ------------------------------------------------------------------
+  // ---- Chapter 1: The Fjord Flights -----------------------------------------------------------
   {
     id: 'prove-it', chapter: 0, title: 'PROVE IT', track: 'ASGARD', laps: 2, grid: 'random', aiBuff: 0,
-    rivals: [CHARLIE(0.74)],
+    rivals: [HILDA(0.74)],
     goal: { kind: 'win' }, points: 150, bonusPoints: 0,
     intro: [
-      { who: 'announcer', text: 'Tuesday night at the county speedway. Two cars on the grid, and twelve people in the stands.' },
-      { who: 'charlie', text: 'So you\'re the kid who\'s been sleeping in my pit garage. {name}, right?' },
-      { who: 'player', text: 'I can drive. I just need a car.' },
-      { who: 'charlie', text: 'Everybody can drive on a Tuesday. I\'ve sponsored a seat in the County Cup for twenty-two years. It goes to whoever beats me.' },
-      { who: 'charlie', text: 'Two laps. Nobody\'s passed me on this banking since before you were born.' },
+      { who: 'skald', text: 'Moonrise over the old ring under Asgard\'s wall. Two dragons on the line, and a dozen fishermen watching.' },
+      { who: 'hilda', text: 'So you\'re the whelp who\'s been sleeping in my rookery. {name}, is it? And that\'s the runt of the spring clutch.' },
+      { who: 'player', text: 'She can fly. We just need the chance.' },
+      { who: 'hilda', text: 'Every runt can flap. Twenty-two winters I\'ve kept a saddle for the Fjord Flights. It goes to whoever beats me.' },
+      { who: 'hilda', text: 'Two laps. No one has passed me round this ring since before you were born.' },
     ],
     win: [
-      { who: 'charlie', text: '...Well. Huh.' },
-      { who: 'charlie', text: 'Twenty-two years. Fine. The seat\'s yours, {name}. Don\'t make me regret it.' },
+      { who: 'hilda', text: '...Well. Odin\'s eye.' },
+      { who: 'hilda', text: 'Twenty-two winters. Fine. The saddle\'s yours, {name}. And the runt with it. Don\'t make me regret it.' },
     ],
     lose: [
-      { who: 'charlie', text: 'Told you. The banking\'s mine. Come back when you\'ve learned to brake.' },
+      { who: 'hilda', text: 'Told you. This ring is mine. Come back when you\'ve learned to check your speed.' },
     ],
   },
   {
-    id: 'county-cup', chapter: 0, title: 'COUNTY CUP', track: 'ASGARD', laps: 3, grid: 'back', aiBuff: 0,
+    id: 'county-cup', chapter: 0, title: 'THE FJORD FLIGHTS', track: 'ASGARD', laps: 3, grid: 'back', aiBuff: 0,
     rivals: fillers(5, 0.72, 0.84, [0]),
     goal: { kind: 'top', n: 3 }, bonus: { kind: 'win' }, points: 200, bonusPoints: 100,
     intro: [
-      { who: 'charlie', text: 'Six cars, three laps, and you start dead last. That\'s what a new name gets you.' },
-      { who: 'charlie', text: 'Get on the podium and people start paying attention. Win it and they won\'t forget you.' },
+      { who: 'hilda', text: 'Six dragons, three laps, and you start at the very back. That\'s what a new name gets you.' },
+      { who: 'hilda', text: 'Finish in the first three and people start to whisper. Win it and they\'ll sing about you.' },
     ],
     win: [
-      { who: 'announcer', text: 'A rookie WINS the County Cup! Somebody find out who that red car belongs to!', if: { kind: 'win' } },
-      { who: 'announcer', text: 'A rookie on the County Cup podium! Somebody find out who that red car belongs to!', if: { kind: 'not', cond: { kind: 'win' } } },
-      { who: 'lupis', text: 'Excuse me. Lupis. Team Secretary, Leopard GP. Perhaps you\'ve heard of us.' },
-      { who: 'charlie', text: 'Leopard GP. Now there\'s a name I haven\'t heard in a while.' },
-      { who: 'lupis', text: 'We have a seat open in the Apex Series. A tryout, tomorrow, at the Apex Arena. Bring Charlie if you like.' },
+      { who: 'skald', text: 'A whelp WINS the Fjord Flights! Somebody find out whose red dragon that is!', if: { kind: 'win' } },
+      { who: 'skald', text: 'A whelp in the first three of the Fjord Flights! Somebody find out whose red dragon that is!', if: { kind: 'not', cond: { kind: 'win' } } },
+      { who: 'brand', text: 'Forgive me. Brand. Steward of the Raven Hall. Perhaps you\'ve heard of us.' },
+      { who: 'hilda', text: 'The Raven Hall. Now there\'s a name I haven\'t heard sung in a while.' },
+      { who: 'brand', text: 'We have a saddle open in the Sky Moot. A trial flight, tomorrow, over Midgard. Bring Hilda if you like.' },
     ],
     lose: [
-      { who: 'charlie', text: 'Off the podium. It happens. Shake it off and line up again.' },
+      { who: 'hilda', text: 'Outside the first three. It happens. Shake it off and fly again.' },
     ],
   },
   {
-    id: 'tryout', chapter: 0, title: 'THE TRYOUT', track: 'MIDGARD', laps: 3, grid: 'pole', aiBuff: 0,
+    id: 'tryout', chapter: 0, title: 'THE TRIAL FLIGHT', track: 'MIDGARD', laps: 3, grid: 'pole', aiBuff: 0,
     rivals: [],
     goal: { kind: 'lap', seconds: 32.0 }, bonus: { kind: 'lap', seconds: 29.5 }, points: 250, bonusPoints: 100,
-    unlocks: 'GARAGE UNLOCKED: spend team points on upgrades from the story menu.',
+    unlocks: 'THE ROOKERY IS OPEN: spend glory on your dragon\'s training from the saga menu.',
     intro: [
-      { who: 'lupis', text: 'An empty track, three laps. Leopard GP needs one lap under thirty-two seconds.' },
-      { who: 'lupis', text: 'Our previous driver managed twenty-nine and a half. He has since... moved on.' },
-      { who: 'charlie', text: 'Brake before the corners, kid. Not in them.' },
+      { who: 'brand', text: 'An empty sky, three laps. The Raven Hall needs one lap under thirty-two seconds.' },
+      { who: 'brand', text: 'Our last rider managed twenty-nine and a half. He has since... flown elsewhere.' },
+      { who: 'hilda', text: 'Slow down before the turns, whelp. Not in them.' },
     ],
     win: [
-      { who: 'lupis', text: 'Acceptable. More than acceptable, frankly. Welcome to Leopard GP, {name}.' },
-      { who: 'sophi', text: 'So you\'re the one who\'s going to wreck my car. I\'m Sophi. I keep it alive.' },
-      { who: 'sophi', text: 'Every race you finish earns the team points. Spend them in the garage and I\'ll make the car faster. A little at a time.' },
+      { who: 'brand', text: 'Acceptable. More than acceptable, frankly. Welcome to the Raven Hall, {name}.' },
+      { who: 'sigrun', text: 'So you\'re the one who\'s going to wear out my dragon. I\'m Sigrun. I keep her flying.' },
+      { who: 'sigrun', text: 'Every flight you finish earns the hall glory. Spend it at the rookery and I\'ll train her stronger. A little at a time.' },
     ],
     lose: [
-      { who: 'lupis', text: 'Not quite. The track is booked until six. Try again.' },
+      { who: 'brand', text: 'Not quite. The sky is ours until sundown. Try again.' },
     ],
   },
 
-  // ---- Chapter 2: Leopard GP ------------------------------------------------------------------
+  // ---- Chapter 2: The Raven Hall --------------------------------------------------------------
   {
-    id: 'shakedown', chapter: 1, title: 'SHAKEDOWN', track: 'VANAHEIM', laps: 3, grid: 'random', aiBuff: 0.01,
+    id: 'shakedown', chapter: 1, title: 'FIRST WINGS', track: 'VANAHEIM', laps: 3, grid: 'random', aiBuff: 0.01,
     rivals: fillers(3, 0.8, 0.88, [0]),
     goal: { kind: 'and', goals: [{ kind: 'top', n: 3 }, { kind: 'cool' }] }, bonus: { kind: 'win' }, points: 250, bonusPoints: 100,
     intro: [
-      { who: 'sophi', text: 'First proper race in the Apex Series. New Atlantis. Four cars.' },
-      { who: 'sophi', text: 'I rebuilt the cooling last night and I want to know it works. Top three, and do NOT overheat my car.' },
-      { who: 'sophi', text: 'If it gets hot, there\'s a cooling lane on the outside of the main straight. Use it.' },
+      { who: 'sigrun', text: 'Your first real flight in the Sky Moot. Vanaheim. Four dragons.' },
+      { who: 'sigrun', text: 'I changed her feed last night and I want to know it worked. First three, and do NOT let her overheat.' },
+      { who: 'sigrun', text: 'If she runs hot, there are frost runes along the outside of the long stretch. Fly over them.' },
     ],
     win: [
-      { who: 'sophi', text: 'Temperatures held. Car\'s in one piece. I might actually like you.' },
-      { who: 'sophi', text: 'And you won it. Okay. I definitely like you.', if: { kind: 'win' } },
+      { who: 'sigrun', text: 'She kept cool. Not a scratch on her. I might actually like you.' },
+      { who: 'sigrun', text: 'And you won it. All right. I definitely like you.', if: { kind: 'win' } },
     ],
     lose: [
-      { who: 'sophi', text: 'That\'s not a shakedown, that\'s a meltdown. Again. Gently this time.', if: { kind: 'not', cond: { kind: 'cool' } } },
-      { who: 'sophi', text: 'Temperatures were perfect. The result wasn\'t. Top three, please.', if: { kind: 'cool' } },
+      { who: 'sigrun', text: 'That wasn\'t first wings, that was a fever. Again. Gently this time.', if: { kind: 'not', cond: { kind: 'cool' } } },
+      { who: 'sigrun', text: 'She stayed cool. The result didn\'t. First three, please.', if: { kind: 'cool' } },
     ],
   },
   {
-    id: 'enter-judah', chapter: 1, title: 'ENTER JUDAH', track: 'JOTUNHEIM', laps: 3, grid: 'random', aiBuff: 0.015,
-    // Judah's debut: he matches whatever you've bought in the garage, so only driving beats him.
-    rivals: [JUDAH(0.99, 0.06, true), ROOK(0.88), ...fillers(3, 0.8, 0.88, [0, 4, 5])],
-    goal: { kind: 'top', n: 3 }, bonus: { kind: 'beat', who: 'judah' }, points: 300, bonusPoints: 150,
+    id: 'enter-judah', chapter: 1, title: 'ENTER VIGGO', track: 'JOTUNHEIM', laps: 3, grid: 'random', aiBuff: 0.015,
+    // Viggo's first flight: he matches whatever you've trained, so only riding beats him.
+    rivals: [VIGGO(0.99, 0.06, true), ASKE(0.88), ...fillers(3, 0.8, 0.88, [0, 4, 5])],
+    goal: { kind: 'top', n: 3 }, bonus: { kind: 'beat', who: 'viggo' }, points: 300, bonusPoints: 150,
     intro: [
-      { who: 'judah', text: 'Leopard GP? I thought they folded. What are they running now, a rental?' },
-      { who: 'judah', text: 'Stay out of my mirrors, rookie. It\'s a long way down from the Apex.' },
-      { who: 'lupis', text: 'Judah. Vanta Racing. Two championships. And a car that is faster than it has any right to be.' },
-      { who: 'sophi', text: 'You won\'t outrun him on the straights. Not yet. Get on the podium and let him have his parade.' },
+      { who: 'viggo', text: 'The Raven Hall? I thought their roof fell in. What are they flying now, a runt?' },
+      { who: 'viggo', text: 'Stay out of my wake, whelp. It\'s a long way down from the sky.' },
+      { who: 'brand', text: 'Viggo. The Serpent Hall. Twice crowned. And a dragon that is faster than it has any right to be.' },
+      { who: 'sigrun', text: 'You won\'t outfly him on the long stretches. Not yet. Finish in the first three and let him have his feast.' },
     ],
     win: [
-      { who: 'judah', text: '...What.', if: { kind: 'beat', who: 'judah' } },
-      { who: 'judah', text: 'Enjoy it, rookie. That doesn\'t happen twice.', if: { kind: 'beat', who: 'judah' } },
-      { who: 'sophi', text: 'You beat Judah. In OUR car. I need to sit down.', if: { kind: 'beat', who: 'judah' } },
-      { who: 'lupis', text: 'Vanta will not take that quietly. Be ready for them.', if: { kind: 'beat', who: 'judah' } },
-      { who: 'judah', text: '{place} in a rental. Cute.', if: { kind: 'not', cond: { kind: 'beat', who: 'judah' } } },
-      { who: 'sophi', text: 'His car pulled away like we were standing still. Nobody gets that kind of pace legally.', if: { kind: 'not', cond: { kind: 'beat', who: 'judah' } } },
-      { who: 'lupis', text: 'Rumors are not evidence, Sophi. Points are. Keep scoring them.', if: { kind: 'not', cond: { kind: 'beat', who: 'judah' } } },
+      { who: 'viggo', text: '...What.', if: { kind: 'beat', who: 'viggo' } },
+      { who: 'viggo', text: 'Enjoy it, whelp. That doesn\'t happen twice.', if: { kind: 'beat', who: 'viggo' } },
+      { who: 'sigrun', text: 'You beat Viggo. On OUR runt. I need to sit down.', if: { kind: 'beat', who: 'viggo' } },
+      { who: 'brand', text: 'The Serpent Hall will not take that quietly. Be ready for them.', if: { kind: 'beat', who: 'viggo' } },
+      { who: 'viggo', text: '{place} on a runt. Sweet.', if: { kind: 'not', cond: { kind: 'beat', who: 'viggo' } } },
+      { who: 'sigrun', text: 'His dragon pulled away like we were hovering. No honest feed gives that kind of speed.', if: { kind: 'not', cond: { kind: 'beat', who: 'viggo' } } },
+      { who: 'brand', text: 'Whispers are not proof, Sigrun. Glory is. Keep earning it.', if: { kind: 'not', cond: { kind: 'beat', who: 'viggo' } } },
     ],
     lose: [
-      { who: 'judah', text: 'You beat me and still missed the podium? Somebody explain this team to me.', if: { kind: 'beat', who: 'judah' } },
-      { who: 'sophi', text: '...That\'s a first. Let\'s fix the missing-the-podium part.', if: { kind: 'beat', who: 'judah' } },
-      { who: 'judah', text: 'Told you. Long way down.', if: { kind: 'not', cond: { kind: 'beat', who: 'judah' } } },
+      { who: 'viggo', text: 'You beat me and still missed the first three? Somebody explain this hall to me.', if: { kind: 'beat', who: 'viggo' } },
+      { who: 'sigrun', text: '...That\'s a first. Let\'s fix the missing-the-first-three part.', if: { kind: 'beat', who: 'viggo' } },
+      { who: 'viggo', text: 'Told you. Long way down.', if: { kind: 'not', cond: { kind: 'beat', who: 'viggo' } } },
     ],
   },
   {
-    id: 'penalty', chapter: 1, title: 'BACK OF THE GRID', track: 'SVARTALFHEIM', laps: 3, grid: 'back', aiBuff: 0.02,
-    rivals: [ROOK(0.9), ...fillers(4, 0.82, 0.9, [0, 5])],
-    goal: { kind: 'top', n: 3 }, bonus: { kind: 'beat', who: 'rook' }, points: 300, bonusPoints: 150,
+    id: 'penalty', chapter: 1, title: 'LAST IN LINE', track: 'SVARTALFHEIM', laps: 3, grid: 'back', aiBuff: 0.02,
+    rivals: [ASKE(0.9), ...fillers(4, 0.82, 0.9, [0, 5])],
+    goal: { kind: 'top', n: 3 }, bonus: { kind: 'beat', who: 'aske' }, points: 300, bonusPoints: 150,
     intro: [
-      { who: 'lupis', text: 'Vanta filed a protest about our "unsafe driving" in the streets. The stewards agreed with them.' },
-      { who: 'lupis', text: 'You start from the back. Judah, of course, sits this one out to "rest".' },
-      { who: 'sophi', text: 'Crystal Front is all switchbacks, through the old war zone. Drift the long corners: it charges the boost. Then spend it on the way out.' },
+      { who: 'brand', text: 'The Serpent Hall called us reckless before the Moot\'s lawspeakers. The lawspeakers agreed with them.' },
+      { who: 'brand', text: 'You start at the very back. Viggo, of course, sits this one out to "rest his wings".' },
+      { who: 'sigrun', text: 'Svartalfheim is all switchbacks through the dwarf forges. Slide the long turns: it stirs up the gale. Then call it on the way out.' },
     ],
     win: [
-      { who: 'sophi', text: 'Last to the podium. On the front.' },
-      { who: 'sophi', text: 'And you took Rook. He\'s going to hear about that from Judah.', if: { kind: 'beat', who: 'rook' } },
-      { who: 'rook', text: '...Fine driving, Leopard. Don\'t tell him I said that.', if: { kind: 'beat', who: 'rook' } },
-      { who: 'rook', text: 'Nice recovery, Leopard. Still behind me, though.', if: { kind: 'not', cond: { kind: 'beat', who: 'rook' } } },
+      { who: 'sigrun', text: 'From last in line to the first three.' },
+      { who: 'sigrun', text: 'And you took Aske. He\'s going to hear about that from Viggo.', if: { kind: 'beat', who: 'aske' } },
+      { who: 'aske', text: '...Fine flying, Raven. Don\'t tell him I said that.', if: { kind: 'beat', who: 'aske' } },
+      { who: 'aske', text: 'Nice climb, Raven. Still behind me, though.', if: { kind: 'not', cond: { kind: 'beat', who: 'aske' } } },
     ],
     lose: [
-      { who: 'lupis', text: 'The stewards will be pleased. I am not. Again, please.' },
+      { who: 'brand', text: 'The lawspeakers will be pleased. I am not. Again, please.' },
     ],
   },
 
   // ---- Chapter 3: The Climb -------------------------------------------------------------------
   {
-    id: 'last-ride', chapter: 2, title: 'CHARLIE\'S LAST RIDE', track: 'NIFLHEIM', laps: 3, grid: 'random', aiBuff: 0.015,
-    rivals: [CHARLIE(0.93), ...fillers(4, 0.84, 0.92, [0, 3])],
-    goal: { kind: 'beat', who: 'charlie' }, bonus: { kind: 'win' }, points: 350, bonusPoints: 150,
+    id: 'last-ride', chapter: 2, title: 'HILDA\'S LAST FLIGHT', track: 'NIFLHEIM', laps: 3, grid: 'random', aiBuff: 0.015,
+    rivals: [HILDA(0.93), ...fillers(4, 0.84, 0.92, [0, 3])],
+    goal: { kind: 'beat', who: 'hilda' }, bonus: { kind: 'win' }, points: 350, bonusPoints: 150,
     intro: [
-      { who: 'charlie', text: 'Leopard GP let me have one more go. Lappland. My favorite road in the world.' },
-      { who: 'charlie', text: 'I\'m not here to make friends, {name}. I want to see what they\'ve taught you. Don\'t you dare lift for me.' },
+      { who: 'hilda', text: 'The Raven Hall let me have one more flight. Niflheim. My favourite sky in all the realms.' },
+      { who: 'hilda', text: 'I\'m not here to make friends, {name}. I want to see what they\'ve taught you. Don\'t you dare ease off for me.' },
     ],
     win: [
-      { who: 'charlie', text: 'Ha! There it is. You\'re better than I ever was. Don\'t let it go to your head.' },
-      { who: 'charlie', text: 'Now go beat that smug Vanta kid for me.' },
+      { who: 'hilda', text: 'Ha! There it is. You fly better than I ever did. Don\'t let it go to your head.' },
+      { who: 'hilda', text: 'Now go and beat that smug Serpent boy for me.' },
     ],
     lose: [
-      { who: 'charlie', text: 'Twenty-two years, kid. The mountain still likes me better. Again.' },
+      { who: 'hilda', text: 'Twenty-two winters, whelp. The mist still likes me better. Again.' },
     ],
   },
   {
-    id: 'mirage', chapter: 2, title: 'MIRAGE', track: 'MUSPELHEIM', laps: 3, grid: 'random', aiBuff: 0.015,
-    rivals: [ROOK(0.95), JUDAH(0.96, 0.05), ...fillers(3, 0.86, 0.93, [0, 4, 5])],
-    goal: { kind: 'beat', who: 'rook' }, bonus: { kind: 'beat', who: 'judah' }, points: 350, bonusPoints: 200,
+    id: 'mirage', chapter: 2, title: 'THE FIRE REALM', track: 'MUSPELHEIM', laps: 3, grid: 'random', aiBuff: 0.015,
+    rivals: [ASKE(0.95), VIGGO(0.96, 0.05), ...fillers(3, 0.86, 0.93, [0, 4, 5])],
+    goal: { kind: 'beat', who: 'aske' }, bonus: { kind: 'beat', who: 'viggo' }, points: 350, bonusPoints: 200,
     intro: [
-      { who: 'judah', text: 'Rook. Keep the rookie behind you. That\'s your whole job today.' },
-      { who: 'sophi', text: 'Long straights, huge braking zones. DRS opens if you\'re within a second of the car ahead. Use Rook\'s tow.' },
+      { who: 'viggo', text: 'Aske. Keep the whelp behind you. That\'s your whole task today.' },
+      { who: 'sigrun', text: 'Long stretches, hard turns. A tailwind rises if you\'re within a breath of the dragon ahead. Ride in Aske\'s wake.' },
     ],
     win: [
-      { who: 'rook', text: 'He\'s going to bench me for that.' },
-      { who: 'judah', text: '...The heat haze. That\'s all that was. Don\'t get used to it.', if: { kind: 'beat', who: 'judah' } },
-      { who: 'judah', text: 'Enjoy it, rookie. Wins against Rook don\'t count.', if: { kind: 'not', cond: { kind: 'beat', who: 'judah' } } },
+      { who: 'aske', text: 'He\'s going to send me to clean the stables for that.' },
+      { who: 'viggo', text: '...The smoke. That\'s all that was. Don\'t get used to it.', if: { kind: 'beat', who: 'viggo' } },
+      { who: 'viggo', text: 'Enjoy it, whelp. Beating Aske doesn\'t count.', if: { kind: 'not', cond: { kind: 'beat', who: 'viggo' } } },
     ],
     lose: [
-      { who: 'judah', text: 'See? Rook earns his money.' },
+      { who: 'viggo', text: 'See? Aske earns his mead.' },
     ],
   },
   {
-    id: 'sabotage', chapter: 2, title: 'SABOTAGE', track: 'ALFHEIM', laps: 3, grid: 'random', aiBuff: 0.015,
-    rivals: [JUDAH(0.97, 0.05), ROOK(0.95), ...fillers(3, 0.88, 0.95, [0, 4, 5])],
+    id: 'sabotage', chapter: 2, title: 'NIGHTSHADE', track: 'ALFHEIM', laps: 3, grid: 'random', aiBuff: 0.015,
+    rivals: [VIGGO(0.97, 0.05), ASKE(0.95), ...fillers(3, 0.88, 0.95, [0, 4, 5])],
     startHeat: 0.55,
-    goal: { kind: 'top', n: 3 }, bonus: { kind: 'beat', who: 'judah' }, points: 400, bonusPoints: 200,
+    goal: { kind: 'top', n: 3 }, bonus: { kind: 'beat', who: 'viggo' }, points: 400, bonusPoints: 200,
     intro: [
-      { who: 'sophi', text: 'Someone was in our garage last night. The coolant line\'s been cut. Clean cut.' },
-      { who: 'sophi', text: 'No time to fix it. You\'re starting hot. Very hot. Get to the cooling lane on the straight and stay off the walls.' },
-      { who: 'lupis', text: 'Vanta\'s garage is next to ours. I\'m sure that\'s a coincidence.' },
+      { who: 'sigrun', text: 'Someone was in our rookery last night. There was nightshade in her trough. Deliberately.' },
+      { who: 'sigrun', text: 'No time to purge it. She\'s starting with a fever. A bad one. Find the frost runes on the long stretch and keep her off the walls.' },
+      { who: 'brand', text: 'The Serpent Hall\'s stalls are next to ours. I\'m sure that\'s a coincidence.' },
     ],
     win: [
-      { who: 'sophi', text: 'You podiumed with a cut coolant line. I\'m framing that car.' },
-      { who: 'judah', text: '...With a cut coolant line? That\'s not possible.', if: { kind: 'beat', who: 'judah' } },
-      { who: 'lupis', text: 'Interesting, Judah. How would you know it was cut?', if: { kind: 'beat', who: 'judah' } },
-      { who: 'judah', text: 'Shame about your cooling. These old cars are so fragile.', if: { kind: 'not', cond: { kind: 'beat', who: 'judah' } } },
-      { who: 'lupis', text: 'Careful, Judah. That sounded almost like a confession.', if: { kind: 'not', cond: { kind: 'beat', who: 'judah' } } },
+      { who: 'sigrun', text: 'First three with nightshade in her blood. They\'ll carve this one on a stone.' },
+      { who: 'viggo', text: '...With nightshade in her? That\'s not possible.', if: { kind: 'beat', who: 'viggo' } },
+      { who: 'brand', text: 'Interesting, Viggo. How would you know it was nightshade?', if: { kind: 'beat', who: 'viggo' } },
+      { who: 'viggo', text: 'Shame about her fever. These runts are so frail.', if: { kind: 'not', cond: { kind: 'beat', who: 'viggo' } } },
+      { who: 'brand', text: 'Careful, Viggo. That sounded almost like a confession.', if: { kind: 'not', cond: { kind: 'beat', who: 'viggo' } } },
     ],
     lose: [
-      { who: 'sophi', text: 'It cooked. Not your fault. Well, partly your fault. Again.', if: { kind: 'not', cond: { kind: 'cool' } } },
-      { who: 'sophi', text: 'You kept it cool, I\'ll give you that. Now keep it on the podium. Again.', if: { kind: 'cool' } },
+      { who: 'sigrun', text: 'The fever took her. Not your fault. Well, partly your fault. Again.', if: { kind: 'not', cond: { kind: 'cool' } } },
+      { who: 'sigrun', text: 'You kept her cool, I\'ll give you that. Now keep her in the first three. Again.', if: { kind: 'cool' } },
     ],
   },
 
-  // ---- Chapter 4: The Apex --------------------------------------------------------------------
+  // ---- Chapter 4: The Crown of the Sky --------------------------------------------------------
   {
     id: 'rivals', chapter: 3, title: 'RIVALS', track: 'VANAHEIM', laps: 4, grid: 'random', aiBuff: 0.015,
-    rivals: [JUDAH(0.95, 0.02), ROOK(0.95), ...fillers(3, 0.9, 0.95, [0, 4, 5])],
-    goal: { kind: 'beat', who: 'judah' }, bonus: { kind: 'win' }, points: 450, bonusPoints: 200,
+    rivals: [VIGGO(0.95, 0.02), ASKE(0.95), ...fillers(3, 0.9, 0.95, [0, 4, 5])],
+    goal: { kind: 'beat', who: 'viggo' }, bonus: { kind: 'win' }, points: 450, bonusPoints: 200,
     intro: [
-      { who: 'lupis', text: 'I should tell you something, {name}. Leopard GP\'s owners pull the funding at the end of this season unless we win the title.' },
-      { who: 'lupis', text: 'This season is all we have. You, Sophi, that car. That is the whole team.' },
-      { who: 'judah', text: 'Heard your team\'s closing down. I\'ll send flowers.' },
-      { who: 'sophi', text: 'Beat him. Just once. Show him he can be beaten.', if: { kind: 'not', cond: { kind: 'flag', flag: 'beat-judah' } } },
-      { who: 'sophi', text: "You've beaten him before. Do it again, now, when it actually matters.", if: { kind: 'flag', flag: 'beat-judah' } },
+      { who: 'brand', text: 'I should tell you something, {name}. The Jarl will burn the Raven Hall\'s banner at midwinter unless we take the crown.' },
+      { who: 'brand', text: 'This saga is all we have. You, Sigrun, that runt. That is the whole hall.' },
+      { who: 'viggo', text: 'Heard your hall is closing its doors. I\'ll send a funeral ship.' },
+      { who: 'sigrun', text: 'Beat him. Just once. Show him he can be beaten.', if: { kind: 'not', cond: { kind: 'flag', flag: 'beat-viggo' } } },
+      { who: 'sigrun', text: 'You\'ve beaten him before. Do it again, now, when it actually matters.', if: { kind: 'flag', flag: 'beat-viggo' } },
     ],
     win: [
-      { who: 'announcer', text: 'JUDAH BEATEN! The Leopard GP rookie has put the champion behind them!' },
-      { who: 'sophi', text: 'And the win! Not just ahead of him. Ahead of everyone.', if: { kind: 'win' } },
-      { who: 'judah', text: 'One race. Lucky. The final is a different story.' },
+      { who: 'skald', text: 'VIGGO BEATEN! The Raven Hall\'s whelp has left the champion in their wake!' },
+      { who: 'sigrun', text: 'And the win! Not just ahead of him. Ahead of everyone.', if: { kind: 'win' } },
+      { who: 'viggo', text: 'One flight. Luck. The crown is a different story.' },
     ],
     lose: [
-      { who: 'judah', text: 'Same story every time. Long way down, rookie.', if: { kind: 'not', cond: { kind: 'flag', flag: 'beat-judah' } } },
-      { who: 'judah', text: "Not so lucky this time, rookie. Whatever you did before, it's gone.", if: { kind: 'flag', flag: 'beat-judah' } },
+      { who: 'viggo', text: 'Same saga every time. Long way down, whelp.', if: { kind: 'not', cond: { kind: 'flag', flag: 'beat-viggo' } } },
+      { who: 'viggo', text: 'Not so lucky this time, whelp. Whatever you had before, it\'s gone.', if: { kind: 'flag', flag: 'beat-viggo' } },
     ],
   },
   {
-    id: 'final', chapter: 3, title: 'THE APEX', track: 'MIDGARD', laps: 5, grid: 'back', aiBuff: 0.01,
-    rivals: [JUDAH(0.96, 0.025), ROOK(0.93), CHARLIE(0.92), ...fillers(2, 0.88, 0.93, [0, 3, 4, 5])],
+    id: 'final', chapter: 3, title: 'THE CROWN OF THE SKY', track: 'MIDGARD', laps: 5, grid: 'back', aiBuff: 0.01,
+    rivals: [VIGGO(0.96, 0.025), ASKE(0.93), HILDA(0.92), ...fillers(2, 0.88, 0.93, [0, 3, 4, 5])],
     goal: { kind: 'win' }, bonus: { kind: 'cool' }, points: 600, bonusPoints: 250,
-    unlocks: 'ROOKIE SEASON COMPLETE. Every mission can be replayed from the story menu.',
+    unlocks: 'THE RUNT\'S SAGA IS COMPLETE. Every flight can be flown again from the saga menu.',
     intro: [
-      { who: 'announcer', text: 'The season final at the Apex Arena. Win it and the title goes to Leopard GP. Lose it and it\'s Judah\'s third.' },
-      { who: 'lupis', text: 'Vanta protested again. You start from the back. Of course you do.' },
-      { who: 'charlie', text: 'I talked my way onto the grid. If Judah gets stuck behind me for a lap or two, well. Accidents happen.' },
-      { who: 'sophi', text: 'The car\'s everything I\'ve got. Five laps. Go get it, {name}.' },
-      { who: 'judah', text: 'Back of the grid, rookie. Right where you belong.' },
+      { who: 'skald', text: 'The last flight of the saga, over Midgard. Win it and the Crown of the Sky goes to the Raven Hall. Lose it and it\'s Viggo\'s third.' },
+      { who: 'brand', text: 'The Serpent Hall complained again. You start at the very back. Of course you do.' },
+      { who: 'hilda', text: 'I talked my way into the flight. If Viggo gets stuck behind me for a lap or two, well. Winds are fickle.' },
+      { who: 'sigrun', text: 'She\'s everything I\'ve got. Five laps. Go and take it, {name}.' },
+      { who: 'viggo', text: 'The very back, whelp. Right where you belong.' },
     ],
     win: [
-      { who: 'announcer', text: 'LEOPARD GP ARE THE CHAMPIONS! From the county speedway to the top of the Apex Series in one season!' },
-      { who: 'judah', text: '...Good race. I mean it. Next year I won\'t need the help.' },
-      { who: 'sophi', text: 'Not a scratch on it. Okay, a few scratches. I don\'t care!' },
-      { who: 'charlie', text: 'Twenty-two years I waited to see somebody drive like that. Worth it.' },
-      { who: 'lupis', text: 'The owners called. The funding is renewed. Welcome to your second season, champion.' },
+      { who: 'skald', text: 'THE RAVEN HALL WEARS THE CROWN OF THE SKY! From a fjord rookery to the top of the Sky Moot in one saga!' },
+      { who: 'viggo', text: '...Good flight. I mean it. Next saga I won\'t need the help.' },
+      { who: 'sigrun', text: 'Not a scratch on her. All right, a few scratches. I don\'t care!' },
+      { who: 'hilda', text: 'Twenty-two winters I waited to see someone fly like that. Worth every one.' },
+      { who: 'brand', text: 'The Jarl sent word. The banner stays. Welcome to your second saga, champion.' },
     ],
     lose: [
-      { who: 'judah', text: 'Three titles. Thanks for making it interesting.', if: { kind: 'winner', who: 'judah' } },
-      { who: 'rook', text: 'Vanta takes it anyway. Sorry, Leopard. Not that sorry.', if: { kind: 'winner', who: 'rook' } },
-      { who: 'charlie', text: 'Twenty-two years and I finally win the big one. Sorry, kid. Couldn\'t help myself.', if: { kind: 'winner', who: 'charlie' } },
-      { who: 'judah', text: 'Not even on the podium of my own coronation? You were ahead of me today, rookie. It won\'t last.', if: { kind: 'beat', who: 'judah' } },
-      { who: 'sophi', text: 'We\'re not done. One more go. Please.' },
+      { who: 'viggo', text: 'Three crowns. Thanks for making it interesting.', if: { kind: 'winner', who: 'viggo' } },
+      { who: 'aske', text: 'The Serpent Hall takes it anyway. Sorry, Raven. Not that sorry.', if: { kind: 'winner', who: 'aske' } },
+      { who: 'hilda', text: 'Twenty-two winters and I finally take the big one. Sorry, whelp. Couldn\'t help myself.', if: { kind: 'winner', who: 'hilda' } },
+      { who: 'viggo', text: 'Not even in the first three at my own crowning? You were ahead of me today, whelp. It won\'t last.', if: { kind: 'beat', who: 'viggo' } },
+      { who: 'sigrun', text: 'We\'re not done. One more flight. Please.' },
     ],
   },
 ];
 
-// --- garage -------------------------------------------------------------------------------------
+// --- the rookery (training) ---------------------------------------------------------------------
 
 export type UpgradeId = 'speed' | 'accel' | 'control' | 'heat' | 'boost';
 
 export interface Upgrade { id: UpgradeId; name: string; blurb: string; perLevel: number; stat: keyof Mods }
 
-/** Small steps on purpose: the AI gets faster each chapter, so the upgrades keep you in the fight. */
+/** Small steps on purpose: the rivals get faster each chapter, so training keeps you in the fight. */
 export const UPGRADES: Upgrade[] = [
-  { id: 'speed', name: 'TOP SPEED', blurb: '+1% top speed per level', perLevel: 0.01, stat: 'top' },
-  { id: 'accel', name: 'ACCELERATION', blurb: '+1% pull per level', perLevel: 0.01, stat: 'accel' },
-  { id: 'control', name: 'CONTROL', blurb: '+2% cornering grip per level', perLevel: 0.02, stat: 'grip' },
-  { id: 'heat', name: 'HEAT RESISTANCE', blurb: '-3% heat from hits per level', perLevel: 0.03, stat: 'heat' },
-  { id: 'boost', name: 'BOOST', blurb: '+3% boost power per level', perLevel: 0.03, stat: 'ers' },
+  { id: 'speed', name: 'SWIFT WINGS', blurb: '+1% top speed per level', perLevel: 0.01, stat: 'top' },
+  { id: 'accel', name: 'STRONG WINGBEAT', blurb: '+1% pull per level', perLevel: 0.01, stat: 'accel' },
+  { id: 'control', name: 'SURE FLIGHT', blurb: '+2% grip in the turns per level', perLevel: 0.02, stat: 'grip' },
+  { id: 'heat', name: 'FROST BLOOD', blurb: '-3% heat from hits per level', perLevel: 0.03, stat: 'heat' },
+  { id: 'boost', name: 'STORM LUNGS', blurb: '+3% gale power per level', perLevel: 0.03, stat: 'ers' },
 ];
 export const MAX_LEVEL = 10;
 
 /** Points to buy the next level when at `level`. */
 export function upgradeCost(level: number): number { return 80 + level * 40; }
 
-/** The player's car mods from their garage levels. */
+/** The player's dragon mods from their training levels. */
 export function playerMods(save: Save): Mods {
   const m: Mods = { ...NO_MODS };
   for (const u of UPGRADES) m[u.stat] += (save.upgrades[u.id] ?? 0) * u.perLevel;
   return m;
 }
 
-/** An AI car's mods: the mission's field-wide buff plus the driver's own edge. */
 /**
- * Story rivals keep pace with the garage: every one of them gets UPGRADE_MATCH of the player's
- * upgrades, so upgrades give a small edge but never buy a win. A rival with matchPlayer (Judah's
- * debut) gets all of them, so only driving beats him.
+ * An AI dragon's mods: the flight's field-wide buff plus the rider's own edge. Saga rivals keep
+ * pace with the rookery: every one of them gets UPGRADE_MATCH of the player's training, so it
+ * gives a small edge but never buys a win. A rival with matchPlayer (Viggo's first flight) gets
+ * all of it, so only riding beats him.
  */
 export const UPGRADE_MATCH = 0.8;
 
@@ -395,7 +395,7 @@ export interface Save {
   upgrades: Partial<Record<UpgradeId, number>>;
   /** Missions completed, and which earned their bonus. */
   done: string[];
-  /** Moments the story remembers across missions, e.g. 'beat-judah'. */
+  /** Moments the saga remembers across flights, e.g. 'beat-viggo'. */
   flags?: string[];
   bonus: string[];
 }
@@ -407,7 +407,7 @@ export function loadSave(): Save | null {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return null;
     const s = JSON.parse(raw) as Save;
-    return { name: s.name ?? 'ROOKIE', points: s.points ?? 0, upgrades: s.upgrades ?? {}, done: s.done ?? [], bonus: s.bonus ?? [], flags: s.flags ?? [] };
+    return { name: s.name ?? 'WHELP', points: s.points ?? 0, upgrades: s.upgrades ?? {}, done: s.done ?? [], bonus: s.bonus ?? [], flags: s.flags ?? [] };
   } catch {
     return null;
   }
@@ -453,11 +453,11 @@ export function met(goal: Goal, o: Outcome): boolean {
 
 export function describe(goal: Goal): string {
   switch (goal.kind) {
-    case 'win': return 'Win the race';
+    case 'win': return 'Win the flight';
     case 'top': return `Finish in the top ${goal.n}`;
     case 'beat': return `Finish ahead of ${CHARACTERS[goal.who].name}`;
     case 'lap': return `Set a lap under ${goal.seconds.toFixed(1)} s`;
-    case 'cool': return 'Never overheat';
+    case 'cool': return 'Never let your dragon overheat';
     case 'and': return goal.goals.map((g, i) => (i ? describe(g).replace(/^./, (c) => c.toLowerCase()) : describe(g))).join(' and ');
   }
 }
@@ -479,7 +479,13 @@ export function linesFor(lines: Line[], o: Outcome | null, flags: string[] = [])
   return lines.filter((l) => !l.if || check(l.if, o, flags));
 }
 
+/** A place as words: 1ST, 2ND, 3RD, 4TH... */
+export function ordinal(n: number): string {
+  const t = n % 100, u = n % 10;
+  return `${n}${t >= 11 && t <= 13 ? 'TH' : u === 1 ? 'ST' : u === 2 ? 'ND' : u === 3 ? 'RD' : 'TH'}`;
+}
+
 /** Fill {name} and {place} into a line. */
 export function say(text: string, save: Save, place = 0): string {
-  return text.replace(/\{name\}/g, save.name).replace(/\{place\}/g, `P${place}`);
+  return text.replace(/\{name\}/g, save.name).replace(/\{place\}/g, ordinal(place));
 }

@@ -570,7 +570,11 @@ export class Menus {
         <h1 class="hr-title">SKYFOLD</h1>
         <p class="hr-sub">DRAGON RACING</p>
         <div class="hr-front">
-          <!-- Story mode: hidden until Skyfold has its own saga. -->
+          <button class="hr-window" data-act="story" style="--c:#d9873a">
+            <div class="scene sc-story">${SCENE_STORY}
+              <img class="me" src="${cars[0]?.card ?? cars[0]?.url ?? ''}" alt=""><span class="vs">VS</span><img class="him" src="${cars[3]?.card ?? cars[3]?.url ?? ''}" alt=""></div>
+            <div class="label"><b>STORY</b><small>The Runt's Saga: from a fjord rookery to the Crown of the Sky. It starts with one flight against a legend.</small></div>
+          </button>
           <button class="hr-window" data-act="quick" style="--c:#4fe3ff">
             <div class="scene sc-quick">${SCENE_QUICK}<img src="${cars[0]?.card ?? cars[0]?.url ?? ''}" alt=""></div>
             <div class="label"><b>QUICK RACE</b><small>One race. Choose your dragon and your realm, and fly.</small></div>

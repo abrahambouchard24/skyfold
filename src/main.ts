@@ -232,7 +232,7 @@ let season: Season | null = null;
 /** Story mode: the saved progress, and the mission being raced (null outside a story race). */
 let save: Save | null = loadSave();
 let mission: number | null = null;
-/** Which story character drives which car, for goals like "finish ahead of Judah". */
+/** Which saga character rides which dragon, for goals like "finish ahead of Viggo". */
 const whoDrives = new Map<Speaker, Car>();
 let overheatedThisRace = false;
 let raceBestLap = 0;          // the player's best lap in this race only (for lap-time goals)
@@ -658,7 +658,7 @@ function finishMission(): void {
     overheated: overheatedThisRace,
   };
   const goal = met(m.goal, outcome);
-  const beatJudahNow = whoDrives.has('judah') && outcome.ahead('judah');
+  const beatViggoNow = whoDrives.has('viggo') && outcome.ahead('viggo');
   // The bonus is shown as met or not either way, but only pays out with the main goal.
   const bonus = !!m.bonus && met(m.bonus, outcome);
   const first = !save.done.includes(m.id);
@@ -674,8 +674,8 @@ function finishMission(): void {
   mission = null;
   menus.setStory(false);
   storyUI.finish({ index, success: goal, goal, bonus, earned, first: goal && first, outcome }, save);
-  if (beatJudahNow && !(save.flags ?? []).includes('beat-judah')) {
-    save.flags = [...(save.flags ?? []), 'beat-judah'];
+  if (beatViggoNow && !(save.flags ?? []).includes('beat-viggo')) {
+    save.flags = [...(save.flags ?? []), 'beat-viggo'];
     writeSave(save);
   }
 }

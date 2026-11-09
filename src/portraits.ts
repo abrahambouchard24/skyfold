@@ -1,5 +1,5 @@
-// Story character portraits, drawn in code and then folded into paper: each figure is a vector
-// bust (in the game's palette: deep sea teal, ivory and gold, neon in the character's team colour)
+// Saga character portraits, drawn in code and then folded into paper: each figure is a vector
+// bust (in the game's palette: timber, iron, bronze and wool, with each character's own colour)
 // which is cut into flat triangular planes like folded. Every plane takes the colour of the drawing
 // under it and a tone from the angle of its fold, with crisp creases between planes and a matte
 // paper grain. The backdrop is a folded paper sunburst under a faceted gold arch.
@@ -88,119 +88,154 @@ function svg(team: string, figure: string): string {
     <g transform="translate(100 84) scale(1.32) translate(-100 -84)">${figure}</g></svg>`;
 }
 
+/** A fur mantle over the shoulders: overlapping tufts along the neckline. */
+function fur(color: string, shade: string): string {
+  let out = '';
+  for (let k = 0; k <= 12; k++) {
+    const x = 18 + k * 13.7, y = 168 - 22 * Math.sin((Math.PI * k) / 12);
+    out += `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="13" ry="9" fill="${k % 2 ? color : shade}" stroke="${INK}" stroke-width="1.6"/>`;
+  }
+  return out;
+}
+
+/** A round bronze brooch pinning the cloak, its boss in the character's colour. */
+function brooch(x: number, y: number, team: string): string {
+  return `<circle cx="${x}" cy="${y}" r="9" fill="url(#gold)" stroke="${INK}" stroke-width="2"/>
+    <circle cx="${x}" cy="${y}" r="5" fill="none" stroke="${INK}" stroke-width="1.2" opacity="0.6"/>
+    <circle cx="${x}" cy="${y}" r="2.6" fill="${team}"/>`;
+}
+
+/** A long braid hanging from (x, y), plaited in alternating strands. */
+function braid(x: number, y: number, len: number, hair: string, dark: string): string {
+  let out = '';
+  for (let k = 0; k < len; k += 9) out += `<ellipse cx="${x}" cy="${y + k}" rx="6" ry="6" fill="${(k / 9) % 2 ? hair : dark}" stroke="${INK}" stroke-width="1.6"/>`;
+  return out + `<path d="M${x - 4} ${y + len} L${x} ${y + len + 10} L${x + 4} ${y + len}" fill="${hair}" stroke="${INK}" stroke-width="1.4"/>`;
+}
+
 const DRAW: Record<Speaker, () => string> = {
-  // The player: a crested racing helmet (an Atlantean helm crest in gold) with a dark visor.
+  // The player: a young rider in an iron cap with a bronze brow band and a nose guard, a red
+  // riding cloak with a fur mantle, pinned with a dragon-eye brooch.
   player: () => {
-    const t = CHARACTERS.player.color;
+    const t = CHARACTERS.player.color, skin = SKIN.light;
     return svg(t, `
-      ${coat('#c8243f', '#7a1528', t, { collar: IVORY })}
-      <path d="M100 148 L94 158 L100 170 L106 158 Z" fill="url(#gold)" stroke="${INK}" stroke-width="2"/>
-      <path d="M64 92 C62 52 82 34 102 34 C126 34 140 54 138 92 C137 112 126 128 108 132 L84 132 C72 126 65 110 64 92 Z" fill="#d42c49" stroke="${INK}" stroke-width="3"/>
-      <path d="M78 46 C92 38 116 38 128 50 L126 58 C114 48 92 46 80 54 Z" fill="${IVORY}" opacity="0.9"/>
-      <path d="M100 18 C114 24 122 34 124 44 L102 40 Z" fill="url(#gold)" stroke="${INK}" stroke-width="2.4"/>
-      <path d="M100 18 C90 26 86 34 86 42 L102 40 Z" fill="${GOLD}" stroke="${INK}" stroke-width="2.4"/>
-      <path d="M70 80 C72 70 132 68 136 80 L134 100 C120 106 82 106 70 100 Z" fill="#0d2a33" stroke="url(#gold)" stroke-width="3.2"/>
-      <path d="M80 84 L118 78" stroke="${t}" stroke-width="3" opacity="0.9" stroke-linecap="round"/>
-      <path d="M86 92 L104 89" stroke="#6fd8ff" stroke-width="2" opacity="0.6" stroke-linecap="round"/>
-      <path d="M88 116 L112 116 M90 122 L110 122" stroke="#7a1528" stroke-width="2.6" stroke-linecap="round"/>`);
-  },
-
-  // Charlie: silver hair and a trimmed beard; an ember-orange coat with a gold trident brooch.
-  charlie: () => {
-    const t = CHARACTERS.charlie.color, skin = SKIN.tan;
-    return svg(t, `
-      ${coat('#e2741c', '#3a2416', t, { collar: '#2a1c14', lapels: true })}
-      <path d="M128 162 L128 180 M122 166 L122 160 M134 166 L134 160 M122 166 L134 166" stroke="url(#gold)" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-      ${head(skin, 'square')}
-      <path d="M72 96 C74 116 88 128 100 128 C112 128 126 116 128 96 C124 108 116 114 100 114 C84 114 76 108 72 96 Z" fill="#b9bcc4" stroke="${INK}" stroke-width="2.4"/>
-      <path d="M90 108 Q100 104 110 108" fill="none" stroke="#9a9ea8" stroke-width="4" stroke-linecap="round"/>
-      ${features({ iris: '#3b2a1e', brow: 1, browColor: '#c8ccd4', mouth: 'smile' })}
-      <path d="M68 74 C66 50 80 36 100 36 C122 36 134 50 132 74 C128 62 120 54 110 52 C104 60 88 62 76 60 C72 64 70 68 68 74 Z" fill="#c9ccd4" stroke="${INK}" stroke-width="3"/>
-      <path d="M80 48 C90 42 104 42 114 46" fill="none" stroke="#eef0f4" stroke-width="2.4" stroke-linecap="round"/>`);
-  },
-
-  // Mr. Lupis: slicked hair, gold-rimmed shades, a black court coat with gold epaulettes and pin.
-  lupis: () => {
-    const t = CHARACTERS.lupis.color, skin = SKIN.light;
-    return svg(t, `
-      ${coat('#15181f', '#05070a', t, { collar: IVORY, lapels: true })}
-      <path d="M26 160 L58 150 L60 158 L28 170 Z M174 160 L142 150 L140 158 L172 170 Z" fill="url(#gold)" stroke="${INK}" stroke-width="2"/>
-      <circle cx="132" cy="172" r="5" fill="url(#gold)" stroke="${INK}" stroke-width="2"/><circle cx="132" cy="172" r="2" fill="${t}"/>
-      ${head(skin, 'narrow')}
-      ${features({ iris: '#22313a', brow: 3, mouth: 'neutral' })}
-      <path d="M76 82 L98 82 L96 94 L80 94 Z M102 82 L124 82 L120 94 L104 94 Z" fill="#0c2027" stroke="url(#gold)" stroke-width="2.6"/>
-      <path d="M98 85 L102 85" stroke="url(#gold)" stroke-width="2.6"/>
-      <path d="M80 86 L90 85 M106 86 L116 85" stroke="${t}" stroke-width="1.6" opacity="0.8"/>
-      <path d="M70 72 C68 46 84 34 102 34 C122 34 134 48 131 72 C126 58 116 52 104 50 L100 56 C92 52 82 54 74 62 C72 66 71 69 70 72 Z" fill="#14161c" stroke="${INK}" stroke-width="3"/>
-      <path d="M84 44 C94 38 112 38 122 46" fill="none" stroke="#3a4250" stroke-width="2.4" stroke-linecap="round"/>`);
-  },
-
-  // Sophi: a blonde ponytail, brass goggles with cyan lenses on her brow, a glowing circuit on her cheek.
-  sophi: () => {
-    const t = CHARACTERS.sophi.color, skin = SKIN.light;
-    return svg(t, `
-      <path d="M62 64 C44 70 38 96 46 118 C50 128 60 132 66 126 C58 112 60 88 70 74 Z" fill="#e8b93c" stroke="${INK}" stroke-width="3"/>
-      ${coat('#1f8a94', '#0f4a52', t, { collar: IVORY })}
-      <path d="M52 178 L60 170 L66 176 L58 184 Z" fill="url(#gold)" stroke="${INK}" stroke-width="2"/>
+      ${coat('#9c2f28', '#5a1a16', t, { collar: '#3a2a20' })}
+      ${fur('#8a7258', '#6a5440')}
+      ${brooch(124, 160, t)}
       ${head(skin, 'soft')}
-      ${features({ iris: '#1aa6b3', brow: 0, browColor: '#a8742a', mouth: 'smile', glow: true })}
-      <path d="M116 100 L122 100 L124 96 M120 104 L126 104" stroke="${t}" stroke-width="1.8" fill="none" opacity="0.95"/>
-      <path d="M70 76 C66 48 82 34 102 34 C124 34 136 50 132 76 C128 66 122 60 112 58 C106 66 92 70 78 66 C74 70 72 72 70 76 Z" fill="#f0c447" stroke="${INK}" stroke-width="3"/>
-      <path d="M84 44 C96 38 110 38 120 44" fill="none" stroke="#fff0b0" stroke-width="2.4" stroke-linecap="round"/>
-      <path d="M68 62 L134 56" stroke="#2a2420" stroke-width="7" stroke-linecap="round"/>
-      <circle cx="88" cy="58" r="10" fill="#5ad8e6" stroke="url(#gold)" stroke-width="4"/>
-      <circle cx="114" cy="56" r="10" fill="#5ad8e6" stroke="url(#gold)" stroke-width="4"/>
-      <path d="M84 54 L90 52 M110 52 L116 50" stroke="#ffffff" stroke-width="2" opacity="0.8" stroke-linecap="round"/>`);
+      <path d="M66 76 C62 90 64 104 70 112 L74 92 Z M134 76 C138 90 136 104 130 112 L126 92 Z" fill="#6b4226" stroke="${INK}" stroke-width="2"/>
+      ${features({ iris: '#3a5a6a', brow: 2, browColor: '#5a3a22', mouth: 'firm' })}
+      <path d="M68 74 C66 46 82 30 100 30 C118 30 134 46 132 74 Z" fill="#7d858c" stroke="${INK}" stroke-width="3"/>
+      <path d="M100 30 L100 72" stroke="#5a6168" stroke-width="3"/>
+      <path d="M78 40 C88 34 96 33 98 34" fill="none" stroke="#c4cad0" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M66 70 C80 64 120 64 134 70 L134 78 C120 72 80 72 66 78 Z" fill="url(#gold)" stroke="${INK}" stroke-width="2.4"/>
+      <path d="M97 74 L103 74 L102 100 L98 100 Z" fill="#7d858c" stroke="${INK}" stroke-width="2"/>`);
   },
 
-  // Judah: swept-back black hair under a gold laurel circlet, a champion's smirk, violet-lit eyes.
-  judah: () => {
-    const t = CHARACTERS.judah.color, skin = SKIN.tan;
-    let leaves = '';
-    for (let k = 0; k < 5; k++) {
-      for (const side of [-1, 1]) {
-        const x = 100 + side * (12 + k * 6.5), y = 52 + k * 1.8;
-        leaves += `<ellipse cx="${x}" cy="${y}" rx="5" ry="2.4" transform="rotate(${side * (20 + k * 6)} ${x} ${y})" fill="url(#gold)" stroke="${INK}" stroke-width="1.2"/>`;
-      }
-    }
+  // Hilda: an old rider of the fjord. Silver braids, a patch over one eye and a scar beneath it,
+  // a heavy fur mantle and a bronze torc.
+  hilda: () => {
+    const t = CHARACTERS.hilda.color, skin = SKIN.tan;
     return svg(t, `
-      ${coat('#1a1428', '#0a0712', t, { collar: '#5b3a9c' })}
-      <path d="M60 200 L70 160 L84 150 M140 200 L130 160 L116 150" fill="none" stroke="${t}" stroke-width="3"/>
+      ${coat('#6a4a30', '#3a2818', t, { collar: '#2a1c12' })}
+      ${fur('#b8b0a0', '#948c7c')}
+      ${braid(66, 92, 60, '#d4d6da', '#a8acb4')}${braid(134, 92, 60, '#d4d6da', '#a8acb4')}
+      ${head(skin, 'square')}
+      <path d="M84 132 C92 138 108 138 116 132" fill="none" stroke="url(#gold)" stroke-width="5" stroke-linecap="round"/>
+      ${features({ iris: '#4a3a2a', brow: 1, browColor: '#c8ccd4', mouth: 'smile' })}
+      <path d="M77 82 C80 78 96 78 98 82 L96 94 C90 97 82 96 78 92 Z" fill="#2a1e18" stroke="${INK}" stroke-width="2"/>
+      <path d="M70 76 L132 70" stroke="#2a1e18" stroke-width="2.4"/>
+      <path d="M84 98 L92 112" stroke="#9a5a44" stroke-width="2" stroke-linecap="round"/>
+      <path d="M68 74 C66 48 82 34 100 34 C120 34 134 48 132 74 C126 60 116 52 100 52 C86 52 74 60 68 74 Z" fill="#d4d6da" stroke="${INK}" stroke-width="3"/>
+      <path d="M100 36 L100 52 M86 40 C90 46 94 50 98 52 M114 40 C110 46 106 50 102 52" fill="none" stroke="#a8acb4" stroke-width="2"/>`);
+  },
+
+  // Brand, steward of the Raven Hall: a long auburn beard braided with gold rings, a high brow,
+  // a dark green cloak and a raven brooch.
+  brand: () => {
+    const t = CHARACTERS.brand.color, skin = SKIN.light;
+    return svg(t, `
+      ${coat('#24402e', '#122018', t, { collar: '#0e1a12', lapels: true })}
+      <path d="M128 156 L140 150 L148 156 L138 160 L134 170 Z" fill="#14161c" stroke="url(#gold)" stroke-width="2"/>
+      ${head(skin, 'narrow')}
+      ${features({ iris: '#2a3a2a', brow: 3, browColor: '#8a4a24', mouth: 'neutral' })}
+      <path d="M74 100 C74 122 86 150 100 162 C114 150 126 122 126 100 C120 112 112 116 100 116 C88 116 80 112 74 100 Z" fill="#9a5226" stroke="${INK}" stroke-width="2.6"/>
+      <path d="M90 108 Q100 104 110 108" fill="none" stroke="#7a3e1c" stroke-width="4" stroke-linecap="round"/>
+      <path d="M95 136 L105 136 M96 146 L104 146" stroke="url(#gold)" stroke-width="4" stroke-linecap="round"/>
+      <path d="M72 70 C70 50 82 40 100 40 C118 40 130 50 128 70 C122 58 112 56 100 56 C88 56 78 58 72 70 Z" fill="#9a5226" stroke="${INK}" stroke-width="3"/>
+      <path d="M66 74 C66 90 70 100 74 104 L76 84 Z M134 74 C134 90 130 100 126 104 L124 84 Z" fill="#9a5226" stroke="${INK}" stroke-width="2"/>`);
+  },
+
+  // Sigrun, the dragon-keeper: ash-blonde braids wound into a crown, frost-blue rune paint on one
+  // cheek, bone beads, a frost-blue tunic under a leather apron strap.
+  sigrun: () => {
+    const t = CHARACTERS.sigrun.color, skin = SKIN.light;
+    return svg(t, `
+      ${coat('#4a7a88', '#22424c', t, { collar: '#e8e0cc' })}
+      <path d="M60 200 L82 146 L92 148 L72 200 Z" fill="#6a4a30" stroke="${INK}" stroke-width="2"/>
+      ${braid(132, 96, 54, '#e4d4a4', '#c8b47c')}
+      ${head(skin, 'soft')}
+      ${features({ iris: '#3a8aa0', brow: 0, browColor: '#a88a52', mouth: 'smile' })}
+      <path d="M114 100 L120 96 L124 102 L118 106 Z" fill="none" stroke="${t}" stroke-width="1.8"/>
+      <path d="M118 108 L124 110" stroke="${t}" stroke-width="1.8"/>
+      <circle cx="71" cy="102" r="2.6" fill="#efe6d2" stroke="${INK}" stroke-width="1"/><circle cx="129" cy="102" r="2.6" fill="#efe6d2" stroke="${INK}" stroke-width="1"/>
+      <path d="M70 76 C66 50 82 36 100 36 C120 36 136 50 132 76 C128 64 120 58 108 56 C100 62 86 62 76 60 C73 66 71 70 70 76 Z" fill="#e4d4a4" stroke="${INK}" stroke-width="3"/>
+      <path d="M68 56 C80 40 122 38 134 54" fill="none" stroke="#c8b47c" stroke-width="9" stroke-linecap="round"/>
+      <path d="M72 52 C84 40 118 38 130 50" fill="none" stroke="#e4d4a4" stroke-width="4" stroke-dasharray="6 4" stroke-linecap="round"/>`);
+  },
+
+  // Viggo of the Serpent Hall: long black hair over shaved sides, dark kohl round violet-lit eyes,
+  // a short beard with a gold ring, a violet cloak and a coiled serpent brooch.
+  viggo: () => {
+    const t = CHARACTERS.viggo.color, skin = SKIN.tan;
+    return svg(t, `
+      ${coat('#2a2040', '#140e22', t, { collar: '#3e2e62' })}
+      ${fur('#2a2a30', '#1a1a20')}
+      <path d="M118 150 C134 144 140 160 128 164 C118 168 120 178 132 176" fill="none" stroke="url(#gold)" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="133" cy="176" r="2.4" fill="${t}"/>
       ${head(skin, 'narrow')}
       ${features({ iris: t, brow: 5, mouth: 'smirk', glow: true })}
-      <path d="M68 76 C60 56 70 30 96 28 C112 26 120 22 132 24 C126 30 138 36 134 52 L136 72 C130 60 122 52 112 50 C100 52 86 50 78 60 C74 64 70 70 68 76 Z" fill="#121018" stroke="${INK}" stroke-width="3"/>
-      <path d="M74 50 C86 36 108 34 126 40 M80 42 L60 46 M128 30 L144 26" fill="none" stroke="#3a3048" stroke-width="2.4" stroke-linecap="round"/>
-      ${leaves}
-      <circle cx="100" cy="51" r="3" fill="${t}" stroke="url(#gold)" stroke-width="1.5"/>`);
+      <path d="M78 90 L96 90 M104 90 L122 90" stroke="#1a1420" stroke-width="2.4" opacity="0.8"/>
+      <path d="M76 104 C78 120 90 128 100 128 C110 128 122 120 124 104 C118 114 110 118 100 118 C90 118 82 114 76 104 Z" fill="#141218" stroke="${INK}" stroke-width="2"/>
+      <circle cx="100" cy="130" r="4" fill="none" stroke="url(#gold)" stroke-width="2.4"/>
+      <path d="M72 70 C72 52 80 44 86 42 L86 64 C80 66 76 68 72 70 Z M128 70 C128 52 120 44 114 42 L114 64 C120 66 124 68 128 70 Z" fill="#3a3442" opacity="0.7"/>
+      <path d="M86 64 C84 40 92 26 100 26 C112 26 118 40 114 64 C110 54 104 50 100 50 C94 50 90 54 86 64 Z" fill="#121018" stroke="${INK}" stroke-width="3"/>
+      <path d="M100 28 C126 34 142 60 140 120 C136 100 128 80 116 66 Z" fill="#121018" stroke="${INK}" stroke-width="2.6"/>
+      <path d="M94 32 L98 48 M106 32 L104 48" stroke="#3a3048" stroke-width="2" stroke-linecap="round"/>`);
   },
 
-  // Rook: a close crop, a broad build and a square jaw; armoured shoulders in Vanta blue.
-  rook: () => {
-    const t = CHARACTERS.rook.color, skin = SKIN.warm;
+  // Aske, Viggo's shield-brother: a broad build, a shaven head with storm-blue knotwork, a russet
+  // beard, mail on his shoulders.
+  aske: () => {
+    const t = CHARACTERS.aske.color, skin = SKIN.warm;
+    let mail = '';
+    for (let y = 150; y < 200; y += 7) for (let x = 8 + ((y / 7) % 2) * 3.5; x < 192; x += 7) {
+      if (x > 62 && x < 138 && y < 172) continue;
+      mail += `<circle cx="${x}" cy="${y}" r="2.6" fill="none" stroke="#9aa2aa" stroke-width="1.2"/>`;
+    }
     return svg(t, `
-      ${coat('#141a2c', '#080b14', t, { broad: true, collar: '#1d3f8a' })}
-      <path d="M8 166 C14 146 40 138 62 142 L66 156 C44 154 24 160 12 176 Z M192 166 C186 146 160 138 138 142 L134 156 C156 154 176 160 188 176 Z" fill="#26407e" stroke="url(#gold)" stroke-width="2.6"/>
+      ${coat('#2c3442', '#161c26', t, { broad: true, collar: '#1d3a6a' })}
+      ${mail}
       <path d="M86 112 L84 142 L116 142 L114 112 Z" fill="${skin.shade}" stroke="${INK}" stroke-width="3"/>
       ${head(skin, 'square')}
-      ${features({ iris: '#2a1d14', brow: 2, mouth: 'firm' })}
-      <path d="M70 68 C70 44 84 36 100 36 C118 36 130 44 130 68 C126 58 118 52 100 52 C84 52 74 58 70 68 Z" fill="#4a3424" stroke="${INK}" stroke-width="3"/>
-      <path d="M70 68 L70 80 M130 68 L130 80" stroke="#4a3424" stroke-width="5"/>
-      <path d="M76 70 L124 70" stroke="${t}" stroke-width="2" opacity="0.7"/>`);
+      ${features({ iris: '#2a1d14', brow: 2, browColor: '#7a3a1c', mouth: 'firm' })}
+      <path d="M72 100 C74 122 88 134 100 134 C112 134 126 122 128 100 C122 114 112 118 100 118 C88 118 78 114 72 100 Z" fill="#8a4422" stroke="${INK}" stroke-width="2.4"/>
+      <path d="M70 72 C70 46 84 36 100 36 C118 36 130 46 130 72" fill="${skin.base}" stroke="${INK}" stroke-width="3"/>
+      <path d="M82 50 C90 42 110 42 118 50 M88 58 C94 52 106 52 112 58 M100 40 L100 60" fill="none" stroke="${t}" stroke-width="2.4" stroke-linecap="round"/>`);
   },
 
-  // The announcer: a gold-rimmed headset with a neon mic, mid-call, in a navy blazer.
-  announcer: () => {
-    const t = CHARACTERS.announcer.color, skin = SKIN.light;
+  // The skald: a grey-brown beard, a wool hood, mid-song, the neck of his lyre at his shoulder.
+  skald: () => {
+    const t = CHARACTERS.skald.color, skin = SKIN.light;
     return svg(t, `
-      ${coat('#1c2c5c', '#0d1630', '#7fd6ff', { collar: IVORY, lapels: true })}
-      <path d="M96 150 L100 176 L104 150 Z" fill="url(#gold)" stroke="${INK}" stroke-width="1.6"/>
+      ${coat('#5a4a36', '#2e2418', '#c8d2c0', { collar: '#3a2e20' })}
+      <path d="M150 200 L146 112 L162 108 L166 200 Z" fill="#8a5a2e" stroke="${INK}" stroke-width="2.4"/>
+      <path d="M146 112 L162 108 L166 92 L150 96 Z" fill="#6a4220" stroke="${INK}" stroke-width="2"/>
+      <path d="M150 116 L152 196 M155 114 L157 196 M160 112 L162 196" stroke="url(#gold)" stroke-width="1" opacity="0.9"/>
       ${head(skin, 'soft')}
-      ${features({ iris: '#3a2416', brow: -3, browColor: '#6b3f1e', mouth: 'open' })}
-      <path d="M68 78 C62 58 66 42 76 36 L74 24 L88 32 L92 16 L102 30 L112 14 L116 30 L130 22 L128 38 C136 46 136 62 131 78 C127 64 118 56 106 54 L100 46 L94 56 C84 56 74 64 68 78 Z" fill="#7a4a24" stroke="${INK}" stroke-width="3"/>
-      <path d="M66 86 C62 54 80 32 100 32 C122 32 140 52 136 86" fill="none" stroke="#1d2533" stroke-width="5"/>
-      <rect x="58" y="78" width="14" height="22" rx="6" fill="#1d2533" stroke="url(#gold)" stroke-width="2.6"/>
-      <path d="M64 98 C66 114 76 120 88 118" fill="none" stroke="#1d2533" stroke-width="3.4" stroke-linecap="round"/>
-      <circle cx="90" cy="118" r="4" fill="#7fd6ff" stroke="${INK}" stroke-width="1.6"/>`);
+      ${features({ iris: '#3a2a1a', brow: -3, browColor: '#6a5a44', mouth: 'open' })}
+      <path d="M72 100 C74 128 88 146 100 150 C112 146 126 128 128 100 C124 116 114 122 110 120 L100 124 L90 120 C86 122 76 116 72 100 Z" fill="#8a7a62" stroke="${INK}" stroke-width="2.4"/>
+      <path d="M62 96 C56 60 74 30 100 30 C126 30 144 60 138 96 C134 76 126 62 112 56 L100 54 L88 56 C74 62 66 76 62 96 Z" fill="#6a5a40" stroke="${INK}" stroke-width="3"/>
+      <path d="M72 60 C84 44 116 44 128 60" fill="none" stroke="#8a7a5a" stroke-width="2.4"/>`);
   },
 };
 

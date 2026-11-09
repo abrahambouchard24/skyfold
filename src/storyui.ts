@@ -201,7 +201,7 @@ export class StoryUI {
     if (save) { this.save = save; this.showHub(); return; }
     this.render(`
       <div class="st-card">
-        <h2>ROOKIE SEASON</h2>
+        <h2>THE RUNT'S SAGA</h2>
         <div class="st-sub">A COUNTY SPEEDWAY. A LEGEND. ONE SHOT.</div>
         <div class="st-row" style="border:0"><span>WHAT'S YOUR NAME?</span></div>
         <input class="st-input" maxlength="14" placeholder="YOUR NAME" autofocus>
@@ -212,7 +212,7 @@ export class StoryUI {
       </div>`);
     const input = this.screen.querySelector<HTMLInputElement>('.st-input')!;
     const go = () => {
-      const name = input.value.trim().toUpperCase().replace(/[^A-Z0-9 .'-]/g, '') || 'ROOKIE';
+      const name = input.value.trim().toUpperCase().replace(/[^A-Z0-9 .'-]/g, '') || 'WHELP';
       this.save = { name, points: 0, upgrades: {}, done: [], bonus: [] };
       this.on.saved(this.save);
       this.showHub();
@@ -237,7 +237,7 @@ export class StoryUI {
       ? `<button class="st-continue" data-continue data-default>
           <div><small>CHAPTER ${nm.chapter + 1} · ${CHAPTERS[nm.chapter]}</small><b>${nm.title}</b></div>
           <span class="st-go">${s.done.length ? 'CONTINUE' : 'BEGIN'} ▸</span></button>`
-      : `<div class="st-continue champ"><div><small>ROOKIE SEASON COMPLETE</small><b>${s.name} · CHAMPION</b></div></div>`;
+      : `<div class="st-continue champ"><div><small>THE RUNT'S SAGA IS COMPLETE</small><b>${s.name} · CROWNED</b></div></div>`;
     const journal = CHAPTERS.slice(0, reached + 1).map((ch, c) => {
       const finished = MISSIONS.map((m, i) => ({ m, i })).filter(({ m }) => m.chapter === c && s.done.includes(m.id));
       if (!finished.length) return '';
@@ -251,18 +251,18 @@ export class StoryUI {
     this.render(`
       <div class="st-wrap">
         <div class="st-head">
-          <div><h1 class="st-title">ROOKIE SEASON</h1>
-            <div class="st-who">${s.name} · LEOPARD GP${complete ? ' · CHAMPION' : ''}</div></div>
-          <div class="st-points">${s.points}<small>TEAM POINTS</small></div>
+          <div><h1 class="st-title">THE RUNT'S SAGA</h1>
+            <div class="st-who">${s.name} · THE RAVEN HALL${complete ? ' · CROWNED' : ''}</div></div>
+          <div class="st-points">${s.points}<small>GLORY</small></div>
         </div>
         ${forward}
-        ${journal ? `<p class="st-journal-head">THE STORY SO FAR</p><div class="st-journal">${journal}</div>` : ''}
+        ${journal ? `<p class="st-journal-head">THE SAGA SO FAR</p><div class="st-journal">${journal}</div>` : ''}
         <div class="st-actions">
-          ${s.done.includes('tryout') ? '<button class="hr-btn" data-garage>GARAGE</button>' : ''}
+          ${s.done.includes('tryout') ? '<button class="hr-btn" data-garage>ROOKERY</button>' : ''}
           <button class="hr-btn secondary" data-tune>TRAIN DRAGON</button>
           <button class="hr-btn secondary" data-exit>MAIN MENU</button>
         </div>
-        <div style="text-align:center"><button class="st-link" data-reset>RESET STORY PROGRESS</button></div>
+        <div style="text-align:center"><button class="st-link" data-reset>FORGET THIS SAGA</button></div>
       </div>`);
     this.screen.querySelector('[data-continue]')?.addEventListener('click', () => this.showBriefing(next));
     this.screen.querySelectorAll<HTMLElement>('[data-mission]').forEach((b) =>
@@ -312,20 +312,20 @@ export class StoryUI {
     const m = MISSIONS[i], s = this.save;
     const replay = s.done.includes(m.id);
     const pts = (n: number) => replay ? Math.round(n * REPLAY_SHARE) : n;
-    const grid = { back: 'Back of the grid', pole: 'Pole position', random: 'Random' }[m.grid];
-    const field = m.rivals.length ? m.rivals.map((r) => r.name).join(', ') : 'Nobody: just you and the clock';
+    const grid = { back: 'At the very back', pole: 'At the front', random: 'Anywhere in the line' }[m.grid];
+    const field = m.rivals.length ? m.rivals.map((r) => r.name).join(', ') : 'No one: just you and the sky';
     this.render(`
       <div class="st-card">
-        <div class="st-sub">CHAPTER ${m.chapter + 1} · MISSION ${i + 1}</div>
+        <div class="st-sub">CHAPTER ${m.chapter + 1} · TALE ${i + 1}</div>
         <h2>${m.title}</h2>
         <div class="st-sub">${m.track} · ${m.laps} ${m.laps === 1 ? 'LAP' : 'LAPS'}</div>
         <div class="st-row"><span>GOAL</span><span>${describe(m.goal)}</span></div>
         ${m.bonus ? `<div class="st-row"><span>BONUS</span><span>${describe(m.bonus)}</span></div>` : ''}
-        <div class="st-row"><span>START</span><span>${grid}${m.startHeat ? ' · engine running hot' : ''}</span></div>
+        <div class="st-row"><span>START</span><span>${grid}${m.startHeat ? ' · your dragon has a fever' : ''}</span></div>
         <div class="st-row"><span>FIELD</span><span style="text-align:right">${field}</span></div>
-        <div class="st-row"><span>REWARD</span><span class="st-star">${pts(m.points)} PTS${m.bonus ? ` + ${pts(m.bonusPoints)} BONUS` : ''}${replay ? ' (REPLAY)' : ''}</span></div>
+        <div class="st-row"><span>REWARD</span><span class="st-star">${pts(m.points)} GLORY${m.bonus ? ` + ${pts(m.bonusPoints)} BONUS` : ''}${replay ? ' (REPLAY)' : ''}</span></div>
         <div class="st-actions" style="justify-content:flex-start">
-          <button class="hr-btn" data-go data-default>RACE</button>
+          <button class="hr-btn" data-go data-default>FLY</button>
           <button class="hr-btn secondary" data-back>BACK</button>
         </div>
       </div>`);
@@ -349,18 +349,18 @@ export class StoryUI {
     this.render(`
       <div class="st-card">
         <div class="st-sub">${m.title}</div>
-        <h2 class="${r.success ? 'st-ok' : 'st-no'}">${r.success ? 'MISSION COMPLETE' : 'MISSION FAILED'}</h2>
+        <h2 class="${r.success ? 'st-ok' : 'st-no'}">${r.success ? 'THE DEED IS DONE' : 'NOT THIS TIME'}</h2>
         <div class="st-sub">${m.track}</div>
         ${goalRow('GOAL', m.goal, r.goal)}
         ${m.bonus ? goalRow('BONUS', m.bonus, r.bonus) : ''}
-        <div class="st-row"><span>EARNED</span><span class="st-star">+${r.earned} PTS</span></div>
-        <div class="st-row"><span>TEAM POINTS</span><span>${this.save.points}</span></div>
+        <div class="st-row"><span>EARNED</span><span class="st-star">+${r.earned} GLORY</span></div>
+        <div class="st-row"><span>GLORY</span><span>${this.save.points}</span></div>
         ${r.success && r.first && m.unlocks ? `<p class="st-note">${m.unlocks}</p>` : ''}
         <div class="st-actions" style="justify-content:flex-start">
           ${r.success && next && r.first ? '<button class="hr-btn" data-next data-default>CONTINUE ▸</button>' : ''}
           ${!r.success ? '<button class="hr-btn" data-retry data-default>RETRY</button>' : ''}
-          ${r.success && (!next || !r.first) ? '<button class="hr-btn" data-retry>RACE AGAIN</button>' : ''}
-          <button class="hr-btn secondary" data-hub ${r.success && !(next && r.first) ? 'data-default' : ''}>STORY MENU</button>
+          ${r.success && (!next || !r.first) ? '<button class="hr-btn" data-retry>FLY AGAIN</button>' : ''}
+          <button class="hr-btn secondary" data-hub ${r.success && !(next && r.first) ? 'data-default' : ''}>SAGA MENU</button>
         </div>
       </div>`);
     this.screen.querySelector('[data-next]')?.addEventListener('click', () => this.showBriefing(r.index + 1));
@@ -378,16 +378,16 @@ export class StoryUI {
     const rows = UPGRADES.map((u) => {
       const lvl = s.upgrades[u.id] ?? 0, cost = upgradeCost(lvl), maxed = lvl >= MAX_LEVEL;
       return `<div class="st-up"><b>${u.name} <span class="st-who">LV ${lvl}</span></b>
-        <button class="hr-btn" data-buy="${u.id}" ${maxed || s.points < cost ? 'disabled' : ''}>${maxed ? 'MAX' : `${cost} PTS`}</button>
+        <button class="hr-btn" data-buy="${u.id}" ${maxed || s.points < cost ? 'disabled' : ''}>${maxed ? 'MAX' : `${cost} GLORY`}</button>
         <small>${u.blurb}</small>
         <div class="st-pips">${Array.from({ length: MAX_LEVEL }, (_, k) => `<i class="${k < lvl ? 'on' : ''}"></i>`).join('')}</div></div>`;
     }).join('');
     this.render(`
       <div class="st-card" style="max-width:620px">
-        <div class="st-head" style="margin-bottom:6px"><div><h2>GARAGE</h2><div class="st-sub" style="margin:0">LEOPARD GP · RED 01</div></div>
-          <div class="st-points">${s.points}<small>TEAM POINTS</small></div></div>
-        <div class="st-row" style="border:0"><span style="color:${CHARACTERS.sophi.color}">SOPHI</span>
-          <span style="font-weight:600;color:#c8d2ff">"Small gains, ${s.name}. That's all a car ever gives you. Pick what you need."</span></div>
+        <div class="st-head" style="margin-bottom:6px"><div><h2>ROOKERY</h2><div class="st-sub" style="margin:0">THE RAVEN HALL · THE RUNT</div></div>
+          <div class="st-points">${s.points}<small>GLORY</small></div></div>
+        <div class="st-row" style="border:0"><span style="color:${CHARACTERS.sigrun.color}">SIGRUN</span>
+          <span style="font-weight:600;color:#c8d2ff">"Small gains, ${s.name}. That's all a dragon ever gives you. Pick what she needs."</span></div>
         ${rows}
         <div class="st-actions" style="justify-content:flex-start"><button class="hr-btn secondary" data-back>BACK</button></div>
       </div>`);
