@@ -1,4 +1,4 @@
-// Hovercraft physics. Pure game logic: no rendering or DOM access in here.
+// Dragon flight physics. Pure game logic: no rendering or DOM access in here.
 
 export interface Vec { x: number; y: number }
 
@@ -15,14 +15,6 @@ export const GEARS: Gear[] = [
 
 const TURN_RATE = 3.6;        // rad/s at low speed
 const TURN_RATE_FAST = 2.4;   // rad/s at top speed
-// Grip: how fast sideways velocity bleeds off (1/s). It stays strong at speed and throws part of the
-// sideways momentum away instead of redirecting it forward, so turning hard scrubs speed off by
-// itself: the craft slows into a corner and holds the road. One handling model for every craft.
-const GRIP_SLOW = 2.6;        // grip at a standstill
-const GRIP_FAST = 1.45;       // grip at top speed
-const BRAKE_GRIP_SLOW = 1.6;  // grip while braking: looser, so braking into a corner swings the tail
-const BRAKE_GRIP_FAST = 1.2;
-const GRIP_KEEP = 0.5;        // share of sideways momentum grip turns into forward speed (the rest scrubs off)
 const BRAKE_TURN_BONUS = 1.35;
 const DRAG = 0.12;            // forward air drag (1/s)
 const SCRAPE_FRICTION = 3.2;  // speed lost per second while grinding along a wall (1/s)
@@ -36,7 +28,6 @@ const DOWNSHIFT_AT = 0.8;     // auto downshift once speed falls below this frac
 const SHIFT_COOLDOWN = 0.6;   // seconds between automatic shifts, so it never hunts between gears
 const SHIFT_TIME = 0.12;      // seconds of reduced thrust while an upshift engages
 const SHIFT_PULL = 0.65;      // thrust kept during that dip: a felt shift, not a stall
-const DRIFT_START = 0.26;     // rad (~15°) of slip that counts as drifting (for effects)
 // Slipstream: tucked into the wake behind another car, a craft gets a few percent more pace.
 const SLIPSTREAM_BONUS = 0.05;   // extra top speed and pull at full slipstream
 const SLIPSTREAM_DRAG_CUT = 0.5; // fraction of air drag removed at full slipstream
@@ -61,8 +52,21 @@ const OVERHEAT_CLEAR = 0.35;      // overheating ends once heat cools below this
 const LAUNCH_PULL = 1.9;          // thrust multiplier during a perfect launch
 export const LAUNCH_TIME = 1.4;   // seconds a perfect launch lasts
 export const STALL_TIME = 0.8;    // seconds of no thrust after a jump start
-// ERS: drifting charges a battery; deploying it adds pull and a little top speed.
-const ERS_DRIFT = 0.55;           // energy per second in a deep, fast drift (under 2 s from empty to full)
+// Flight (Skyfold): dragons don't slide. Their velocity follows the heading through a banked turn,
+// a turn can pull at most CARVE_G of sideways acceleration (so too much speed swings the dragon
+// wide: it simply can't turn any tighter), and every turn costs speed in proportion to how hard it
+// pulls (TURN_DRAG), like a bird hauling round a tight arc.
+const CARVE_G = 1700;             // px/s² of sideways pull at the limit (more with grip mods)
+const BRAKE_CARVE = 1.15;         // braking (wings spread wide) pulls a little tighter
+const AIR_CARVE = 0.5;            // share of it left in the air off a jump
+const FOLLOW = 0.85;              // share of each turn the velocity follows at once...
+const SIDE_GRIP = 9;              // ...the rest of any sideways motion fades at this rate (1/s)
+const TURN_DRAG = 0.2;            // speed lost per second, as a share of the sideways pull, at the limit
+// The gale charges from carving (a hard bank at speed) and from riding another dragon's wake.
+const CARVE_FROM = 0.45;          // share of the carving limit before a turn starts to charge
+const CARVE_FULL = 0.9;           // share at which it charges at the full rate
+const ERS_CARVE = 0.5;            // energy per second in a full, fast carve
+const ERS_WAKE = 0.1;             // energy per second deep in another dragon's wake
 // Jumps (sprint tracks): ramps lift the craft, it flies when the road drops away, and lands again.
 const GRAVITY = 380;              // px/s² pulling the craft back down: low, so jumps are long glides
 const AIR_GRIP = 0.12;            // share of grip left in the air (it keeps its sideways momentum)
@@ -70,8 +74,6 @@ const AIR_TURN = 0.5;             // share of steering left in the air
 const ERS_AIR = 0.32;             // energy per second of airtime at speed (airtime charges the boost)
 const LANDING_LOSS = 1 / 12000;   // speed lost per px/s of landing impact (capped at 8%)
 export const HARVEST_PER_LAP = 1;  // most energy a craft can harvest in one lap (one full battery)
-const DRIFT_CHARGE_FROM = 0.4;    // rad (~23°) of slip before a slide counts as a charging drift
-const DRIFT_DEEP = 0.8;           // rad (~46°) of slip that charges at the full rate
 const ERS_DRAIN = 0.25;           // energy per second while deploying (4 s from full)
 const ERS_PULL = 1.6875;          // thrust multiplier while deploying (+69%)
 const ERS_TOP = 0.1125;           // extra top speed while deploying (+11.25%)
@@ -91,7 +93,7 @@ export interface Mods {
   grip: number;    // cornering grip
   heat: number;    // heat resistance: this share less heat from hits and grinding
   ers: number;     // boost effectiveness
-  harvest: number; // how fast drifting charges the boost battery
+  harvest: number; // how fast carving and wakes charge the gale
   assist: number;  // no longer used (every craft handles the same); kept so old saves and messages parse
   turn: number;    // steering rate (how fast the nose comes round)
 }
@@ -111,6 +113,7 @@ export class Craft {
   vel: Vec = { x: 0, y: 0 };
   heading = -Math.PI / 2;     // pointing "up" the screen
   gear = 0;                   // index into GEARS
+  /** Always false now: dragons don't slide (kept so effects and online messages still parse). */
   drifting = false;
   braking = false;
   /** 0..1 how hard the thrusters are working this frame (for effects). */
@@ -139,6 +142,10 @@ export class Craft {
   deploying = false;
   /** Energy harvested so far this lap (capped at HARVEST_PER_LAP; the race resets it each lap). */
   harvested = 0;
+  /** 0..1 how hard the dragon is carving right now (a hard bank at speed charges the gale). */
+  carving = 0;
+  /** Signed turn rate of the flight path this step (rad/s, + = turning toward +heading). */
+  turnRate = 0;
   /** Performance tweaks for this car (see Mods). */
   mods: Mods = { ...NO_MODS };
   /** DRS wing open (set by the race: in a zone, within a second of the car ahead, not braking). */
@@ -216,22 +223,31 @@ export class Craft {
       + (this.deploying ? ERS_TOP * (1 + this.mods.ers) : 0) + (this.drsOpen ? DRS_TOP : 0);
     const gear = { top: GEARS[this.gear].top * tow, accel: GEARS[this.gear].accel * tow };
 
-    // Steering: turn toward the aim at a capped rate that tightens a little with speed.
+    // Steering: turn toward the aim at a capped rate, and never tighter than the dragon's wings can
+    // pull at this speed (the limit: carry too much speed and the arc simply grows, it swings wide).
     const speedFrac = clamp(speed / GEARS[GEARS.length - 1].top, 0, 1);
     let turnRate = lerp(TURN_RATE, TURN_RATE_FAST, speedFrac) * (1 + this.mods.turn);
     if (brake) turnRate *= BRAKE_TURN_BONUS;
     if (!this.onGround) turnRate *= AIR_TURN;
+    const limit = CARVE_G * (1 + this.mods.grip) * (brake ? BRAKE_CARVE : 1) * (this.onGround ? 1 : AIR_CARVE);
+    if (speed > 1) turnRate = Math.min(turnRate, limit / speed);
     const diff = wrapAngle(aimAngle - this.heading);
     const maxTurn = turnRate * dt;
-    this.heading = wrapAngle(this.heading + clamp(diff, -maxTurn, maxTurn));
+    const turned = clamp(diff, -maxTurn, maxTurn);
+    this.heading = wrapAngle(this.heading + turned);
+    this.turnRate = dt > 0 ? turned / dt : 0;
+    // The flight path banks round with the heading (most of it at once, the rest catching up).
+    const rot = turned * FOLLOW, cr = Math.cos(rot), sr = Math.sin(rot);
+    const vx0 = this.vel.x;
+    this.vel.x = vx0 * cr - this.vel.y * sr;
+    this.vel.y = vx0 * sr + this.vel.y * cr;
 
     // Split velocity into the craft's forward and sideways axes.
     const fx = Math.cos(this.heading), fy = Math.sin(this.heading);
     let fwd = this.vel.x * fx + this.vel.y * fy;
     let side = this.vel.x * -fy + this.vel.y * fx;
 
-    // Thrust while the throttle is held. Lower gears pull at full strength right up to the
-    // shift point; only the top gear fades out as it nears top speed.
+    // Thrust while the throttle is held.
     // Skyfold: dragons have no gearbox. Pull follows one smooth curve through the same points the
     // old gears did (strong off the line, easing as speed builds, fading out at top speed), so the
     // pace is unchanged but there are no steps and no shift dips.
@@ -255,34 +271,41 @@ export class Craft {
       fwd += engaging * accel * tow * pull * dt;
     }
     void gear; void SHIFT_PULL;
-    // Above the top gear's speed (e.g. after a downhill bump) it slowly settles back.
+    // Above top speed (e.g. after a downhill bump) it slowly settles back.
     const vmax = GEARS[GEARS.length - 1].top * tow;
     if (fwd > vmax) fwd -= (fwd - vmax) * 0.8 * dt;
 
-    // Air drag only while coasting; under throttle the gear curves already set the pace.
+    // Air drag only while coasting; under throttle the pull curve already sets the pace.
     if (!accelerating) fwd -= fwd * DRAG * (1 - SLIPSTREAM_DRAG_CUT * this.slipstream) * dt;
     if (brake) fwd = moveToward(fwd, 0, BRAKE_DECEL * dt);
 
     this.autoShift(dt, fwd, throttle && !brake, tow);
 
-    // Grip pulls the craft back in line with its heading. It redirects that sideways momentum
-    // forward instead of throwing it away, so turning doesn't brake for you: carry too much speed
-    // into a corner and you slide wide. Only a small share is scrubbed off.
+    // Turning costs speed: the harder the pull (as a share of the limit), the more it bleeds.
+    const pullG = Math.abs(this.turnRate) * Math.max(0, fwd);
+    const load = clamp(pullG / Math.max(1, CARVE_G * (1 + this.mods.grip)), 0, 1.2);
+    if (fwd > 0) fwd = Math.max(0, fwd - TURN_DRAG * pullG * load * dt);
+
+    // Any sideways motion left over (the small lag, or a knock from a wall or another dragon)
+    // fades quickly into the flight path, without a slide.
     const sideBefore = side;
-    const gripFade = Math.pow(speedFrac, 1.3);
-    const grip = (brake ? lerp(BRAKE_GRIP_SLOW, BRAKE_GRIP_FAST, gripFade) : lerp(GRIP_SLOW, GRIP_FAST, gripFade))
-      * (1 + this.mods.grip) * (this.onGround ? 1 : AIR_GRIP);
-    side *= Math.exp(-grip * dt);
-    if (fwd > 0) fwd = Math.sqrt(fwd * fwd + (sideBefore * sideBefore - side * side) * GRIP_KEEP);
+    side *= Math.exp(-SIDE_GRIP * (this.onGround ? 1 : AIR_GRIP * 4) * dt);
+    if (fwd > 0) fwd = Math.sqrt(fwd * fwd + (sideBefore * sideBefore - side * side) * 0.6);
 
     this.vel.x = fx * fwd - fy * side;
     this.vel.y = fy * fwd + fx * side;
 
-    this.drifting = Math.abs(this.slip) > DRIFT_START && speed > 200;
-    // ERS charges from drifting: the deeper and faster the slide, the quicker it fills.
-    if (this.drifting && Math.abs(this.slip) > DRIFT_CHARGE_FROM) {
-      const depth = clamp((Math.abs(this.slip) - DRIFT_CHARGE_FROM) / (DRIFT_DEEP - DRIFT_CHARGE_FROM), 0.25, 1);
-      const gain = Math.min(ERS_DRIFT * (1 + this.mods.harvest) * depth * clamp(speed / 600, 0, 1) * dt, HARVEST_PER_LAP - this.harvested, 1 - this.energy);
+    this.drifting = false;
+    // The gale charges from carving: a hard bank at speed, faster the harder and faster.
+    const fast = clamp((speed - 300) / 400, 0, 1);
+    this.carving = this.onGround ? clamp((load - CARVE_FROM) / (CARVE_FULL - CARVE_FROM), 0, 1) * fast : 0;
+    if (this.carving > 0) {
+      const gain = Math.min(ERS_CARVE * (1 + this.mods.harvest) * this.carving * dt, HARVEST_PER_LAP - this.harvested, 1 - this.energy);
+      if (gain > 0) { this.energy += gain; this.harvested += gain; }
+    }
+    // ...and from riding in another dragon's wake.
+    if (this.slipstream > 0.2) {
+      const gain = Math.min(ERS_WAKE * (1 + this.mods.harvest) * this.slipstream * dt, HARVEST_PER_LAP - this.harvested, 1 - this.energy);
       if (gain > 0) { this.energy += gain; this.harvested += gain; }
     }
     // Airtime charges it too.

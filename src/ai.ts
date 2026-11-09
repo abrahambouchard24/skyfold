@@ -25,7 +25,7 @@ export class Driver {
   cornerK = CORNER_K;
   insideBias = INSIDE_BIAS;
   /** How much of the slip angle the AI steers against (sign from testing; see CLAUDE.md). */
-  slipCorrect = 0.5;
+  slipCorrect = 0;
   /** Which side we're passing on (+1 = track-left, -1 = track-right), and for how long. */
   private passSide = 0;
   private passTimer = 0;
@@ -146,10 +146,29 @@ export class Driver {
     // The lane hugs the wall, past the normal line limit: aim right along it.
     if (wantLane && this.state === 'cooling') off = COOL_LANE.side * (HALF_WIDTH - 16);
     // Steer for the chosen line at the look-ahead point.
-    const tx = ahead.x + ahead.nx * off, ty = ahead.y + ahead.ny * off;
-    // Steer so the car's actual travel (not just its nose) heads for the line: when sliding,
-    // point further into the turn by the slip angle.
-    const aim = Math.atan2(ty - c.pos.y, tx - c.pos.x) - c.slip * this.slipCorrect;
+    // Steer by the road: point along it a little way ahead (dragons fly where they point; there's
+    // no slide to allow for), and correct toward the chosen line. Aiming straight at a point far
+    // ahead would cut across the inside of every bend. (Lateral + is toward the normal, which a
+    // negative heading change turns toward.)
+    const nearIndex = track.shift(i, 2 + Math.round(speed / 110));
+    const latNow = lateral(track, c, i);
+    // In a split, keep the line clear of the island where we are and just ahead (the look-ahead
+    // point may already be past its tail, where the lanes merge).
+    if (this.lane !== 0) {
+      const isl = Math.max(track.island[i], track.island[nearIndex]);
+      if (isl > 1) {
+        const out = Math.min(track.outer[i], track.outer[nearIndex]);
+        off = this.lane * Math.max(Math.abs(off), (isl + out) / 2, isl + 40);
+      }
+    }
+    // And never outside the road where we are now (a fork ahead is wider than the road before it).
+    const edge = Math.min(track.outer[i], track.outer[nearIndex]) - 50;
+    off = clamp(off, -edge, edge);
+    // Damped: allow for how fast we're already moving across the road, so we don't overshoot the line.
+    const pNow = track.pts[i];
+    const latVel = c.vel.x * pNow.nx + c.vel.y * pNow.ny;
+    const aim = track.direction(nearIndex) - Math.atan((STEER_GAIN * (off - latNow - latVel * STEER_DAMP)) / Math.max(150, speed)) - c.slip * this.slipCorrect;
+    void ahead;
 
     // Corner speed from the tightest curvature ahead; a late-brake mistake carries too much in.
     const late = this.mistake?.kind === 'late-brake' ? 1.18 : 1;
@@ -178,7 +197,11 @@ export class Driver {
   }
 }
 
+/** How hard the AI steers back toward its line per px off it (scaled by speed). */
+const STEER_GAIN = 2.2;
+/** Seconds of sideways travel the AI allows for when steering back to its line (damping). */
+const STEER_DAMP = -0.35;
 /** Tuned so a skill-1 driver takes corners near the grip limit (see lap simulation). */
-export const CORNER_K = 56;
+export const CORNER_K = 40;
 /** How hard the line cuts to the inside of bends (sign picks the side). */
 export const INSIDE_BIAS = -500;

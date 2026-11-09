@@ -142,6 +142,9 @@ export const FLY_HEIGHT = 22;
 interface Seg { g: THREE.Group; len: number }
 interface Wing { shoulder: THREE.Group; hand: THREE.Group; side: number }
 
+/** Sideways pull (px/s²) that banks a dragon 45 degrees. */
+const BANK_G = 1100;
+
 /**
  * One wingbeat as a position (+1 wings up, -1 down) and its direction of travel (-1 moving down at
  * full speed, +1 moving up), for a phase in radians: the downstroke takes 58% of the beat and the
@@ -379,7 +382,7 @@ export class DragonRig {
     // Glide through turns and under braking; the rest of the time the wings keep beating.
     // Only real turns (and braking) lock the wings out, and the change is gradual both ways, so
     // small steering corrections don't make the wings stutter between beating and gliding.
-    const want = clamp((Math.abs(this.turnSmooth) - 0.5) / 0.8 + (c.braking ? 0.8 : 0), 0, 1);
+    const want = clamp(Math.max((Math.abs(this.turnSmooth) - 0.5) / 0.8, c.carving * 1.2) + (c.braking ? 0.8 : 0), 0, 1);
     if (dt > 0) this.glide += (want - this.glide) * (1 - Math.exp(-(want > this.glide ? 4 : 2) * dt));
     const effort = racing ? 0.6 + c.thrust * 0.4 : 0.45;
     if (dt > 0) this.tuck += ((c.deploying ? 1 : 0) - this.tuck) * (1 - Math.exp(-7 * dt));
@@ -405,7 +408,10 @@ export class DragonRig {
     }
 
     // Body: banks into the turn, lifts on the downstroke, noses up a touch when braking.
-    const bank = clamp(this.turnSmooth * 0.45, -0.75, 0.75);
+    // Bank like a flier in a coordinated turn: the angle comes from the sideways pull (turn rate times
+    // speed), so a fast, hard carve lays the dragon right over and a slow turn barely tips it.
+    const pullG = this.turnSmooth * speed;
+    const bank = clamp(Math.sign(pullG) * Math.atan(Math.abs(pullG) / BANK_G), -1.05, 1.05);
     this.roll += (bank - this.roll) * k;
     this.body.rotation.x = this.roll;   // lean into the turn: a right turn drops the right wing
     this.body.rotation.z = (c.braking ? 0.18 : 0) - flap * 0.03 * s;
