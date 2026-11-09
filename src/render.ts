@@ -1,6 +1,7 @@
 // Everything drawn to the canvas. Reads game state, never changes it.
 
 import { Craft, clamp } from './craft';
+import { drawPathIcon, type PathIcon } from './pathicons';
 import { drawGround as drawSceneryGround, drawOverlays, drawProps, groundMoves, View } from './scenery';
 import { COOL_LANE, HALF_WIDTH, KERB_WIDTH, RaceState, Track, WALL_DIST, WALL_THICKNESS } from './track';
 
@@ -633,22 +634,18 @@ const STRIP_CUE: Record<NonNullable<RaceHud['strip']>, [string, string]> = {
 };
 /** A small pill under the progress strip naming the strip the player is on, pulsing gently. */
 function drawStripCue(ctx: CanvasRenderingContext2D, w: number, kind: NonNullable<RaceHud['strip']>, y: number, time: number): void {
-  const [text, color] = STRIP_CUE[kind];
+  // The lane's symbol (the same mark as on the island sign), pulsing in a small pill.
+  const [, color] = STRIP_CUE[kind];
   ctx.save();
-  ctx.font = '700 12px "Alegreya Sans SC", system-ui, sans-serif';
-  const tw = ctx.measureText(text).width + text.length * 2.4, pw = tw + 30;
+  const pw = 46;
   ctx.globalAlpha = 0.85 + Math.sin(time * 8) * 0.15;
   ctx.fillStyle = 'rgba(24,19,15,0.82)';
-  roundRect(ctx, w / 2 - pw / 2, y - 11, pw, 22, 11);
+  roundRect(ctx, w / 2 - pw / 2, y - 13, pw, 26, 13);
   ctx.fill();
   ctx.strokeStyle = color;
   ctx.lineWidth = 1;
   ctx.stroke();
-  ctx.fillStyle = color;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  if ('letterSpacing' in ctx) (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = '2.4px';
-  ctx.fillText(text, w / 2 + 1.2, y + 0.5);
+  drawPathIcon(ctx, kind as PathIcon, w / 2, y, 17, color);
   ctx.restore();
 }
 

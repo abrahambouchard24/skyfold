@@ -10,6 +10,7 @@ import { CRAFT_LENGTH, type Camera, type Car, type Particle } from './render';
 import { COOL_LANE, HALF_WIDTH, KERB_WIDTH, Track, WALL_DIST, WALL_THICKNESS } from './track';
 import { groundCanvas, groundMoves, sceneryFor, type Prop } from './scenery';
 import { DragonRig, FLY_HEIGHT } from './dragon';
+import { drawPathIcon, type PathIcon } from './pathicons';
 import { liveryMetal, liveryPainter, type Face, type Kind, type Painted } from './liveries';
 import * as LIVERIES_MOD from './liveries';
 
@@ -484,9 +485,9 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
       const chev = ribbon(j.from, j.lip, ISL(sd, 30), OUT(sd, -30), 0.6, 0.6, 70);
       const cp = chev.getAttribute('position') as THREE.BufferAttribute;
       for (let i = j.from, k = 0; i <= j.lip; i++, k++) { cp.setY(2 * k, rampLift(i, j) + 0.6); cp.setY(2 * k + 1, rampLift(i, j) + 0.6); }
-      add(chev, additive({ map: rampChev, color: theme.wall }), 2);
-      add(ribbon(j.lip, j.land, ISL(sd), OUT(sd, WALL_THICKNESS), -0.6, -0.6, 1e9), basic({ color: 0x04070c, transparent: true, opacity: 0.9, depthWrite: false }), 1);
-      add(ribbon(j.lip, j.land, ISL(sd), OUT(sd), -3, -3, 64), additive({ map: netTex, color: theme.wall, opacity: 0.55 }), 2);
+      add(chev, basic({ map: rampChev, color: 0xb07a3e, transparent: true, opacity: 0.55, depthWrite: false }), 2);   // carved bronze arrows
+      add(ribbon(j.lip, j.land, ISL(sd), OUT(sd, WALL_THICKNESS), -0.6, -0.6, 1e9), basic({ color: 0x0a0806, transparent: true, opacity: 0.9, depthWrite: false }), 1);
+      void netTex;
     }
   }
   // Fork lanes: each effect strip glows in its own way (gold pads, flames, charging pulses, frost),
@@ -496,8 +497,9 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
     const STRIP_LOOK: Record<string, { color: string; draw: (g: CanvasRenderingContext2D) => void; v: number; speed: number }> = {
       boost: { color: '#ffd23f', v: 110, speed: 2.2, draw: (g) => { g.strokeStyle = '#fff'; g.lineWidth = 9; g.lineCap = 'round'; g.beginPath(); g.moveTo(8, 50); g.lineTo(32, 18); g.lineTo(56, 50); g.stroke(); } },
       fire: { color: '#ff6a2a', v: 90, speed: 3.2, draw: (g) => { g.fillStyle = '#fff'; for (const x of [10, 32, 54]) { g.beginPath(); g.moveTo(x - 8, 60); g.quadraticCurveTo(x - 6, 30, x, 6); g.quadraticCurveTo(x + 6, 30, x + 8, 60); g.fill(); } } },
-      charge: { color: '#b98cff', v: 70, speed: 1.6, draw: (g) => { g.fillStyle = '#fff'; for (const y of [12, 36]) { g.beginPath(); g.arc(32, y + 8, 7, 0, Math.PI * 2); g.fill(); } g.fillRect(29, 0, 6, 64); } },
-      cool: { color: '#7fe6ff', v: 80, speed: 0.9, draw: (g) => { g.strokeStyle = '#fff'; g.lineWidth = 5; g.lineCap = 'round'; g.beginPath(); g.moveTo(12, 46); g.lineTo(32, 24); g.lineTo(52, 46); g.stroke(); } },
+      // The lane's symbol, squeezed across: a strip is about twice as wide as one repeat is long.
+      charge: { color: '#b98cff', v: 90, speed: 1.6, draw: (g) => { g.translate(32, 32); g.scale(0.42, 1); drawPathIcon(g, 'charge', 0, 0, 44, 'rgba(255,255,255,0.8)'); } },
+      cool: { color: '#7fe6ff', v: 90, speed: 0.9, draw: (g) => { g.translate(32, 32); g.scale(0.42, 1); drawPathIcon(g, 'cool', 0, 0, 44, 'rgba(255,255,255,0.8)'); } },
     };
     const looks = new Map<string, { mat: THREE.Material; tex: THREE.Texture; speed: number }>();
     for (const st of track.strips) {
@@ -514,13 +516,26 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
     }
   }
   if (track.forks.length) {
-    const NAME: Record<string, string> = { jump: 'LEAP', boost: 'GUST', charge: 'STORM', cool: 'FROST', fire: 'EMBERS' };
+    const EFFECT: Record<string, PathIcon> = { jump: 'jump', boost: 'boost', charge: 'charge', cool: 'cool', fire: 'fire' };
+    const TINT: Record<string, string> = { jump: '#e3b26c', boost: '#e3b26c', charge: '#c9a8ff', cool: '#a8e4f2', fire: '#ff9a5a' };
     for (const f of track.forks) {
-      const nameOf = (kind: string, side: number) => NAME[kind] ?? (f.curve ? (side === f.sign ? 'INSIDE' : 'WIDE') : 'ROAD');
+      const bend: 1 | -1 = f.sign === -1 ? -1 : 1;
+      const iconOf = (kind: string, side: number): [PathIcon, string] =>
+        EFFECT[kind] ? [EFFECT[kind], TINT[kind]] : [f.curve ? (side === f.sign ? 'inside' : 'wide') : 'road', '#e8d9b8'];
       let i = f.from;
       while (i < f.to && track.island[i] < 70) i++;
       const p = pts[i], dir = track.direction(i);
-      const sign = textPlane(`« ${nameOf(f.left, 1)}     ${nameOf(f.right, -1)} »`, '#e8d9b8', 300, 40, theme.wall);
+      const [li, lc] = iconOf(f.left, 1), [ri, rc] = iconOf(f.right, -1);
+      const sign = boardPlane(150, 50, (g, W, H) => {
+        // Each half shows its lane's mark, with a small pointer to the side it leads.
+        drawPathIcon(g, li, W * 0.3, H / 2, H * 0.6, lc, bend);
+        drawPathIcon(g, ri, W * 0.7, H / 2, H * 0.6, rc, bend);
+        g.fillStyle = '#e8d9b8';
+        for (const [x, d] of [[W * 0.09, -1], [W * 0.91, 1]] as const) {
+          g.beginPath(); g.moveTo(x + d * H * 0.1, H / 2); g.lineTo(x - d * H * 0.06, H * 0.36); g.lineTo(x - d * H * 0.06, H * 0.64); g.closePath(); g.fill();
+        }
+        g.fillStyle = '#2a2724'; g.fillRect(W / 2 - H * 0.04, H * 0.15, H * 0.08, H * 0.7);   // an iron strap between the halves
+      });
       sign.geometry.rotateX(Math.PI / 2).rotateY(Math.PI / 2);
       const holder = new THREE.Group();
       holder.add(bothWays(sign));
@@ -554,10 +569,11 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
   // Kerbs through the corners: lit and dark blocks in turn, slightly raised.
   {
     const pos: number[] = [], col: number[] = [], idx: number[] = [];
-    const lit = new THREE.Color('#cfc4a8'), dark = new THREE.Color('#4a4640');   // bone and slate kerb stones
+    // Rough setts of the realm's stone through the corners: each block its own shade, no painted stripes.
+    const sett = new THREE.Color(atmos.wall[1]).lerp(new THREE.Color('#6a645a'), 0.6);
     for (let i = 0; i < m; i++) {
       if (Math.abs(pts[i].curve) < KERB_CURVE) continue;
-      const c = Math.floor(i / 2) % 2 ? lit : dark;
+      const h = Math.sin(i * 12.9898) * 43758.5453, c = sett.clone().multiplyScalar(0.72 + 0.3 * (h - Math.floor(h)));
       for (const side of [1, -1]) {
         const base = pos.length / 3;
         if (track.isBreak(i)) continue;
@@ -586,14 +602,15 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
     g.fillStyle = v; g.fillRect(0, 0, 4, 64);
     g.fillStyle = '#2a2622'; g.fillRect(0, 9, 4, 5);          // the iron band
     g.fillStyle = 'rgba(255,240,210,0.25)'; g.fillRect(0, 9, 4, 1);
-    g.fillStyle = theme.wall; g.fillRect(0, 0, 4, 3);
+    g.fillStyle = 'rgba(20,14,10,0.55)'; g.fillRect(0, 0, 4, 3);   // the cap's shadow
     g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(0, 58, 4, 6);
   });
   const faceTex = tex(face, false);
   const plankMat = new THREE.MeshBasicMaterial({ map: tex(canvas2d(32, 8, (g) => { g.fillStyle = 'rgba(0,0,0,0.45)'; g.fillRect(0, 0, 2, 8); }), true),
     transparent: true, depthWrite: false });
   const faceMat = basic({ map: faceTex });
-  const topMat = basic({ color: theme.wall });
+  // The cap: a lit beam of timber, tinted a touch toward the realm's colour.
+  const topMat = new THREE.MeshLambertMaterial({ color: new THREE.Color(atmos.wall[1]).lerp(new THREE.Color(theme.wall), 0.18).multiplyScalar(0.9) });
   const outerMat = basic({ color: new THREE.Color(atmos.wall[1]).multiplyScalar(0.75) });
   const glow = canvas2d(64, 4, (g) => {
     const h = g.createLinearGradient(0, 0, 64, 0);
@@ -617,6 +634,7 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
     g.fillStyle = r; g.fillRect(0, 0, 16, 64);
   });
   const lampMat = additive({ map: tex(lamp), color: '#ffd8a0' });
+  const torchMat = new THREE.MeshBasicMaterial({ color: 0xffa040, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false });
   for (const side of [1, -1]) {
     const inner = OUT(side), outer = OUT(side, WALL_THICKNESS);
     const faceG = whole(ribbon(0, m, inner, inner, WALL_H, 0, 1e9)); faceG.setAttribute('uv', wallUv(m)); add(faceG, faceMat);
@@ -625,8 +643,37 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
     add(whole(ribbon(0, m, inner, outer, WALL_H, WALL_H, 1e9)), topMat);
     add(whole(ribbon(0, m, outer, outer, WALL_H, 0, 1e9)), outerMat);
     void glowMat; void pulseMat;   // no neon ground glow or rail pulses on a timber wall
-    // Torches along the top of the wall, flickering.
-    add(whole(ribbon(0, m, OUT(side, WALL_THICKNESS / 2 - 4), OUT(side, WALL_THICKNESS / 2 + 4), WALL_H + 0.3, WALL_H + 0.3, 260)), lampMat, 2);
+    void lampMat;
+  }
+  // Torches on posts along the wall tops, every few hundred px: a timber stake, an iron cup and a
+  // flickering flame (all instanced: a few meshes for the whole map).
+  {
+    const spots: { x: number; z: number; y: number }[] = [];
+    const every = 16;   // samples (about 320 px)
+    for (const side of [1, -1]) {
+      for (let i = side > 0 ? 0 : every / 2; i < m; i += every) {
+        if (track.isBreak(i)) continue;
+        const pp = pts[i], d = OUT(side, WALL_THICKNESS / 2)(i);
+        spots.push({ x: pp.x + pp.nx * d, z: pp.y + pp.ny * d, y: WALL_H });
+      }
+    }
+    if (track.island.some((v) => v > 1)) {
+      for (let i = 0; i < m; i += 12) {
+        if (track.isBreak(i) || track.island[i] < 60) continue;
+        const pp = pts[i];
+        spots.push({ x: pp.x, z: pp.y, y: 40 });
+      }
+    }
+    const n = spots.length;
+    const stake = new THREE.InstancedMesh(new THREE.CylinderGeometry(1.6, 2.2, 22, 5).translate(0, 11, 0), new THREE.MeshLambertMaterial({ color: 0x3a2a1c }), n);
+    const cup = new THREE.InstancedMesh(new THREE.CylinderGeometry(4.5, 2.5, 5, 6).translate(0, 24, 0), new THREE.MeshLambertMaterial({ color: 0x2e2b28 }), n);
+    const flame = new THREE.InstancedMesh(new THREE.ConeGeometry(3.6, 12, 5).translate(0, 32, 0), torchMat, n);
+    const mtx = new THREE.Matrix4();
+    spots.forEach((sp, k) => {
+      mtx.makeTranslation(sp.x, sp.y, sp.z);
+      stake.setMatrixAt(k, mtx); cup.setMatrixAt(k, mtx); flame.setMatrixAt(k, mtx);
+    });
+    for (const o of [stake, cup, flame]) { o.frustumCulled = false; group.add(o); }
   }
   if (track.island.some((v) => v > 1)) {
     // Islands: a raised block between the two lanes of a split, its walls in the barrier style and
@@ -635,9 +682,8 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
     const noIsland = (seg: number) => track.isBreak(seg) || (track.island[seg] < 1 && track.island[(seg + 1) % m] < 1);
     for (const side of [1, -1]) {
       const fg = cut(ribbon(0, m, ISL(side), ISL(side), ISLAND_H, 0, 1e9), noIsland); fg.setAttribute('uv', wallUv(m)); add(fg, faceMat);
-      add(cut(ribbon(0, m, ISL(side, -6), ISL(side, -2), ISLAND_H + 0.3, ISLAND_H + 0.3, 110), noIsland), lampMat, 2);
     }
-    add(cut(ribbon(0, m, ISL(1), ISL(-1), ISLAND_H, ISLAND_H, 1e9), noIsland), basic({ color: new THREE.Color(atmos.wall[0]).lerp(new THREE.Color(theme.wall), 0.25) }));
+    add(cut(ribbon(0, m, ISL(1), ISL(-1), ISLAND_H, ISLAND_H, 1e9), noIsland), new THREE.MeshLambertMaterial({ color: new THREE.Color(atmos.wall[0]).lerp(new THREE.Color(theme.wall), 0.15).multiplyScalar(0.85) }));
   }
 
   // Cooling lane: a tinted band with chevrons flowing along it.
@@ -653,28 +699,32 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
   add(ribbon(COOL_LANE.from, COOL_LANE.to, coolIn, coolOut, 0.7, 0.7, 60), additive({ map: chevTex }), 2);
   {
     const s = pts[COOL_LANE.from + 2], d = COOL_LANE.side * (HALF_WIDTH - COOL_LANE.width / 2);
-    const label = textPlane('FROST', 'rgba(200,240,250,0.9)', 52, 18);
+    const label = new THREE.Mesh(new THREE.PlaneGeometry(30, 30).rotateX(-Math.PI / 2),
+      additive({ map: tex(canvas2d(64, 64, (g) => drawPathIcon(g, 'cool', 32, 32, 52, 'rgba(200,240,250,0.95)'))) }));
     label.position.set(s.x + s.nx * d, 0.9, s.y + s.ny * d);
     label.rotation.y = -track.direction(COOL_LANE.from + 2) - Math.PI / 2;
     group.add(label);
   }
 
   // DRS zones: a dashed green line across the track where each starts, fainter where it ends.
-  for (const z of track.drsZones) {
-    for (const [i, start] of [[z.from, true], [z.to, false]] as const) {
-      const p = pts[i];
-      const line = new THREE.Mesh(new THREE.PlaneGeometry(start ? 5 : 3, track.outer[i] * 2 - 12).rotateX(-Math.PI / 2),
-        basic({ map: tex(canvas2d(4, 64, (g) => { for (let k = 0; k < 64; k += 11) { g.fillStyle = '#8fd0e0'; g.fillRect(0, k, 4, 6); } }), false),
-          transparent: true, opacity: start ? 0.9 : 0.4, depthWrite: false }));
-      line.position.set(p.x, 0.9, p.y);
-      line.rotation.y = -track.direction(i);
-      group.add(line);
-      if (start) {
-        const label = textPlane('WIND', 'rgba(200,240,250,0.85)', 40, 16);
-        const d = track.direction(i);
-        label.position.set(p.x - Math.cos(d) * 30, 0.9, p.y - Math.sin(d) * 30);
-        label.rotation.y = -d - Math.PI / 2;
-        group.add(label);
+  // Tailwind zones: where one starts, a standing stone on each side of the road with the journey
+  // rune (Raidho) glowing pale blue on its face. No marks on the road itself.
+  {
+    const rune = tex(canvas2d(32, 64, (g) => {
+      g.fillStyle = '#5a5650'; g.fillRect(0, 0, 32, 64);
+      g.strokeStyle = '#bfe8f2'; g.lineWidth = 4; g.lineCap = 'round'; g.lineJoin = 'round';
+      g.beginPath(); g.moveTo(10, 54); g.lineTo(10, 10); g.lineTo(23, 21); g.lineTo(10, 32); g.lineTo(24, 54); g.stroke();
+    }));
+    const stoneMat = new THREE.MeshLambertMaterial({ map: rune, emissive: 0x24343a, emissiveMap: rune });
+    for (const z of track.drsZones) {
+      const i = z.from, p = pts[i], d = track.direction(i);
+      for (const side of [1, -1]) {
+        const off = side * (track.outer[i] + WALL_THICKNESS + 18);
+        const stone = new THREE.Mesh(new THREE.BoxGeometry(10, 46, 18).translate(0, 23, 0), stoneMat);
+        stone.position.set(p.x + p.nx * off, 0, p.y + p.ny * off);
+        stone.rotation.y = -d;
+        stone.rotation.z = side * 0.04;
+        group.add(stone);
       }
     }
   }
@@ -699,9 +749,24 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
   // Start line (and on a point-to-point route the finish line): a checkered band and a timber gate.
   const lineAt = (at: number, text: string) => {
     const p = pts[at], dir = track.direction(at);
-    // A band of bone and slate stones across the road.
+    // A threshold of dark slate across the road, a row of runes cut into it and filled with bronze.
     const checker = canvas2d(32, 320, (g) => {
-      for (let r = 0; r < 2; r++) for (let c = 0; c < 20; c++) { g.fillStyle = (r + c) % 2 ? '#3a3632' : '#d8ccb0'; g.fillRect(r * 16, c * 16, 16, 16); }
+      g.fillStyle = '#2e2b28'; g.fillRect(0, 0, 32, 320);
+      g.fillStyle = 'rgba(0,0,0,0.4)'; g.fillRect(0, 0, 2, 320); g.fillRect(30, 0, 2, 320);
+      g.strokeStyle = '#b07a3e'; g.lineWidth = 2.2; g.lineCap = 'round';
+      const glyphs = [
+        [[16, 4, 16, 28], [16, 10, 24, 4], [16, 18, 24, 12]],
+        [[10, 4, 10, 28], [10, 4, 22, 14], [22, 14, 22, 28]],
+        [[16, 4, 16, 28], [16, 10, 24, 16], [24, 16, 16, 22]],
+        [[10, 4, 22, 28], [22, 4, 10, 28]],
+        [[10, 4, 10, 28], [22, 4, 22, 28], [10, 12, 22, 20]],
+        [[16, 4, 16, 28], [8, 12, 16, 4], [24, 12, 16, 4]],
+      ];
+      for (let k = 0; k < 10; k++) {
+        g.save(); g.translate(0, k * 32);
+        for (const [x0, y0, x1, y1] of glyphs[k % glyphs.length]) { g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); }
+        g.restore();
+      }
     });
     const band = new THREE.Mesh(new THREE.PlaneGeometry(26, HALF_WIDTH * 2).rotateX(-Math.PI / 2), basic({ map: tex(checker, false) }));
     band.position.set(p.x, 0.9, p.y);
@@ -872,6 +937,7 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
       if (storm) this.flash = storm.animate(time);
       pulseTex.offset.y = -(time * 1100) / 376;
       lampMat.opacity = 0.72 + 0.16 * Math.sin(time * 9) + 0.12 * Math.sin(time * 23.7);   // torch flicker
+      torchMat.opacity = 0.75 + 0.15 * Math.sin(time * 11) + 0.1 * Math.sin(time * 27.3);
       chevTex.offset.y = -time * 0.35 * 9;
       for (const t2 of stripTex) t2.offset.y = -time * (t2.userData.speed as number);
       if (water) groundTex.offset.set(-(time * 18) / 512, (time * 7) / 512);
@@ -2775,25 +2841,34 @@ function canvas2d(w: number, h: number, draw: (g: CanvasRenderingContext2D) => v
 }
 
 /** A flat label lying on the ground (rotate its geometry to stand it up), width x height in world px. */
+/** A board of dark timber: planks with grain, iron bands at each end and an iron rim. */
+function timberBoard(g: CanvasRenderingContext2D, W: number, H: number, scale: number): void {
+  g.fillStyle = '#3b2a1e'; g.fillRect(0, 0, W, H);
+  const planks = Math.max(2, Math.round(H / scale / 10));
+  for (let k = 0; k < planks; k++) {
+    g.fillStyle = k % 2 ? '#43301f' : '#382719'; g.fillRect(0, (k * H) / planks, W, H / planks);
+    g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(0, ((k + 1) * H) / planks - scale * 0.6, W, scale * 0.6);
+  }
+  g.strokeStyle = 'rgba(20,12,8,0.35)'; g.lineWidth = scale * 0.5;
+  for (let k = 0; k < W; k += scale * 9) { g.beginPath(); g.moveTo(k, 0); g.bezierCurveTo(k + 8 * scale, H * 0.3, k - 6 * scale, H * 0.7, k + 4 * scale, H); g.stroke(); }
+  g.fillStyle = '#4a4642';
+  g.fillRect(scale * 3, 0, scale * 4, H); g.fillRect(W - scale * 7, 0, scale * 4, H);
+  g.strokeStyle = '#2a2724'; g.lineWidth = 2 * scale; g.strokeRect(scale, scale, W - 2 * scale, H - 2 * scale);
+}
+
+/** A timber board w x h world px (lying flat, like textPlane), with `draw` painting on it in canvas px. */
+function boardPlane(w: number, h: number, draw: (g: CanvasRenderingContext2D, W: number, H: number) => void): THREE.Mesh {
+  const scale = 4, W = Math.ceil(w * scale), H = Math.ceil(h * scale);
+  const c = canvas2d(W, H, (g) => { timberBoard(g, W, H, scale); draw(g, W, H); });
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return new THREE.Mesh(new THREE.PlaneGeometry(w, h).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: t }));
+}
+
 function textPlane(text: string, color: string, w: number, h: number, back?: string): THREE.Mesh {
   const scale = 4;
   const c = canvas2d(Math.ceil(w * scale), Math.ceil(h * scale), (g) => {
-    if (back) {
-      // A board of dark timber: planks with grain, iron bands at each end and an iron rim.
-      const W = w * scale, H = h * scale;
-      g.fillStyle = '#3b2a1e'; g.fillRect(0, 0, W, H);
-      const planks = Math.max(2, Math.round(h / 10));
-      for (let k = 0; k < planks; k++) {
-        g.fillStyle = k % 2 ? '#43301f' : '#382719'; g.fillRect(0, (k * H) / planks, W, H / planks);
-        g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(0, ((k + 1) * H) / planks - scale * 0.6, W, scale * 0.6);
-      }
-      g.strokeStyle = 'rgba(20,12,8,0.35)'; g.lineWidth = scale * 0.5;
-      for (let k = 0; k < W; k += scale * 9) { g.beginPath(); g.moveTo(k, 0); g.bezierCurveTo(k + 8 * scale, H * 0.3, k - 6 * scale, H * 0.7, k + 4 * scale, H); g.stroke(); }
-      g.fillStyle = '#4a4642';
-      g.fillRect(scale * 3, 0, scale * 4, H); g.fillRect(W - scale * 7, 0, scale * 4, H);
-      g.strokeStyle = '#2a2724'; g.lineWidth = 2 * scale; g.strokeRect(scale, scale, W - 2 * scale, H - 2 * scale);
-      void back;
-    }
+    if (back) timberBoard(g, w * scale, h * scale, scale);
     g.fillStyle = color;
     g.font = `${Math.floor(h * scale * 0.62)}px 'Uncial Antiqua', Georgia, serif`;
     g.textAlign = 'center'; g.textBaseline = 'middle';
