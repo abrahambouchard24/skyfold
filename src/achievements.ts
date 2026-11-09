@@ -39,7 +39,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'winner', name: 'VICTORY', desc: 'Win a race', skin: 'gold' },
   { id: 'perfect-launch', name: 'PERFECT LEAP', desc: 'Leap off the line at the perfect moment', skin: 'lightning' },
   { id: 'clean-sheet', name: 'UNSCATHED', desc: 'Finish a race of 3 laps or more without touching a wall', skin: 'ghost' },
-  { id: 'drift-king', name: 'WINDRIDER', desc: 'Gather a full gale by sliding within a single lap', skin: 'sunset' },
+  { id: 'drift-king', name: 'WINDRIDER', desc: 'Gather a full gale within a single lap', skin: 'sunset' },
   { id: 'grand-tour', name: 'WANDERER', desc: 'Finish a race in 8 different realms', skin: 'prism', goal: 8 },
   { id: 'grand-slam', name: 'CONQUEROR', desc: 'Win in 4 different realms', skin: 'chrome', goal: 4 },
   { id: 'record-breaker', name: 'RUNECARVER', desc: 'Carve a lap record into 3 realms', skin: 'ice', goal: 3 },

@@ -23,9 +23,9 @@ export interface Slider {
 export const SLIDERS: Slider[] = [
   // Keyboard steering: a sharper rack swings the nose round faster but the car is twitchier and
   // slides more; a lazy one is calm and planted but slow to change direction.
-  { id: 'steering', name: 'STEERING', low: 'LAZY · STABLE', high: 'SHARP · AGILE', perStep: { turn: 0.06, grip: -0.03 } },
+  { id: 'steering', name: 'BANKING', low: 'GENTLE · STABLE', high: 'SHARP · AGILE', perStep: { turn: 0.06, grip: -0.03 } },
   { id: 'gearing', name: 'WINGBEAT', low: 'QUICK STROKES · ACCELERATION', high: 'LONG STROKES · TOP SPEED', perStep: { top: 0.015, accel: -0.03 } },
-  { id: 'wing', name: 'WINGSPAN', low: 'SWEPT · TOP SPEED', high: 'WIDE · GRIP', perStep: { grip: 0.05, top: -0.01 } },
+  { id: 'wing', name: 'WINGSPAN', low: 'SWEPT · TOP SPEED', high: 'WIDE · HOLDS THE ARC', perStep: { grip: 0.05, top: -0.01 } },
   { id: 'cooling', name: 'FROST BLOOD', low: 'WARM · TOP SPEED', high: 'COLD · RUNS COOL', perStep: { heat: 0.08, top: -0.0075 } },
   { id: 'ers', name: 'GALE', low: 'BREEZE · FAST CHARGE', high: 'STORM · STRONG GALE', perStep: { ers: 0.08, harvest: -0.12 } },
 ];
@@ -41,7 +41,7 @@ export const PRESETS: { name: string; setup: Setup }[] = [
   // Long races and wall-heavy tracks: runs cool, harvests boost fast from drifts.
   { name: 'ENDURANCE', setup: { steering: 0, gearing: 0, wing: 1, cooling: 3, ers: -2, assist: 1 } },
   // Drift style: sharp steering and fast harvest, so every slide pays back in boost.
-  { name: 'DRIFT', setup: { steering: 2, gearing: 0, wing: -1, cooling: 1, ers: -2, assist: 1 } },
+  { name: 'CARVER', setup: { steering: 2, gearing: 0, wing: -1, cooling: 1, ers: -2, assist: 1 } },
 ];
 
 /** A setup's effect on the car. */
@@ -67,10 +67,10 @@ export function statBars(m: Mods): { name: string; value: number; delta: number 
   // Each bar is scaled so the slider ranges fill most of it.
   const bar = (name: string, delta: number, range: number) => ({ name, delta, value: Math.max(0.03, Math.min(1, 0.5 + delta / range / 2)) });
   return [
-    bar('STEERING', m.turn, 0.36),
+    bar('BANKING', m.turn, 0.36),
     bar('TOP SPEED', m.top, 0.12),
     bar('ACCELERATION', m.accel, 0.12),
-    bar('GRIP', m.grip, 0.2),
+    bar('HOLD', m.grip, 0.2),
     bar('COOLING', m.heat, 0.3),
     bar('GALE POWER', m.ers, 0.3),
     bar('GALE CHARGE', m.harvest, 0.45),

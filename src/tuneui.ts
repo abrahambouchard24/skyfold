@@ -69,7 +69,7 @@ export class TuneUI {
         <div class="tn-sub">EVERY GAIN COSTS SOMETHING · THE MIDDLE IS THE STANDARD CAR</div>
         <div class="tn-cols">
           <div><img class="tn-car" src="${this.carUrl}" alt=""><div data-stats></div>
-            <div class="tn-tip">Fast, flowing tracks reward long gears and a low wing. Tight, twisty ones reward grip. Big radiators help if you hit walls. Sharp steering snaps through hairpins; lazy steering stays calm flat out.</div></div>
+            <div class="tn-tip">Fast, flowing realms reward long wingbeats and swept wings. Twisty ones reward a wide span that holds the arc. Cold frost blood helps if you hit walls. Sharp banking snaps through hairpins; gentle banking stays calm flat out.</div></div>
           <div><div class="tn-sub" style="margin-bottom:6px">PRESETS</div><div class="tn-presets">${presets}</div>${sliders}
             <div class="hr-btns row" style="justify-content:flex-start;margin-top:8px">
               <button class="hr-btn" data-done>DONE</button><button class="hr-btn secondary" data-reset>RESET</button></div></div>
