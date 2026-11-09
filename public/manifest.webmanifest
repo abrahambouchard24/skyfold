@@ -1,0 +1,16 @@
+{
+  "name": "Skyfold",
+  "short_name": "Skyfold",
+  "description": "Dragon racing through the skies of a paper-folded world.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "landscape",
+  "background_color": "#07080f",
+  "theme_color": "#0b1a22",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
