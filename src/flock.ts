@@ -118,10 +118,13 @@ export class FlockGame {
   private lastHarvest = 0;
   /** How long each dragon has been tailing each carrier (thief * n + victim). */
   private tails = new Map<number, number>();
+  /** Each dragon's own top-speed mod (its species and setup), which carrying is taken off. */
+  private baseTop: number[] = [];
 
   constructor(entrants: { craft: Craft; name: string; color: string; skill: number | null }[], seed = 7) {
     this.rand = rng(seed);
     const n = entrants.length;
+    this.baseTop = entrants.map((e) => e.craft.mods.top);
     entrants.forEach((e, i) => {
       // Dragons start evenly round the green, facing the fold (the player, entrant 0, first).
       const a = Math.PI / 2 + (i / n) * Math.PI * 2;
@@ -237,7 +240,7 @@ export class FlockGame {
     // Dragons.
     this.dragons.forEach((d, i) => {
       const c = d.craft;
-      c.mods.top = -CARRY_SLOW * d.carrying.length;
+      c.mods.top = this.baseTop[i] - CARRY_SLOW * d.carrying.length;
       let aim = c.heading, brake = !started, deploy = false;
       if (started) {
         if (d.ai) ({ aim, brake, deploy } = d.ai.think(this, i));
