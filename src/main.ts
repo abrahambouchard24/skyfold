@@ -23,6 +23,7 @@ import { DailyDef, DailyUI, dailyChallenge, dailyStatus, recordDaily } from './d
 import { GhostLap, GhostRecorder, ghostPose, loadGhost, saveGhost, trackSig } from './ghost';
 import { BoardRow, CarSnap, Controls, Guest, Host, LobbyState, NetEntrant, Snapshot } from './net';
 import { FlockMode } from './flockmode';
+import { OneSheepMode } from './onesheepmode';
 import { RaceState, TRACKS, Track, WALL_DIST, collideWalls, inCoolingLane, lateral, placeOnGrid } from './track';
 
 const STEP = 1 / 60;
@@ -522,6 +523,13 @@ const menus = new Menus(LIVERIES, trackChoices, {
     else if (!online) { startRace(); play(); }
   },
   action(act) {
+    if (act === 'onesheep') {
+      // One Sheep: a race with a single sheep; its own controller runs it through the chase view.
+      endTutorial();
+      menus.hide();
+      oneSheep.open();
+      return;
+    }
     if (act === 'flock') {
       // Flock Raid: its own view and screens take over until it's left.
       endTutorial();
@@ -582,6 +590,16 @@ const menus = new Menus(LIVERIES, trackChoices, {
   },
 });
 
+/** One Sheep (a race with a single sheep to carry): it runs its own frame while it's open. */
+const oneSheep = new OneSheepMode({
+  input, sound, chase, hud: canvas,
+  tracks: tracks.filter((t) => !t.sprint),
+  makeCar: (i) => ({ craft: new Craft(), race: new RaceState(), ...livery(i), skin: null }),
+  playerLivery: () => playerLivery,
+  steer: steerAim,
+  pixelRatio: () => renderScale,
+  onExit: () => { if (chase) chase.visible = view === 'chase'; menus.showFront(); sound.menu(); },
+});
 /** Flock Raid (the sheep-catching mode): it runs its own frame while a raid is open. */
 const flock = new FlockMode({
   input, sound, hud: canvas,
@@ -787,7 +805,7 @@ function fitCanvas(): void {
 // Dev-only handle for poking at game state from the console.
 if (import.meta.env.DEV) {
   (window as unknown as { game: object }).game = {
-    get player() { return player; }, get rivals() { return rivals; }, get track() { return track; }, get chase() { return chase; }, get flock() { return flock; },
+    get player() { return player; }, get rivals() { return rivals; }, get track() { return track; }, get chase() { return chase; }, get flock() { return flock; }, get onesheep() { return oneSheep; },
     get mode() { return mode; },
     /** Let an AI drive the player's car (for testing whole races). */
     autodrive() {
@@ -1978,6 +1996,12 @@ function frame(now: number): void {
     const muted = sound.toggleMute();
     applySettings({ ...settings, muted });
     showToast(muted ? 'SOUND OFF' : 'SOUND ON', '#ffffff');
+  }
+  if (oneSheep.active) {
+    oneSheep.frame(now);
+    acc = 0;
+    requestAnimationFrame(frame);
+    return;
   }
   if (flock.active) {
     flock.frame(now);

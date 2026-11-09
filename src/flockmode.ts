@@ -167,7 +167,8 @@ export class FlockMode {
     this.last = performance.now() - seconds * 1000;
     this.acc = 0;
     // frame() caps one call at 0.25 s, so feed it in slices.
-    for (let t = this.last + 250; t <= end + 1; t += 250) this.frame(t);
+    const slice = Math.min(250, seconds * 1000);
+    for (let t = this.last + slice; t <= end + 1; t += slice) this.frame(t);
   }
 
   private resume(): void {

@@ -33,6 +33,11 @@ export class Driver {
   private lastTime = 0;
   /** What the driver is doing right now, for debugging and tests. */
   state: 'racing' | 'passing' | 'defending' | 'cooling' | 'mistake' = 'racing';
+  /**
+   * Somewhere on the road to make for, set from outside each step (One Sheep): a sample, a lateral
+   * offset, and the speed to be doing within `near` px of it. Null for ordinary racing.
+   */
+  goal: { index: number; lat: number; speed: number; near: number; wait?: number } | null = null;
   /** Sprints: the lane chosen for the split ahead (+1 / -1), or 0 when not in or near one. */
   private lane = 0;
 
@@ -150,6 +155,22 @@ export class Driver {
     // no slide to allow for), and correct toward the chosen line. Aiming straight at a point far
     // ahead would cut across the inside of every bend. (Lateral + is toward the normal, which a
     // negative heading change turns toward.)
+    // A goal on the road (One Sheep: the loose sheep to snatch, or a carrier to tail): steer for its
+    // line once it's close ahead, and arrive at its speed.
+    let goalCap = Infinity;
+    const gl = this.goal;
+    if (gl) {
+      const total = track.totalLength;
+      let gap = ((track.dist[gl.index] - track.dist[i]) % total + total) % total;
+      if (gap > total / 2) gap -= total;   // negative: we've gone past it
+      if (gap >= 0 && gap < 900) {
+        off = gl.lat;
+        goalCap = gl.speed + Math.max(0, gap - gl.near) * 1.2;
+      } else if (gap < 0 && gap > -(gl.wait ?? 0)) {
+        // Overshot (a carrier we passed): ease off and let it come back by.
+        goalCap = Math.max(250, gl.speed - 160);
+      }
+    }
     const nearIndex = track.shift(i, 2 + Math.round(speed / 110));
     const latNow = lateral(track, c, i);
     // In a split, keep the line clear of the island where we are and just ahead (the look-ahead
@@ -176,7 +197,7 @@ export class Driver {
     const gripGain = Math.sqrt(Math.max(0.5, 1 + c.mods.grip));
     const forkNow = this.lane !== 0 ? track.forkAt(i) : null;
     const insideLine = forkNow?.curve && this.lane === forkNow.sign ? 0.86 : 1;
-    const safe = Math.min(1000, (this.cornerK * this.skill * late * gripGain * insideLine) / Math.sqrt(maxCurve + 1e-6));
+    const safe = Math.min(1000, goalCap, (this.cornerK * this.skill * late * gripGain * insideLine) / Math.sqrt(maxCurve + 1e-6));
     const brake = speed > safe * 1.04;
     const throttle = !brake && speed < safe;
     // ERS: spend energy on straights to attack or defend, or when the battery is nearly full.

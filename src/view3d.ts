@@ -124,6 +124,8 @@ export class ChaseView {
   private camera = new THREE.PerspectiveCamera(70, 1, 4, 12000);
   private world: TrackWorld | null = null;
   private rigs = new Map<Car, DragonRig>();
+  /** Extra things a game mode adds to the scene (One Sheep's sheep). */
+  readonly extras = new THREE.Group();
   private camHeading = 0;
   private camFor: Car | null = null;
   private camPos = new THREE.Vector3();
@@ -165,6 +167,7 @@ export class ChaseView {
     this.sparks = new Sparks();
     this.scene.add(this.sparks.points);
     this.scene.add(this.drafts.mesh);
+    this.scene.add(this.extras);
   }
 
   /** Graphics quality from Settings: shadow sharpness, and on Low no shadows or speed lines. */
@@ -186,6 +189,9 @@ export class ChaseView {
   }
 
   set visible(on: boolean) { this.canvas.style.display = on ? 'block' : 'none'; }
+
+  /** The dragon model drawn for a car (once it has been drawn), e.g. for its claw anchor. */
+  rigOf(car: Car): DragonRig | undefined { return this.rigs.get(car); }
 
   render(s: ChaseScene, pixelRatio: number): void {
     const now = performance.now() / 1000;

@@ -21,7 +21,15 @@ const paper = (color: number, emissive = 0x000000) =>
   new THREE.MeshLambertMaterial({ color, emissive, flatShading: true });
 
 /** One sheep: a woolly body, a dark face and ears, four legs. */
-class SheepRig {
+/** The materials sheep are folded from (shared by every sheep in a scene). */
+export function sheepMaterials() {
+  return {
+    wool: paper(WOOL), face: paper(FACE), dark: paper(0x4e4034), horn: paper(0xd8ccb0), bronze: paper(0xc98b3e, 0x3a2208),
+    glow: new THREE.MeshBasicMaterial({ color: 0xe6c08a, transparent: true, opacity: 0.45, depthWrite: false, blending: THREE.AdditiveBlending }),
+  };
+}
+
+export class SheepRig {
   readonly root = new THREE.Group();
   private legs: THREE.Mesh[] = [];
   private head = new THREE.Group();
@@ -29,7 +37,7 @@ class SheepRig {
   private bell: THREE.Group | null = null;
   /** Height of its back above its feet (world px). */
   readonly top: number;
-  constructor(mats: { wool: THREE.Material; face: THREE.Material; dark: THREE.Material; horn: THREE.Material; bronze: THREE.Material; glow: THREE.Material }, ram = false) {
+  constructor(mats: ReturnType<typeof sheepMaterials>, ram = false) {
     const scale = ram ? 0.95 : SHEEP_SCALE;
     this.top = 30 * scale;
     this.root.scale.setScalar(scale);
@@ -113,10 +121,7 @@ export class FlockView {
   private world = new THREE.Group();
   private rigs = new Map<Car, DragonRig>();
   private sheep = new Map<number, SheepRig>();
-  private sheepMats = {
-    wool: paper(WOOL), face: paper(FACE), dark: paper(0x4e4034), horn: paper(0xd8ccb0), bronze: paper(0xc98b3e, 0x3a2208),
-    glow: new THREE.MeshBasicMaterial({ color: 0xe6c08a, transparent: true, opacity: 0.45, depthWrite: false, blending: THREE.AdditiveBlending }),
-  };
+  private sheepMats = sheepMaterials();
   private camHeading = 0;
   private lastNow = 0;
   private builtFor: FlockGame | null = null;
