@@ -12,6 +12,11 @@ import type { Car } from './render';
 
 const WOOL = 0xefe8d8, FACE = 0x2e2824, TIMBER = 0x6a4a30, TIMBER_DARK = 0x4a3220, STONE = 0x8c9296, TURF = 0x5f7a3c;
 
+/** Sheep are small enough for a dragon to carry in its hind claws. */
+const SHEEP_SCALE = 0.6;
+/** Top of a (scaled) sheep's back above its feet. */
+const SHEEP_TOP = 30 * SHEEP_SCALE;
+
 const paper = (color: number, emissive = 0x000000) =>
   new THREE.MeshLambertMaterial({ color, emissive, flatShading: true });
 
@@ -22,6 +27,7 @@ class SheepRig {
   private head = new THREE.Group();
   private phase = Math.random() * 6;
   constructor(mats: { wool: THREE.Material; face: THREE.Material }) {
+    this.root.scale.setScalar(SHEEP_SCALE);
     const body = new THREE.Mesh(new THREE.IcosahedronGeometry(13, 0), mats.wool);
     body.scale.set(1.35, 1, 1);
     body.position.y = 17;
@@ -50,7 +56,8 @@ class SheepRig {
     }
   }
 
-  update(s: Sheep, t: number, dt: number): void {
+  /** `grip` is where a carrying dragon's claws hold it (world), and `slot` -1 / 0 / +1 its place there. */
+  update(s: Sheep, t: number, dt: number, grip?: THREE.Vector3, slot = 0): void {
     const speed = Math.hypot(s.vx, s.vy);
     this.phase += dt * (2 + speed * 0.09);
     this.root.position.set(s.x, s.alt, s.y);
@@ -62,10 +69,11 @@ class SheepRig {
     this.head.rotation.z = -grazing * 0.7;
     if (s.state === 'graze' || s.state === 'penned') this.root.position.y += Math.abs(Math.sin(this.phase * 1.5)) * Math.min(4, speed / 40);
     if (s.state === 'carried') {
-      // Dangling under the dragon's claws, legs kicking; a second sheep hangs a little behind.
-      const back = (s.id % 2) * 18;
-      this.root.position.set(s.x - Math.cos(s.heading) * back, FLY_HEIGHT - 6, s.y - Math.sin(s.heading) * back);
-      this.root.rotation.z = Math.sin(t * 5 + s.id) * 0.25;
+      // Held under the dragon's belly in its hind claws (two side by side), legs kicking.
+      const side = slot * 6;
+      const gx = grip ? grip.x : s.x, gz = grip ? grip.z : s.y, gy = grip ? grip.y : FLY_HEIGHT - 3;
+      this.root.position.set(gx - Math.sin(s.heading) * side, Math.max(0, gy - SHEEP_TOP + 1), gz + Math.cos(s.heading) * side);
+      this.root.rotation.z = Math.sin(t * 5 + s.id) * 0.18;
     }
   }
 }
@@ -235,11 +243,26 @@ export class FlockView {
       rig.isPlayer = car === player;
       rig.update(car, time, dt);
     }
+    // Where each carrying dragon's claws hold its sheep: the rig's claw anchor if it has one,
+    // otherwise just under its body.
+    const grips = new Map<number, THREE.Vector3>();
+    g.dragons.forEach((d, i) => {
+      if (!d.carrying.length) return;
+      const rig = this.rigs.get(cars[i]);
+      const anchor = (rig as unknown as { clawAnchor?: THREE.Object3D } | undefined)?.clawAnchor;
+      const v = new THREE.Vector3();
+      if (anchor) anchor.getWorldPosition(v);
+      else v.set(d.craft.pos.x, FLY_HEIGHT - 3 + d.craft.alt, d.craft.pos.y);
+      grips.set(i, v);
+    });
     const alive = new Set<number>();
     for (const s of g.sheep) {
       let rig = this.sheep.get(s.id);
       if (!rig) { rig = new SheepRig(this.sheepMats); this.sheep.set(s.id, rig); this.scene.add(rig.root); }
-      rig.update(s, time, dt);
+      if (s.state === 'carried') {
+        const list = g.dragons[s.owner].carrying, k = list.indexOf(s.id);
+        rig.update(s, time, dt, grips.get(s.owner), list.length > 1 ? (k === 0 ? -1 : 1) : 0);
+      } else rig.update(s, time, dt);
       alive.add(s.id);
     }
     for (const [id, rig] of this.sheep) if (!alive.has(id)) { this.scene.remove(rig.root); this.sheep.delete(id); }
