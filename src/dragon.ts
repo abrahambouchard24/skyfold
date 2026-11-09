@@ -7,12 +7,13 @@
 // and the whole body rises a little on each downstroke. Calling the gale (the boost) tucks the
 // wings back into a streamlined dive inside a sheath of rushing wind.
 //
-// Model space (world px): nose along +x, y up, z to the dragon's left. A DragonRig is a drop-in
+// Model space (world px): nose along +x, y up, z to the dragon's right. A DragonRig is a drop-in
 // replacement for the old craft rig: root, update(car, time, dt).
 
 import * as THREE from 'three';
 import { clamp, wrapAngle } from './craft';
 import type { Car } from './render';
+import { liveryPainter, type Face, type Kind, type Painter } from './liveries';
 
 type V3 = [number, number, number];
 
@@ -57,11 +58,37 @@ let toneSeed = 1;
 const tone = () => { toneSeed = (toneSeed * 1664525 + 1013904223) >>> 0; return 0.9 + (toneSeed / 4294967296) * 0.18; };
 
 /** Triangles as one flat-shaded paper mesh; every triangle gets its own slight tone. */
+/**
+ * A skin's pattern, printed on the dragon while its rig is being built: each facet of the hide,
+ * belly and wings takes the pattern's colour at its centre (horns, claws and eyes keep theirs).
+ * `kinds` says which of the rig's colours are paintwork, and as what.
+ */
+let printing: { painter: Painter; kinds: Map<THREE.Color, Kind>; wings: boolean } | null = null;
+
 class Paper {
   pos: number[] = [];
   col: number[] = [];
-  tri(a: V3, b: V3, c: V3, color: THREE.Color, k = tone()): void {
+  tri(a: V3, b: V3, c: V3, color: THREE.Color, k = tone(), depth = 0): void {
+    const kind = printing?.kinds.get(color);
+    if (printing && kind && depth < 2) {
+      // Patterned paintwork: fold the facet into four (twice, so sixteen) so the print has the
+      // resolution to show veins, cracks and bands, each smaller facet keeping the paper tone.
+      const m = (p: V3, q: V3): V3 => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2, (p[2] + q[2]) / 2];
+      const ab = m(a, b), bc = m(b, c), ca = m(c, a);
+      this.tri(a, ab, ca, color, k, depth + 1); this.tri(ab, b, bc, color, k, depth + 1);
+      this.tri(ca, bc, c, color, k, depth + 1); this.tri(ab, bc, ca, color, k, depth + 1);
+      return;
+    }
     this.pos.push(...a, ...b, ...c);
+    if (printing && kind) {
+      // The pattern is laid out for a craft about 90 px long; dragons are longer, so squeeze x.
+      const cx = (a[0] + b[0] + c[0]) / 3 * 0.6, cy = (a[1] + b[1] + c[1]) / 3 + 9, cz = (a[2] + b[2] + c[2]) / 3;
+      const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
+      const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+      const face: Face = printing.wings || Math.abs(ny) > 0.6 * Math.hypot(nx, ny, nz) ? 'top' : 'side';
+      const painted = printing.painter(cx, cy, cz, kind, face);
+      if (painted) color = new THREE.Color(painted[0]);
+    }
     for (let i = 0; i < 3; i++) this.col.push(color.r * k, color.g * k, color.b * k);
   }
   quad(a: V3, b: V3, c: V3, d: V3, color: THREE.Color): void {
@@ -160,6 +187,9 @@ export class DragonRig {
     const belly = main.clone().lerp(IVORY, 0.7);
     const glow = new THREE.Color(sk?.glow ?? '#fff3c0');
     toneSeed = [...car.name].reduce((h, ch) => h * 31 + ch.charCodeAt(0), 11) >>> 0;
+    // A patterned skin prints itself onto the hide, belly and wing membranes as the dragon is folded.
+    const painter = liveryPainter(sk?.pattern);
+    printing = painter ? { painter, kinds: new Map<THREE.Color, Kind>([[main, 'paint'], [belly, 'paint'], [membrane, 'paint'], [dark, 'dark']]), wings: false } : null;
     this.root.add(this.body);
 
     // Torso: deep at the chest, tapering to the hips.
@@ -318,6 +348,8 @@ export class DragonRig {
     this.gale.visible = false;
     this.body.add(this.gale);
 
+    printing = null;   // the gale sheath and shadow are never patterned
+
     // A soft shadow on the road below.
     this.shadow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: shadowTex(), transparent: true, depthWrite: false, opacity: 0.55 }));
     this.shadow.scale.set(L + sp.tail * 0.6, 1, S * 1.5);
@@ -375,7 +407,7 @@ export class DragonRig {
     // Body: banks into the turn, lifts on the downstroke, noses up a touch when braking.
     const bank = clamp(this.turnSmooth * 0.45, -0.75, 0.75);
     this.roll += (bank - this.roll) * k;
-    this.body.rotation.x = -this.roll;
+    this.body.rotation.x = this.roll;   // lean into the turn: a right turn drops the right wing
     this.body.rotation.z = (c.braking ? 0.18 : 0) - flap * 0.03 * s;
     const hover = racing ? 0 : Math.sin(time * 2.2) * 1.5;
     // Each downstroke lifts the body and it settles a little on the recovery: smooth, no kinks.
@@ -383,7 +415,7 @@ export class DragonRig {
 
     // Neck looks into the turn; tail trails out of it, rippling.
     this.neck.forEach((n, i) => {
-      n.g.rotation.y = this.turnSmooth * 0.12 + Math.sin(time * 2 + i * 0.8) * 0.04;
+      n.g.rotation.y = -this.turnSmooth * 0.12 + Math.sin(time * 2 + i * 0.8) * 0.04;   // look into the turn
       n.g.rotation.z = (i === 0 ? 0.18 : 0.06) + Math.sin(this.phase + i) * 0.03 * flap;
     });
     this.tail.forEach((t, i) => {
