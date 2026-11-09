@@ -419,6 +419,44 @@ const CSS = `
 .hr-seg button.on { background: linear-gradient(180deg, #c4ecf5, #8fd0e0); color: #120e0b; box-shadow: none; }
 .hr-results td.pos { font-family: 'Uncial Antiqua', Georgia, serif; color: #e6c08a; }
 .hr-standings-head, .hr-note { font-family: 'Uncial Antiqua', Georgia, serif; letter-spacing: 0.1em; }
+
+/* The front menu as a carousel: four windows to a page, scrolling sideways and snapping. */
+.hr-carousel { position: relative; width: min(1240px, calc(100% - 32px)); margin: 0 auto; }
+.hr-carousel .hr-front { width: 100%; height: min(420px, 58vh); margin: 0; gap: 16px; overflow-x: auto; overflow-y: visible;
+  scroll-snap-type: x mandatory; scrollbar-width: none; padding: 10px 2px 14px; flex-direction: row; }
+.hr-carousel .hr-front::-webkit-scrollbar { display: none; }
+.hr-carousel .hr-window, .hr-carousel .hr-window:hover, .hr-carousel .hr-window:focus-visible { flex: 0 0 calc((100% - 48px) / 4); scroll-snap-align: start; min-height: 0; }
+.hr-carousel .hr-window:hover, .hr-carousel .hr-window:focus-visible { transform: translateY(-6px); }
+.hr-carousel-arrow { position: absolute; top: 50%; z-index: 5; width: 40px; height: 64px; margin-top: -32px; border-radius: 4px; cursor: pointer;
+  font: 400 34px 'Uncial Antiqua', Georgia, serif; color: #e6c08a; background: linear-gradient(180deg, #3a2a1e, #1e1611);
+  border: 1px solid #6a5640; box-shadow: 0 0 0 1px #14100c, 0 10px 24px -10px rgba(0,0,0,0.9); transition: opacity 200ms, transform 140ms; }
+.hr-carousel-arrow:hover { color: #fff3d6; border-color: #c98b3e; }
+.hr-carousel-arrow.prev { left: -22px; } .hr-carousel-arrow.next { right: -22px; }
+.hr-carousel-arrow.off { opacity: 0; pointer-events: none; }
+.hr-carousel-dots { display: flex; justify-content: center; gap: 10px; margin: 2px 0 10px; }
+.hr-carousel-dots button { width: 10px; height: 10px; padding: 0; border: 1px solid #8a6a48; background: transparent; transform: rotate(45deg); cursor: pointer; }
+.hr-carousel-dots button.on { background: #e0a861; border-color: #e0a861; box-shadow: 0 0 10px rgba(224,168,97,0.6); }
+.hr-window.fresh { border-color: #8fd0e0; box-shadow: 0 0 0 1px rgba(143,208,224,0.6), 0 0 28px -6px rgba(143,208,224,0.8); }
+.hr-window.fresh .label b::after { content: ' ✦'; color: #8fd0e0; font-size: 0.6em; vertical-align: middle; }
+.hr-window.daily { border-color: rgba(224,168,97,0.7); }
+.hr-front-actions:not(:has(.hr-btn:not(.hidden))) { display: none; }
+@media (max-width: 900px) { .hr-carousel .hr-window, .hr-carousel .hr-window:hover { flex-basis: calc((100% - 16px) / 2); } }
+@media (max-width: 560px) { .hr-carousel .hr-window, .hr-carousel .hr-window:hover { flex-basis: 78%; } .hr-carousel-arrow { display: none; } }
+@media (max-height: 500px) and (min-width: 600px) { .hr-carousel .hr-front { height: 56vh; } }
+
+/* The new windows' little scenes. */
+.sc-flock, .sc-trial, .sc-daily, .sc-tutorial, .sc-hoard, .sc-settings { background: #1c2228; }
+.sc-flock img { position: absolute; left: 22%; top: 18%; width: 60%; height: auto; filter: drop-shadow(0 12px 10px rgba(0,0,0,0.5)); animation: hr-bob 1.6s ease-in-out infinite; }
+.sc-flock .lift { animation: hr-bob 1.6s ease-in-out infinite; }
+.sc-trial img { position: absolute; width: 58%; height: auto; }
+.sc-trial .me { left: 32%; top: 46%; filter: drop-shadow(0 10px 8px rgba(0,0,0,0.6)); animation: hr-bob 1.2s ease-in-out infinite; }
+.sc-trial .ghost { left: 6%; top: 40%; opacity: 0.38; filter: grayscale(1) sepia(1) hue-rotate(150deg) saturate(2.4) brightness(1.3); animation: hr-bob 1.2s ease-in-out infinite 0.3s; }
+.sc-trial .sand { animation: hr-sand 0.6s linear infinite; }
+@keyframes hr-sand { to { stroke-dashoffset: -7; } }
+.sc-settings .forge { animation: hr-forge 1.4s ease-in-out infinite alternate; }
+@keyframes hr-forge { from { opacity: 0.35; } to { opacity: 0.7; } }
+.sc-settings .spark { position: absolute; width: 3px; height: 3px; border-radius: 50%; animation: hr-ember 1.6s ease-out infinite; }
+@keyframes hr-ember { from { transform: translate(0, 0); opacity: 1; } to { transform: translate(18px, -120px); opacity: 0; } }
 `;
 
 
@@ -536,6 +574,140 @@ const SCENE_SEASON = (() => {
   return `<svg class="paper" viewBox="0 0 300 440" preserveAspectRatio="xMidYMid slice">${svg}</svg>`;
 })();
 
+/** A folded paper sheep: a faceted ivory fleece, a dark face and four stick legs. */
+function paperSheep(x: number, y: number, k = 1, flip = false): string {
+  const f = flip ? -1 : 1, X = (v: number) => x + v * k * f, Y = (v: number) => y + v * k;
+  let out = '';
+  for (const [lx] of [[-9], [-4], [5], [10]]) out += `<line x1="${X(lx)}" y1="${Y(4)}" x2="${X(lx)}" y2="${Y(13)}" stroke="#2e2a26" stroke-width="${2 * k}"/>`;
+  out += poly([[X(-15), Y(2)], [X(-9), Y(-9)], [X(2), Y(-11)], [X(-2), Y(5)]], '#f1ebdc');
+  out += poly([[X(2), Y(-11)], [X(13), Y(-6)], [X(14), Y(4)], [X(-2), Y(5)]], '#ddd5c2');
+  out += poly([[X(-15), Y(2)], [X(-2), Y(5)], [X(14), Y(4)], [X(4), Y(9)], [X(-11), Y(8)]], '#c9c0aa');
+  out += poly([[X(12), Y(-8)], [X(21), Y(-3)], [X(17), Y(5)], [X(12), Y(1)]], '#2e2a26');   // the face
+  out += poly([[X(13), Y(-8)], [X(10), Y(-12)], [X(15), Y(-7)]], '#2e2a26');               // an ear
+  return out;
+}
+
+const svgWrap = (svg: string) => `<svg class="paper" viewBox="0 0 300 440" preserveAspectRatio="xMidYMid slice">${svg}</svg>`;
+
+const SCENE_FLOCK = (() => {
+  // A grey-blue northern sky, green folded hills with a turf-roofed longhouse, a meadow of sheep
+  // behind a timber fence (a dragon carrying one off is laid over it as an image).
+  let svg = pleatBand(0, 90, '#33475a', 8, 21) + pleatBand(90, 170, '#5a7280', 8, 22);
+  svg += ridge(60, 220, 70, 210, '#4f6a3a') + ridge(250, 200, 90, 210, '#3e5a30');
+  // The longhouse on the hill: timber walls, a turf roof folded along its ridge, smoke.
+  svg += poly([[196, 168], [262, 168], [262, 192], [196, 192]], '#5a3f2a') + poly([[190, 170], [229, 146], [268, 170]], '#4f6a3a') + poly([[229, 146], [268, 170], [248, 170]], '#3e5530');
+  svg += poly([[224, 192], [234, 192], [234, 178], [224, 178]], '#2a1c12');
+  svg += poly([[-10, 206], [310, 200], [310, 440], [-10, 440]], '#3e5a30') + poly([[-10, 206], [310, 200], [160, 270]], '#4a6a38');
+  // Timber fence.
+  for (let x = -6; x < 310; x += 26) svg += poly([[x, 300], [x + 5, 296], [x + 5, 336], [x, 338]], '#5a3f2a');
+  svg += poly([[-10, 308], [310, 302], [310, 307], [-10, 313]], '#6b4c32') + poly([[-10, 322], [310, 316], [310, 321], [-10, 327]], '#6b4c32');
+  for (const [x, y, k, fl] of [[40, 262, 1, false], [96, 274, 0.9, true], [210, 258, 0.85, false], [256, 278, 1.05, true], [150, 286, 1, false], [70, 352, 1.2, true], [232, 360, 1.25, false]] as const) svg += paperSheep(x, y, k, fl);
+  // The carried sheep, up under where the dragon flies.
+  svg += `<g class="lift">${paperSheep(156, 168, 0.85)}</g>`;
+  return svgWrap(svg);
+})();
+
+const SCENE_TRIAL = (() => {
+  // Night slate, a folded hourglass of pale glass in a bronze frame with amber sand running down.
+  let svg = pleatBand(0, 440, '#1f2a30', 7, 31);
+  const cx = 150;
+  svg += poly([[cx - 64, 34], [cx + 64, 34], [cx + 64, 44], [cx - 64, 44]], '#b07a3e') + poly([[cx - 64, 206], [cx + 64, 206], [cx + 64, 216], [cx - 64, 216]], '#b07a3e');
+  for (const x of [cx - 58, cx + 52]) svg += poly([[x, 44], [x + 6, 44], [x + 6, 206], [x, 206]], '#7a4e24');
+  svg += poly([[cx - 46, 46], [cx + 46, 46], [cx + 4, 124], [cx - 4, 124]], 'rgba(220,240,245,0.16)') + poly([[cx - 4, 128], [cx + 4, 128], [cx + 46, 204], [cx - 46, 204]], 'rgba(220,240,245,0.16)');
+  svg += poly([[cx - 46, 46], [cx, 46], [cx - 4, 124]], 'rgba(255,255,255,0.08)');
+  svg += poly([[cx - 26, 84], [cx + 26, 84], [cx + 3, 122], [cx - 3, 122]], '#d6a462') + poly([[cx - 26, 84], [cx, 84], [cx - 3, 122]], '#e8bf7a');
+  svg += `<line class="sand" x1="${cx}" y1="122" x2="${cx}" y2="198" stroke="#e8bf7a" stroke-width="2" stroke-dasharray="3 4"/>`;
+  svg += poly([[cx - 34, 204], [cx + 34, 204], [cx + 8, 180], [cx - 8, 180]], '#d6a462') + poly([[cx - 34, 204], [cx - 8, 180], [cx, 204]], '#e8bf7a');
+  // A faint course below, and the sky road the two dragons fly.
+  const glass = svg.slice(pleatBand(0, 440, '#1f2a30', 7, 31).length);
+  svg = pleatBand(0, 440, '#1f2a30', 7, 31) + `<g transform="translate(36,-4) scale(0.76)">${glass}</g>`;
+  svg += poly([[-10, 280], [310, 250], [310, 264], [-10, 294]], '#2a3640');
+  return svgWrap(svg);
+})();
+
+const SCENE_DAILY = (() => {
+  // Dawn: pleated rose and amber sky, the sun rising behind a carved timber day-wheel of seven
+  // segments, today's lit in gold.
+  let svg = pleatBand(0, 110, '#3a3446', 8, 41) + pleatBand(110, 200, '#8a5a4a', 8, 42) + pleatBand(200, 260, '#c98b5a', 8, 43);
+  const cx = 150, cy = 210;
+  for (let k = 0; k < 14; k++) {
+    const a0 = Math.PI + (k / 14) * Math.PI, a1 = Math.PI + ((k + 1) / 14) * Math.PI, R = 150;
+    svg += poly([[cx, cy], [cx + Math.cos(a0) * R, cy + Math.sin(a0) * R], [cx + Math.cos(a1) * R, cy + Math.sin(a1) * R]], k % 2 ? 'rgba(255,220,160,0.10)' : 'rgba(255,220,160,0.04)');
+  }
+  svg += ridge(30, 160, 50, 262, '#3a4650') + ridge(270, 180, 66, 262, '#2e3a44');
+  svg += poly([[-10, 260], [310, 260], [310, 440], [-10, 440]], '#1f2428');
+  const today = new Date().getDay();
+  const R = 84, r0 = 30;
+  for (let k = 0; k < 7; k++) {
+    const a0 = (k / 7) * Math.PI * 2 - Math.PI / 2 + 0.03, a1 = ((k + 1) / 7) * Math.PI * 2 - Math.PI / 2 - 0.03;
+    const lit = k === today;
+    const pt = (a: number, rr: number) => [cx + Math.cos(a) * rr, cy + Math.sin(a) * rr];
+    svg += poly([pt(a0, r0), pt(a0, R), pt(a1, R), pt(a1, r0)], lit ? '#e0a861' : k % 2 ? '#4a3626' : '#5a4230');
+    const am = (a0 + a1) / 2, [mx, my] = pt(am, (R + r0) / 2 + 8);
+    svg += `<text x="${mx}" y="${my + 5}" text-anchor="middle" font-family="Georgia, serif" font-size="15" fill="${lit ? '#2a1a0c' : '#c9a878'}">${'ᛋᛗᛏᚢᚦᚠᛚ'[k]}</text>`;
+  }
+  svg += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#2a2724" stroke-width="5"/>`;
+  svg += `<circle cx="${cx}" cy="${cy}" r="${r0}" fill="#3a3632" stroke="#b07a3e" stroke-width="3"/>`;
+  return svgWrap(svg);
+})();
+
+const SCENE_TUTORIAL = (() => {
+  // A parchment unrolled on a timber table: a curving flight path drawn in ink round a standing
+  // stone, and the keys marked in the margin.
+  let svg = pleatBand(0, 440, '#2a221c', 6, 51);
+  svg += poly([[34, 70], [266, 60], [272, 330], [28, 340]], '#e6dcc4') + poly([[34, 70], [150, 65], [150, 335], [28, 340]], '#ded2b6');
+  svg += poly([[20, 62], [44, 58], [46, 76], [22, 80]], '#8a6a48') + poly([[256, 318], [280, 314], [282, 334], [258, 338]], '#8a6a48');
+  svg += `<path d="M70 300 C 80 200, 220 230, 200 150 S 120 90, 90 120" fill="none" stroke="#3a2a1c" stroke-width="3" stroke-dasharray="7 6" stroke-linecap="round"/>`;
+  svg += poly([[90, 120], [104, 110], [101, 126]], '#3a2a1c');
+  svg += poly([[160, 178], [172, 176], [174, 214], [158, 216]], '#7d7a74');
+  const key = (x: number, y: number, t: string) => poly([[x, y], [x + 26, y], [x + 26, y + 24], [x, y + 24]], '#4a3a2a') + `<text x="${x + 13}" y="${y + 17}" text-anchor="middle" font-family="Georgia, serif" font-weight="bold" font-size="14" fill="#e6dcc4">${t}</text>`;
+  svg += key(196, 262, 'W') + key(168, 290, 'A') + key(196, 290, 'S') + key(224, 290, 'D');
+  return svgWrap(svg);
+})();
+
+const SCENE_HOARD = (() => {
+  // A dark cave, a heap of gold in folded facets, an open iron-bound chest glowing, shields leaning.
+  let svg = pleatBand(0, 440, '#1c1a18', 7, 61);
+  svg += `<ellipse cx="150" cy="300" rx="160" ry="90" fill="rgba(224,168,97,0.10)"/>`;
+  const r = seeded(62);
+  // The heap's body first (a folded mound in two tones), then coins scattered all over it.
+  svg += poly([[20, 362], [90, 262], [150, 222], [210, 258], [282, 362]], '#a8743a') + poly([[150, 222], [210, 258], [282, 362], [150, 362]], '#8a5a2b');
+  for (let k = 0; k < 190; k++) {
+    const t = r(), x = 20 + t * 260, top = 362 - Math.sin(t * Math.PI) * 138, y = top + r() * (366 - top);
+    svg += poly([[x - 8, y], [x, y - 5], [x + 8, y], [x, y + 3]], shade('#d6a462', 0.7 + r() * 0.6));
+  }
+  svg += poly([[10, 360], [290, 360], [310, 440], [-10, 440]], '#2a2420');
+  // The chest: lid thrown back, gold inside.
+  svg += poly([[110, 268], [190, 268], [190, 318], [110, 318]], '#5a3f2a') + poly([[110, 268], [190, 268], [182, 232], [118, 232]], '#4a3322');
+  svg += poly([[114, 268], [186, 268], [178, 260], [122, 260]], '#e8bf7a');
+  for (const x of [118, 146, 174]) svg += poly([[x, 268], [x + 6, 268], [x + 6, 318], [x, 318]], '#3a3632');
+  // Shields leaning against the heap.
+  for (const [x, y, c] of [[52, 300, '#a8342a'], [250, 296, '#2c4a55'], [212, 334, '#d8ccb4']] as const) {
+    for (let k = 0; k < 8; k++) {
+      const a0 = (k / 8) * Math.PI * 2, a1 = ((k + 1) / 8) * Math.PI * 2, R = 26;
+      svg += poly([[x, y], [x + Math.cos(a0) * R, y + Math.sin(a0) * R * 1.05], [x + Math.cos(a1) * R, y + Math.sin(a1) * R * 1.05]], k % 2 ? c : shade(c, 0.8));
+    }
+    svg += `<circle cx="${x}" cy="${y}" r="6" fill="#b07a3e"/>`;
+  }
+  return svgWrap(svg);
+})();
+
+const SCENE_SETTINGS = (() => {
+  // The smithy: a forge glowing at the back, an anvil on a stump, a hammer leaning against it.
+  let svg = pleatBand(0, 440, '#22201e', 6, 71);
+  svg += poly([[40, 90], [260, 90], [250, 230], [50, 230]], '#3a3632') + poly([[70, 140], [230, 140], [222, 220], [78, 220]], '#1a1210');
+  svg += `<ellipse class="forge" cx="150" cy="200" rx="70" ry="26" fill="#ff8a3d" opacity="0.55"/>`;
+  svg += poly([[90, 196], [210, 196], [200, 220], [100, 220]], '#e0581e');
+  svg += poly([[-10, 300], [310, 300], [310, 440], [-10, 440]], '#2a2420');
+  // Stump and anvil.
+  svg += poly([[110, 330], [190, 330], [186, 400], [114, 400]], '#5a3f2a') + `<ellipse cx="150" cy="330" rx="40" ry="8" fill="#7a5a3a"/>`;
+  svg += poly([[96, 290], [200, 290], [212, 300], [188, 304], [176, 324], [124, 324], [116, 304], [84, 300]], '#4a4642');
+  svg += poly([[96, 290], [200, 290], [212, 300], [84, 300]], '#6a6662');
+  // The hammer, leaning.
+  svg += poly([[224, 396], [230, 396], [254, 300], [248, 298]], '#6b4c32') + poly([[236, 290], [266, 298], [262, 312], [232, 304]], '#3a3632');
+  return svgWrap(svg);
+})();
+
 export class Menus {
   private front: HTMLDivElement;
   private start: HTMLDivElement;
@@ -569,6 +741,8 @@ export class Menus {
       <div class="hr-panel" style="max-width:1240px">
         <h1 class="hr-title">SKYFOLD</h1>
         <p class="hr-sub">DRAGON RACING</p>
+        <div class="hr-carousel">
+        <button class="hr-carousel-arrow prev" aria-label="Previous">‹</button>
         <div class="hr-front">
           <button class="hr-window" data-act="story" style="--c:#d9873a">
             <div class="scene sc-story">${SCENE_STORY}
@@ -588,18 +762,40 @@ export class Menus {
             <div class="scene sc-season">${SCENE_SEASON}${sparks}</div>
             <div class="label"><b>SAGA</b><small>A saga across the realms. Glory for every finish, a name in the sagas for the best.</small></div>
           </button>
+          <button class="hr-window" data-act="flock" style="--c:#7aa25a">
+            <div class="scene sc-flock">${SCENE_FLOCK}<img src="${cars[2]?.card ?? cars[2]?.url ?? ''}" alt=""></div>
+            <div class="label"><b>FLOCK RAID</b><small>Snatch sheep in your claws and pen the most before the horn.</small></div>
+          </button>
+          <button class="hr-window" data-act="trial" style="--c:#8fd0e0">
+            <div class="scene sc-trial">${SCENE_TRIAL}<img class="ghost" src="${cars[0]?.card ?? cars[0]?.url ?? ''}" alt=""><img class="me" src="${cars[0]?.card ?? cars[0]?.url ?? ''}" alt=""></div>
+            <div class="label"><b>TIME TRIAL</b><small>Alone in the sky against the ghost of your best lap.</small></div>
+          </button>
+          <button class="hr-window daily" data-act="daily" style="--c:#e0a861">
+            <div class="scene sc-daily">${SCENE_DAILY}</div>
+            <div class="label"><b>DAILY CHALLENGE</b><small>One flight a day, the same for everyone. Keep your streak alive.</small></div>
+          </button>
+          <button class="hr-window" data-act="tutorial" style="--c:#c4ecf5">
+            <div class="scene sc-tutorial">${SCENE_TUTORIAL}</div>
+            <div class="label"><b>HOW TO PLAY</b><small>Learn to fly: steer, brake, carve the turns and call the gale.</small></div>
+          </button>
+          <button class="hr-window" data-act="garage" style="--c:#d6a462">
+            <div class="scene sc-hoard">${SCENE_HOARD}</div>
+            <div class="label"><b>HOARD</b><small>Your skins and deeds, and your record at the moot.</small></div>
+          </button>
+          <button class="hr-window" data-act="settings" style="--c:#ff8a3d">
+            <div class="scene sc-settings">${SCENE_SETTINGS}${Array.from({ length: 10 }, (_, i) => `<i class="spark" style="left:${30 + (i * 13) % 40}%;top:44%;background:${['#ffb45a', '#ff8a3d', '#ffe08a'][i % 3]};animation-duration:${1.4 + (i % 4) * 0.4}s;animation-delay:${(i * 0.31) % 1.6}s"></i>`).join('')}</div>
+            <div class="label"><b>SETTINGS</b><small>Sound, graphics and your keys.</small></div>
+          </button>
         </div>
+        <button class="hr-carousel-arrow next" aria-label="Next">›</button>
+        </div>
+        <div class="hr-carousel-dots"></div>
         <div class="hr-btns row hr-front-actions">
-          <button class="hr-btn secondary" data-act="tutorial">HOW TO PLAY</button>
-          <button class="hr-btn secondary" data-act="trial">TIME TRIAL</button>
-          <button class="hr-btn secondary" data-act="flock">FLOCK RAID</button>
-          <button class="hr-btn secondary daily" data-act="daily">DAILY CHALLENGE</button>
-          <button class="hr-btn secondary" data-act="garage">HOARD</button>
-          <button class="hr-btn secondary" data-act="settings">SETTINGS</button>
           <button class="hr-btn secondary hidden" data-act="install">INSTALL</button>
         </div>
         <p class="hr-keys">A / D or ← / →: steer &nbsp;·&nbsp; Flies on its own &nbsp;·&nbsp; S / ↓ / Space: brake &nbsp;·&nbsp; W / ↑ / Shift: call the gale &nbsp;·&nbsp; Esc: pause &nbsp;·&nbsp; M: mute</p>
       </div>`);
+    this.setupCarousel();
 
     this.start = overlay(`
       <button class="hr-btn secondary hr-back" data-act="front">◂ BACK</button>
@@ -746,7 +942,7 @@ export class Menus {
 
   /** Make HOW TO PLAY stand out for someone who hasn't done the tutorial yet. */
   setNewPlayer(fresh: boolean): void {
-    this.front.querySelector('[data-act="tutorial"]')!.classList.toggle('fresh', fresh);
+    this.front.querySelector('.hr-window[data-act="tutorial"]')!.classList.toggle('fresh', fresh);
   }
 
   selectTrack(i: number): void {
@@ -856,7 +1052,50 @@ export class Menus {
   }
 
   showStart(): void { this.hide(); this.start.classList.remove('hidden'); }
-  showFront(): void { this.hide(); this.front.classList.remove('hidden'); }
+  showFront(): void { this.hide(); this.front.classList.remove('hidden'); requestAnimationFrame(() => this.updateDots()); }
+
+  /**
+   * The front menu's windows sit in a strip that scrolls sideways a page at a time (arrows, the
+   * dots, the mouse wheel or a swipe), snapping to whole windows.
+   */
+  private setupCarousel(): void {
+    const strip = this.front.querySelector<HTMLElement>('.hr-front')!;
+    const page = () => Math.max(1, Math.round(strip.clientWidth / ((strip.firstElementChild as HTMLElement).offsetWidth + 16)));
+    const step = (dir: number) => {
+      const w = (strip.firstElementChild as HTMLElement).offsetWidth + 16;
+      strip.scrollBy({ left: dir * w * page(), behavior: 'smooth' });
+    };
+    this.front.querySelector('.hr-carousel-arrow.prev')!.addEventListener('click', (e) => { e.stopPropagation(); step(-1); });
+    this.front.querySelector('.hr-carousel-arrow.next')!.addEventListener('click', (e) => { e.stopPropagation(); step(1); });
+    strip.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      e.preventDefault();
+      strip.scrollBy({ left: e.deltaY, behavior: 'auto' });
+    }, { passive: false });
+    strip.addEventListener('scroll', () => this.updateDots(), { passive: true });
+    addEventListener('resize', () => this.updateDots());
+  }
+
+  private updateDots(): void {
+    const strip = this.front.querySelector<HTMLElement>('.hr-front');
+    const dots = this.front.querySelector<HTMLElement>('.hr-carousel-dots');
+    if (!strip || !dots || !strip.firstElementChild) return;
+    const w = (strip.firstElementChild as HTMLElement).offsetWidth + 16;
+    const per = Math.max(1, Math.round(strip.clientWidth / w));
+    const pages = Math.max(1, Math.ceil(strip.children.length / per));
+    const at = Math.min(pages - 1, Math.round(strip.scrollLeft / (w * per)));
+    if (dots.children.length !== pages) {
+      dots.innerHTML = Array.from({ length: pages }, (_, i) => `<button aria-label="Page ${i + 1}" data-page="${i}"></button>`).join('');
+      dots.querySelectorAll<HTMLButtonElement>('button').forEach((b) => b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        strip.scrollTo({ left: Number(b.dataset.page) * w * per, behavior: 'smooth' });
+      }));
+    }
+    dots.querySelectorAll('button').forEach((b, i) => b.classList.toggle('on', i === at));
+    const atStart = strip.scrollLeft < 4, atEnd = strip.scrollLeft + strip.clientWidth >= strip.scrollWidth - 4;
+    this.front.querySelector('.hr-carousel-arrow.prev')!.classList.toggle('off', atStart);
+    this.front.querySelector('.hr-carousel-arrow.next')!.classList.toggle('off', atEnd);
+  }
   showPause(): void { this.hide(); this.pause.classList.remove('hidden'); }
   hide(): void { for (const el of [this.front, this.start, this.pause, this.results]) el.classList.add('hidden'); }
 }
