@@ -1241,7 +1241,7 @@ function heardPasses(dt: number): void {
 function raceHud(): RaceHud {
   const ranked = rankCars();
   const left = goTime - time;
-  const countdown = mode === 'menu' ? null : left > 0 ? String(Math.ceil(left)) : left > -0.8 ? 'GO' : null;
+  const countdown = mode === 'menu' ? null : left > 0 ? String(Math.ceil(left)) : left > -0.8 ? 'FLY!' : null;
   const launchHint = mode !== 'menu' && left > 0;
   const place = finishOrder.indexOf(player);
   const banner = place < 0 || mode === 'results' ? null : place === 0 ? 'YOU WIN!' : `FINISHED ${ordinal(place + 1)}`;
@@ -1984,7 +1984,7 @@ function frame(now: number): void {
   const chaseOn = view === 'chase' && chase !== null;
   const ghostOn = chaseOn && trial && (mode === 'racing' || mode === 'paused')
     && placeGhost(time - (blended ? STEP * (1 - Math.min(1, acc / STEP)) : 0));
-  if (chaseOn) chase!.render({ time, cam, player, cars: ghostOn ? [...cars, ghostCar!] : cars, track, particles }, renderScale);
+  if (chaseOn) chase!.render({ time, cam, player, cars: ghostOn ? [...cars, ghostCar!] : cars, track, particles, goIn: mode === 'menu' ? undefined : goTime - time }, renderScale);
   drawFrame(ctx, innerWidth, innerHeight, {
     time, cam, player, cars, track, hud: raceHud(),
     particles, cursor: input.cursor, toast, locked: input.locked, chase: chaseOn, steer: keySteer, touch: touch.visible,

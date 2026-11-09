@@ -439,9 +439,57 @@ export class Sound {
     src.stop(t + 0.65);
   }
 
-  /** Countdown light: a short beep for 3-2-1, a long higher one for GO. */
+  /**
+   * The count: on 3-2-1 a war drum and a brazier catching fire; on FLY! a long horn blast
+   * (a low sawtooth and its fifth through a closing-then-opening filter, like a lur or a war horn).
+   */
   beep(go: boolean): void {
-    this.tone(go ? 1320 : 660, go ? 0.55 : 0.16, 0.16);
+    const ctx = this.live();
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    if (!go) {
+      // Drum: a pitched thump falling from 120 Hz to 55 Hz.
+      const osc = ctx.createOscillator();
+      osc.frequency.setValueAtTime(120, t);
+      osc.frequency.exponentialRampToValueAtTime(55, t + 0.25);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.5, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+      osc.connect(g).connect(this.sfx);
+      osc.start(t); osc.stop(t + 0.5);
+      // Fire catching: a band of noise swelling and fading.
+      const src = this.noiseSource();
+      const band = ctx.createBiquadFilter();
+      band.type = 'bandpass'; band.frequency.value = 900; band.Q.value = 0.7;
+      const fg = ctx.createGain();
+      fg.gain.setValueAtTime(0, t);
+      fg.gain.linearRampToValueAtTime(0.12, t + 0.08);
+      fg.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+      src.connect(band).connect(fg).connect(this.sfx);
+      src.start(t); src.stop(t + 0.65);
+      return;
+    }
+    const len = 1.3;
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass'; lp.Q.value = 3;
+    lp.frequency.setValueAtTime(300, t);
+    lp.frequency.linearRampToValueAtTime(1500, t + 0.25);
+    lp.frequency.linearRampToValueAtTime(900, t + len);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.22, t + 0.12);
+    g.gain.setValueAtTime(0.2, t + len - 0.35);
+    g.gain.linearRampToValueAtTime(0, t + len);
+    lp.connect(g).connect(this.sfx);
+    for (const [f, v] of [[110, 1], [165, 0.55], [220, 0.3]] as const) {
+      const osc = ctx.createOscillator();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(f * 0.94, t);
+      osc.frequency.linearRampToValueAtTime(f, t + 0.15);   // the horn's scoop up to pitch
+      const og = ctx.createGain(); og.gain.value = v;
+      osc.connect(og).connect(lp);
+      osc.start(t); osc.stop(t + len + 0.05);
+    }
   }
 
   /** Two rising notes on a completed lap; three for a best lap. */

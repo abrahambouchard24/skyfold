@@ -112,6 +112,8 @@ const DEFAULT_ATMOS = ATMOS['MIDGARD'];
 
 export interface ChaseScene {
   time: number; cam: Camera; player: Car; cars: Car[]; track: Track; particles: Particle[];
+  /** Seconds until the start (negative once the race is on): lights the braziers on the start gate. */
+  goIn?: number;
 }
 
 export class ChaseView {
@@ -207,7 +209,7 @@ export class ChaseView {
       // Shadows read best from a sun a little higher than the one painted in the sky.
       this.sunDir.set(Math.cos(a.sun.azim) * Math.cos(a.sun.elev), Math.max(0.45, Math.sin(a.sun.elev)), Math.sin(a.sun.azim) * Math.cos(a.sun.elev)).normalize();
     }
-    this.world.animate(s.time);
+    this.world.animate(s.time, s.goIn);
     // A lightning flash lights everything up for a moment.
     this.hemi.intensity = this.world.atmos.hemi[2] * (1 + this.world.flash * 1.6);
 
@@ -318,7 +320,7 @@ class SpeedLines {
 // --- the circuit ---------------------------------------------------------------------------------
 
 interface TrackWorld {
-  track: Track; group: THREE.Group; atmos: Atmos; animate(time: number): void; flash: number;
+  track: Track; group: THREE.Group; atmos: Atmos; animate(time: number, goIn?: number): void; flash: number;
   /** Sky effects that travel with the camera (always at the same distance, like the sky itself). */
   skyFollow: THREE.Object3D[];
 }
@@ -512,17 +514,17 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
     }
   }
   if (track.forks.length) {
-    const NAME: Record<string, string> = { jump: 'JUMP', boost: 'BOOST', charge: 'CHARGE', cool: 'COOL', fire: 'FIRE' };
+    const NAME: Record<string, string> = { jump: 'LEAP', boost: 'GUST', charge: 'STORM', cool: 'FROST', fire: 'EMBERS' };
     for (const f of track.forks) {
       const nameOf = (kind: string, side: number) => NAME[kind] ?? (f.curve ? (side === f.sign ? 'INSIDE' : 'WIDE') : 'ROAD');
       let i = f.from;
       while (i < f.to && track.island[i] < 70) i++;
       const p = pts[i], dir = track.direction(i);
-      const sign = textPlane(`◀ ${nameOf(f.left, 1)}     ${nameOf(f.right, -1)} ▶`, '#ffffff', 300, 40, theme.wall);
+      const sign = textPlane(`« ${nameOf(f.left, 1)}     ${nameOf(f.right, -1)} »`, '#e8d9b8', 300, 40, theme.wall);
       sign.geometry.rotateX(Math.PI / 2).rotateY(Math.PI / 2);
       const holder = new THREE.Group();
       holder.add(bothWays(sign));
-      const post = new THREE.Mesh(new THREE.BoxGeometry(8, 64, 8), new THREE.MeshLambertMaterial({ color: GOLD_C }));
+      const post = new THREE.Mesh(new THREE.BoxGeometry(8, 64, 8), new THREE.MeshLambertMaterial({ color: 0x4a3322 }));
       post.position.y = -32;
       holder.add(post);
       holder.position.set(p.x, 104, p.y);
@@ -677,7 +679,24 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
     }
   }
 
-  // Start line (and on a point-to-point route the finish line): a checkered band and a lit gantry.
+  // The start braziers: three iron fire bowls on the start gate, lit one by one through the
+  // count (3, 2, 1); on GO all three roar up tall, then burn on through the race.
+  const braziers: { fire: THREE.Mesh; mat: THREE.MeshBasicMaterial; glow: THREE.Mesh }[] = [];
+  const lightBraziers = (time: number, goIn?: number) => {
+    const lit = goIn === undefined || goIn <= 0 ? 3 : goIn > 3 ? 0 : 3 - Math.ceil(goIn) + 1;
+    const roar = goIn !== undefined && goIn <= 0 && goIn > -1.2 ? 1 + 1.6 * (1 + goIn / 1.2) : 1;
+    braziers.forEach((b, k) => {
+      const on = k < lit;
+      b.fire.visible = b.glow.visible = on;
+      if (!on) return;
+      const fl = 1 + 0.12 * Math.sin(time * 17 + k * 2.1) + 0.08 * Math.sin(time * 41 + k);
+      b.fire.scale.set(1, fl * roar, 1);
+      b.mat.opacity = 0.85 + 0.15 * Math.sin(time * 29 + k);
+      b.glow.scale.setScalar(0.9 + 0.1 * fl + 0.4 * (roar - 1));
+    });
+  };
+
+  // Start line (and on a point-to-point route the finish line): a checkered band and a timber gate.
   const lineAt = (at: number, text: string) => {
     const p = pts[at], dir = track.direction(at);
     // A band of bone and slate stones across the road.
@@ -716,6 +735,28 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
       shield.rotation.z = Math.PI / 2;
       shield.position.set(-7, 108, k * span / 8);
       gantry.add(shield);
+    }
+    if (at === 0) {
+      // Three fire bowls on the beam: the starting lights.
+      const iron = new THREE.MeshLambertMaterial({ color: 0x2e2b28 });
+      for (let k = -1; k <= 1; k++) {
+        const bowl = new THREE.Group();
+        const cup = new THREE.Mesh(new THREE.CylinderGeometry(11, 6, 9, 8), iron);
+        bowl.add(cup);
+        const legs = new THREE.Mesh(new THREE.CylinderGeometry(2, 3, 10, 5), iron);
+        legs.position.y = -8; bowl.add(legs);
+        const mat = new THREE.MeshBasicMaterial({ color: 0xffa040, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
+        const fire = new THREE.Mesh(new THREE.ConeGeometry(9, 26, 6).translate(0, 13, 0), mat);
+        fire.position.y = 3;
+        const core = new THREE.Mesh(new THREE.ConeGeometry(5, 15, 5).translate(0, 7.5, 0), basic({ color: 0xffe2a0 }));
+        fire.add(core);
+        const glow = new THREE.Mesh(new THREE.SphereGeometry(22, 10, 8), new THREE.MeshBasicMaterial({ color: 0xff7a2a, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false }));
+        glow.position.y = 12;
+        bowl.add(fire, glow);
+        bowl.position.set(0, 140, k * 44);
+        gantry.add(bowl);
+        braziers.push({ fire, mat, glow });
+      }
     }
     const sign = textPlane(text, '#f1e6d0', 150, 22, '#5a3f2a');
     sign.geometry.rotateX(Math.PI / 2).rotateY(Math.PI / 2);   // stand it up, facing the oncoming dragons
@@ -825,8 +866,9 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
   return {
     track, group, atmos, flash: 0,
     skyFollow: [aurora?.group, storm?.group, follow ? skyGroup : null].filter((o): o is THREE.Group => !!o),
-    animate(time: number) {
+    animate(time: number, goIn?: number) {
       aurora?.animate(time);
+      lightBraziers(time, goIn);
       if (storm) this.flash = storm.animate(time);
       pulseTex.offset.y = -(time * 1100) / 376;
       lampMat.opacity = 0.72 + 0.16 * Math.sin(time * 9) + 0.12 * Math.sin(time * 23.7);   // torch flicker
@@ -2737,11 +2779,23 @@ function textPlane(text: string, color: string, w: number, h: number, back?: str
   const scale = 4;
   const c = canvas2d(Math.ceil(w * scale), Math.ceil(h * scale), (g) => {
     if (back) {
-      g.fillStyle = '#0b0e1c'; g.fillRect(0, 0, w * scale, h * scale);
-      g.strokeStyle = back; g.lineWidth = 3 * scale; g.strokeRect(1.5 * scale, 1.5 * scale, (w - 3) * scale, (h - 3) * scale);
+      // A board of dark timber: planks with grain, iron bands at each end and an iron rim.
+      const W = w * scale, H = h * scale;
+      g.fillStyle = '#3b2a1e'; g.fillRect(0, 0, W, H);
+      const planks = Math.max(2, Math.round(h / 10));
+      for (let k = 0; k < planks; k++) {
+        g.fillStyle = k % 2 ? '#43301f' : '#382719'; g.fillRect(0, (k * H) / planks, W, H / planks);
+        g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(0, ((k + 1) * H) / planks - scale * 0.6, W, scale * 0.6);
+      }
+      g.strokeStyle = 'rgba(20,12,8,0.35)'; g.lineWidth = scale * 0.5;
+      for (let k = 0; k < W; k += scale * 9) { g.beginPath(); g.moveTo(k, 0); g.bezierCurveTo(k + 8 * scale, H * 0.3, k - 6 * scale, H * 0.7, k + 4 * scale, H); g.stroke(); }
+      g.fillStyle = '#4a4642';
+      g.fillRect(scale * 3, 0, scale * 4, H); g.fillRect(W - scale * 7, 0, scale * 4, H);
+      g.strokeStyle = '#2a2724'; g.lineWidth = 2 * scale; g.strokeRect(scale, scale, W - 2 * scale, H - 2 * scale);
+      void back;
     }
     g.fillStyle = color;
-    g.font = `900 ${Math.floor(h * scale * 0.62)}px system-ui, sans-serif`;
+    g.font = `${Math.floor(h * scale * 0.62)}px 'Uncial Antiqua', Georgia, serif`;
     g.textAlign = 'center'; g.textBaseline = 'middle';
     g.fillText(text, (w * scale) / 2, (h * scale) / 2 + scale, w * scale * 0.92);
   });

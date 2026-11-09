@@ -19,7 +19,7 @@ interface Step { text: (k: (a: Action) => string) => string; done: (i: TutorialI
 interface StepState { time: number; left: number; right: number; brake: number; boost: number; energy0: number }
 
 const STEPS: Step[] = [
-  { text: (k) => `Get ready. Tip: hold <b>${k('brake')}</b> through the countdown and let go right on GO to leap off the line.`,
+  { text: (k) => `Get ready. Tip: hold <b>${k('brake')}</b> through the countdown and let go right as the horn calls <b>FLY!</b> to leap off the line.`,
     done: (i) => i.racing },
   { text: (k) => `Steer with <b>${k('left')}</b> and <b>${k('right')}</b>. Tap for small corrections, hold to turn harder.`,
     done: (_, t) => t.left > 0.3 && t.right > 0.3 },

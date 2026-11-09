@@ -629,7 +629,7 @@ function drawLapPanel(ctx: CanvasRenderingContext2D, race: RaceState, now: numbe
 }
 
 const STRIP_CUE: Record<NonNullable<RaceHud['strip']>, [string, string]> = {
-  boost: ['WIND GUST', '#c98b3e'], charge: ['CHARGING', '#c58bff'], cool: ['COOLING', '#7fdcff'], fire: ['FIRE', '#ff6a3d'],
+  boost: ['WIND GUST', '#c98b3e'], charge: ['STORM', '#c58bff'], cool: ['FROST', '#7fdcff'], fire: ['EMBERS', '#ff6a3d'],
 };
 /** A small pill under the progress strip naming the strip the player is on, pulsing gently. */
 function drawStripCue(ctx: CanvasRenderingContext2D, w: number, kind: NonNullable<RaceHud['strip']>, y: number, time: number): void {
@@ -679,20 +679,67 @@ function drawSprintStrip(ctx: CanvasRenderingContext2D, w: number, sp: NonNullab
   ctx.restore();
 }
 
+/** A starting brazier: an iron bowl on three legs, with a flickering fire when lit. */
+function drawFireBowl(ctx: CanvasRenderingContext2D, x: number, y: number, lit: boolean, roar: boolean, t: number): void {
+  ctx.save();
+  if (lit) {
+    const glow = ctx.createRadialGradient(x, y - 10, 2, x, y - 10, roar ? 70 : 46);
+    glow.addColorStop(0, 'rgba(255,150,60,0.55)'); glow.addColorStop(1, 'rgba(255,90,30,0)');
+    ctx.fillStyle = glow; ctx.fillRect(x - 80, y - 90, 160, 160);
+    // Flame: three tongues, swaying.
+    const hgt = (roar ? 62 : 40) * (1 + 0.1 * Math.sin(t * 17) + 0.06 * Math.sin(t * 43));
+    const tongue = (dx: number, hh: number, wd: number, col: string) => {
+      const sway = Math.sin(t * 9 + dx) * 4;
+      ctx.beginPath();
+      ctx.moveTo(x + dx - wd, y - 4);
+      ctx.quadraticCurveTo(x + dx - wd * 0.8 + sway, y - hh * 0.55, x + dx + sway * 1.6, y - hh);
+      ctx.quadraticCurveTo(x + dx + wd * 0.8 + sway, y - hh * 0.55, x + dx + wd, y - 4);
+      ctx.closePath(); ctx.fillStyle = col; ctx.fill();
+    };
+    tongue(0, hgt, 17, '#e0581e'); tongue(-7, hgt * 0.7, 10, '#ff8a2e'); tongue(7, hgt * 0.75, 10, '#ff8a2e'); tongue(0, hgt * 0.5, 8, '#ffd27a');
+  } else {
+    // Cold: a curl of smoke over grey embers.
+    ctx.fillStyle = 'rgba(160,150,140,0.25)';
+    ctx.beginPath(); ctx.ellipse(x + Math.sin(t * 2) * 3, y - 18, 7, 12, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  // The bowl and its legs, in iron with a bronze rim.
+  ctx.fillStyle = '#2e2b28';
+  ctx.beginPath(); ctx.moveTo(x - 26, y - 6); ctx.lineTo(x + 26, y - 6); ctx.lineTo(x + 16, y + 12); ctx.lineTo(x - 16, y + 12); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#b07a3e'; ctx.fillRect(x - 28, y - 9, 56, 4);
+  ctx.strokeStyle = '#2e2b28'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x - 10, y + 12); ctx.lineTo(x - 18, y + 32); ctx.moveTo(x + 10, y + 12); ctx.lineTo(x + 18, y + 32); ctx.moveTo(x, y + 12); ctx.lineTo(x, y + 32); ctx.stroke();
+  ctx.restore();
+}
+
 function drawRaceBanners(ctx: CanvasRenderingContext2D, w: number, h: number, hud: RaceHud): void {
   ctx.save();
   ctx.textAlign = 'center';
   if (hud.countdown) {
-    ctx.font = '900 96px system-ui, sans-serif';
-    ctx.fillStyle = hud.countdown === 'GO' ? '#e3b26c' : '#f1e6d0';
-    ctx.shadowColor = 'rgba(0,0,0,0.6)';
-    ctx.shadowBlur = 16;
-    ctx.fillText(hud.countdown, w / 2, h * 0.38);
+    // Three iron fire bowls light one by one (3, 2, 1); on FLY! all three roar up.
+    const go = hud.countdown === 'FLY!';
+    const lit = go ? 3 : 4 - Number(hud.countdown);
+    const t = performance.now() / 1000;
+    const by = h * 0.24;
+    // A timber plaque with an iron rim behind the bowls, so they read against any ground.
+    ctx.fillStyle = 'rgba(34,24,16,0.78)';
+    roundRect(ctx, w / 2 - 128, by - 24, 256, 64, 8);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(176,122,62,0.7)'; ctx.lineWidth = 2; ctx.stroke();
+    for (let k = 0; k < 3; k++) drawFireBowl(ctx, w / 2 + (k - 1) * 74, by, k < lit, go, t + k * 1.7);
+    ctx.font = `${go ? 84 : 72}px 'Uncial Antiqua', Georgia, serif`;
+    ctx.fillStyle = go ? '#ffc070' : '#f1e6d0';
+    ctx.shadowColor = go ? 'rgba(255,120,40,0.7)' : 'rgba(0,0,0,0.6)';
+    ctx.shadowBlur = 18;
+    ctx.fillText(hud.countdown, w / 2, h * 0.24 + 112);
     if (hud.launchHint) {
       ctx.shadowBlur = 0;
-      ctx.font = '700 16px system-ui, sans-serif';
+      ctx.font = "16px 'Alegreya Sans', system-ui, sans-serif";
+      const tw = ctx.measureText('Hold the brake (S / Space) and let go as the horn calls FLY! to leap off the line').width + 36;
+      ctx.fillStyle = 'rgba(20,16,12,0.72)';
+      roundRect(ctx, w / 2 - tw / 2, h * 0.24 + 128, tw, 28, 6);
+      ctx.fill();
       ctx.fillStyle = '#e0d6c2';
-      ctx.fillText('Hold the brake (S / Space), let go right on GO to leap off the line', w / 2, h * 0.38 + 40);
+      ctx.fillText('Hold the brake (S / Space) and let go as the horn calls FLY! to leap off the line', w / 2, h * 0.24 + 146);
     }
   }
   if (hud.banner) {
