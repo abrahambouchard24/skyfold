@@ -599,10 +599,23 @@ const menus = new Menus(LIVERIES, trackChoices, {
 });
 
 /** One Sheep (a race with a single sheep to carry): it runs its own frame while it's open. */
+
+/**
+ * A dragon for the sheep modes: every one flies with its species' feel; the player's also carries
+ * their TRAIN DRAGON setup, worn skin and rider.
+ */
+function modeCar(i: number): Car {
+  const mine = i === playerLivery;
+  const car: Car = { craft: new Craft(), race: new RaceState(), ...livery(i), skin: mine ? skinColors(achievements.equipped) : null };
+  car.craft.mods = addMods(mine ? setupMods(carSetup) : { ...NO_MODS }, speciesMods(i));
+  if (mine) car.rider = loadRider();
+  return car;
+}
+
 const oneSheep = new OneSheepMode({
   input, sound, chase, hud: canvas,
   tracks: tracks.filter((t) => !t.sprint),
-  makeCar: (i) => ({ craft: new Craft(), race: new RaceState(), ...livery(i), skin: null }),
+  makeCar: modeCar,
   playerLivery: () => playerLivery,
   steer: steerAim,
   pixelRatio: () => renderScale,
@@ -611,7 +624,7 @@ const oneSheep = new OneSheepMode({
 /** Flock Raid (the sheep-catching mode): it runs its own frame while a raid is open. */
 const flock = new FlockMode({
   input, sound, hud: canvas,
-  makeCar: (i) => ({ craft: new Craft(), race: new RaceState(), ...livery(i), skin: null }),
+  makeCar: modeCar,
   playerLivery: () => playerLivery,
   steer: steerAim,
   pixelRatio: () => renderScale,
