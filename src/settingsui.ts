@@ -75,7 +75,7 @@ export class SettingsUI {
         <div class="hint">Lower quality draws fewer pixels and skips shadows and speed effects, for slower computers.</div>
         <h3>CONTROLS</h3>
         ${ACTIONS.map((a) => `<div class="row"><span>${a.label}</span><button class="key" data-key="${a.id}">${keyText(a.id)}</button></div>`).join('')}
-        <div class="hint">Click a control, then press the key you want. Left click always brakes and right click always boosts.</div>
+        <div class="hint">Click a control, then press the key you want. Left click always brakes and right click always calls the gale.</div>
         <div class="hr-btns row" style="border:0">
           <button class="hr-btn" data-done>DONE</button>
           <button class="hr-btn secondary" data-defaults>RESET CONTROLS</button>

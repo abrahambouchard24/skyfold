@@ -176,8 +176,8 @@ export class Guest {
 /** PeerJS errors in plain words. */
 function friendly(e: unknown): string {
   const type = (e as { type?: string }).type;
-  if (type === 'peer-unavailable') return 'No race found with that code. Check it and try again.';
-  if (type === 'unavailable-id') return 'That race code is taken. Try hosting again.';
+  if (type === 'peer-unavailable') return 'No moot found with that code. Check it and try again.';
+  if (type === 'unavailable-id') return 'That moot code is taken. Try calling the moot again.';
   if (type === 'network' || type === 'server-error' || type === 'socket-error' || type === 'socket-closed')
     return 'Couldn\'t reach the matchmaking server. Check your internet connection.';
   if (type === 'browser-incompatible') return 'This browser can\'t do online races. Try Chrome, Edge or Firefox.';

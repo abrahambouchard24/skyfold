@@ -83,13 +83,13 @@ export class GarageUI {
       const o = p.online;
       this.el.innerHTML = `
         <div class="gr-card deco-panel">
-          <h2 class="deco-title">GARAGE</h2>
+          <h2 class="deco-title">HOARD</h2>
           <div class="deco-rule"></div>
-          <div class="gr-sub deco-label">SKIN COLLECTION · EARN THEM WITH ACHIEVEMENTS, PICK THEM WITH YOUR CAR</div>
+          <div class="gr-sub deco-label">SKINS · EARN THEM WITH DEEDS, WEAR THEM WHEN YOU CHOOSE YOUR DRAGON</div>
           <div class="gr-skins">${skins}</div>
-          <div class="gr-sub deco-label">ACHIEVEMENTS · ${got} / ${ACHIEVEMENTS.length}</div>
+          <div class="gr-sub deco-label">DEEDS · ${got} / ${ACHIEVEMENTS.length}</div>
           <div class="gr-ach">${achs}</div>
-          <div class="gr-sub deco-label">YOUR ONLINE RECORD</div>
+          <div class="gr-sub deco-label">YOUR RECORD AT THE MOOT</div>
           <div class="gr-rec">
             <div><b>${o.races}</b><small>RACES</small></div><div><b>${o.wins}</b><small>WINS</small></div>
             <div><b>${o.podiums}</b><small>TOP THREE</small></div><div><b>${o.best ? ordinal(o.best) : '-'}</b><small>BEST FINISH</small></div>

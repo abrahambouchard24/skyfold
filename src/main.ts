@@ -1423,7 +1423,7 @@ dragonEvents.playerBeat = (k) => { if (mode === 'racing') sound.wingbeat(k); };
 
 /** The name to offer on the online screen: last one used, else the Story name. */
 function playerName(): string {
-  try { return localStorage.getItem('skyfold-name') ?? save?.name ?? 'RACER'; } catch { return save?.name ?? 'RACER'; }
+  try { return localStorage.getItem('skyfold-name') ?? save?.name ?? 'RIDER'; } catch { return save?.name ?? 'RIDER'; }
 }
 
 const lobbyUI = new LobbyUI(LIVERIES, trackChoices, {
@@ -1475,7 +1475,7 @@ function startHosting(name: string): void {
   const host = new Host();
   const lobby: LobbyState = { players: [{ id: 'host', name, car: playerLivery }], track: trackIndex, laps: 3, ai: 5, races: 1 };   // AI fill the grid to 6 cars by default
   online = { role: 'host', host, code: host.code, lobby };
-  lobbyUI.showStatus('Setting up your race…');
+  lobbyUI.showStatus('Calling the moot…');
   host.onReady = () => broadcastLobby();
   host.onError = (msg) => leaveOnline(msg);
   host.onSetup = (id, setup) => {
@@ -1532,9 +1532,9 @@ function startJoining(code: string, name: string): void {
   rememberName(name);
   const guest = new Guest(code, name, playerLivery, carSetup, achievements.equipped);
   online = { role: 'guest', guest, code, me: '', lobby: null, snaps: [], offset: null, finishedAt: 0, inRace: false };
-  lobbyUI.showStatus(`Joining race ${code}…`);
+  lobbyUI.showStatus(`Joining moot ${code}…`);
   guest.onError = (msg) => leaveOnline(msg);
-  guest.onClose = () => leaveOnline('The host closed the race.');
+  guest.onClose = () => leaveOnline('The host ended the moot.');
   guest.onMessage = (m) => {
     if (online?.role !== 'guest') return;
     if (m.t === 'lobby') {
