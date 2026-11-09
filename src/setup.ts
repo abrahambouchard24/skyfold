@@ -24,10 +24,10 @@ export const SLIDERS: Slider[] = [
   // Keyboard steering: a sharper rack swings the nose round faster but the car is twitchier and
   // slides more; a lazy one is calm and planted but slow to change direction.
   { id: 'steering', name: 'STEERING', low: 'LAZY · STABLE', high: 'SHARP · AGILE', perStep: { turn: 0.06, grip: -0.03 } },
-  { id: 'gearing', name: 'GEARING', low: 'SHORT · ACCELERATION', high: 'LONG · TOP SPEED', perStep: { top: 0.015, accel: -0.03 } },
-  { id: 'wing', name: 'WING', low: 'LOW · TOP SPEED', high: 'HIGH · GRIP', perStep: { grip: 0.05, top: -0.01 } },
-  { id: 'cooling', name: 'COOLING', low: 'SMALL · TOP SPEED', high: 'BIG · RUNS COOL', perStep: { heat: 0.08, top: -0.0075 } },
-  { id: 'ers', name: 'ERS MODE', low: 'HARVEST · FAST CHARGE', high: 'POWER · STRONG BOOST', perStep: { ers: 0.08, harvest: -0.12 } },
+  { id: 'gearing', name: 'WINGBEAT', low: 'QUICK STROKES · ACCELERATION', high: 'LONG STROKES · TOP SPEED', perStep: { top: 0.015, accel: -0.03 } },
+  { id: 'wing', name: 'WINGSPAN', low: 'SWEPT · TOP SPEED', high: 'WIDE · GRIP', perStep: { grip: 0.05, top: -0.01 } },
+  { id: 'cooling', name: 'FROST BLOOD', low: 'WARM · TOP SPEED', high: 'COLD · RUNS COOL', perStep: { heat: 0.08, top: -0.0075 } },
+  { id: 'ers', name: 'FIRE BREATH', low: 'KINDLING · FAST CHARGE', high: 'INFERNO · STRONG FIRE', perStep: { ers: 0.08, harvest: -0.12 } },
 ];
 
 export const BALANCED: Setup = { steering: 0, gearing: 0, wing: 0, cooling: 0, ers: 0, assist: 1 };
@@ -72,8 +72,8 @@ export function statBars(m: Mods): { name: string; value: number; delta: number 
     bar('ACCELERATION', m.accel, 0.12),
     bar('GRIP', m.grip, 0.2),
     bar('COOLING', m.heat, 0.3),
-    bar('BOOST POWER', m.ers, 0.3),
-    bar('BOOST CHARGE', m.harvest, 0.45),
+    bar('FIRE POWER', m.ers, 0.3),
+    bar('FIRE CHARGE', m.harvest, 0.45),
   ];
 }
 

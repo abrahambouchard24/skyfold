@@ -636,7 +636,7 @@ function buildWorld(track: Track, aniso: number): TrackWorld {
       line.rotation.y = -track.direction(i);
       group.add(line);
       if (start) {
-        const label = textPlane('DRS', 'rgba(77,255,154,0.85)', 40, 16);
+        const label = textPlane('WIND', 'rgba(77,255,154,0.85)', 40, 16);
         const d = track.direction(i);
         label.position.set(p.x - Math.cos(d) * 30, 0.9, p.y - Math.sin(d) * 30);
         label.rotation.y = -d - Math.PI / 2;

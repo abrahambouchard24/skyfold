@@ -37,7 +37,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'graduate', name: 'GRADUATE', desc: 'Finish the tutorial lap', skin: 'lime' },
   { id: 'first-flag', name: 'FIRST FLAG', desc: 'Finish a race', skin: 'graphite' },
   { id: 'winner', name: 'WINNER', desc: 'Win a race', skin: 'gold' },
-  { id: 'perfect-launch', name: 'PERFECT LAUNCH', desc: 'Get a perfect turbo start', skin: 'lightning' },
+  { id: 'perfect-launch', name: 'PERFECT LEAP', desc: 'Leap off the line at the perfect moment', skin: 'lightning' },
   { id: 'clean-sheet', name: 'CLEAN SHEET', desc: 'Finish a race of 3 laps or more without touching a wall', skin: 'ghost' },
   { id: 'drift-king', name: 'DRIFT KING', desc: 'Charge a full battery by drifting within a single lap', skin: 'sunset' },
   { id: 'grand-tour', name: 'GRAND TOUR', desc: 'Finish a race on 8 different tracks', skin: 'prism', goal: 8 },

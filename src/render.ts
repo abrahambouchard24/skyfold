@@ -442,7 +442,7 @@ function drawDrsZones(ctx: CanvasRenderingContext2D, track: Track): void {
         ctx.textBaseline = 'middle';
         ctx.fillStyle = 'rgba(77, 255, 154, 0.75)';
         ctx.rotate(Math.PI / 2);   // reads along the direction of travel
-        ctx.fillText('DRS', 0, -26);
+        ctx.fillText('WIND', 0, -26);
       }
       ctx.restore();
     }
@@ -609,7 +609,7 @@ function drawLapPanel(ctx: CanvasRenderingContext2D, race: RaceState, now: numbe
   ctx.fillText(`/${hud.racers}`, x + 204, y + 46);
   if (hud.catchUp > 0) {
     ctx.fillStyle = '#4dff9a';
-    ctx.fillText(`+${Math.round(hud.catchUp * 100)}% PACE`, x + 204, y + 110);
+    ctx.fillText(`+${Math.round(hud.catchUp * 100)}% FURY`, x + 204, y + 110);
   }
   ctx.textAlign = 'left';
   ctx.font = '700 28px ui-monospace, Consolas, monospace';
@@ -629,7 +629,7 @@ function drawLapPanel(ctx: CanvasRenderingContext2D, race: RaceState, now: numbe
 }
 
 const STRIP_CUE: Record<NonNullable<RaceHud['strip']>, [string, string]> = {
-  boost: ['BOOST PAD', '#c98b3e'], charge: ['CHARGING', '#c58bff'], cool: ['COOLING', '#7fdcff'], fire: ['FIRE', '#ff6a3d'],
+  boost: ['WIND GUST', '#c98b3e'], charge: ['CHARGING', '#c58bff'], cool: ['COOLING', '#7fdcff'], fire: ['FIRE', '#ff6a3d'],
 };
 /** A small pill under the progress strip naming the strip the player is on, pulsing gently. */
 function drawStripCue(ctx: CanvasRenderingContext2D, w: number, kind: NonNullable<RaceHud['strip']>, y: number, time: number): void {
@@ -692,7 +692,7 @@ function drawRaceBanners(ctx: CanvasRenderingContext2D, w: number, h: number, hu
       ctx.shadowBlur = 0;
       ctx.font = '700 16px system-ui, sans-serif';
       ctx.fillStyle = '#e0d6c2';
-      ctx.fillText('Hold the brake (S / Space), release it right on GO for a turbo start', w / 2, h * 0.38 + 40);
+      ctx.fillText('Hold the brake (S / Space), let go right on GO to leap off the line', w / 2, h * 0.38 + 40);
     }
   }
   if (hud.banner) {
@@ -1045,9 +1045,8 @@ function drawHud(ctx: CanvasRenderingContext2D, w: number, h: number, c: Craft, 
   ctx.font = '600 13px system-ui, sans-serif';
   ctx.fillStyle = '#a89d8a';
   ctx.fillText('SPEED', x + 16, y + 26);
-  ctx.fillText('GEAR', x + 168, y + 26);
 
-  // DRS badge: solid green while the wing is open, an outline once DRS is enabled for the race.
+  // WIND badge (riding another dragon's tailwind): lit while it's carrying you, outlined once it can.
   if (c.drsOpen || hud.drsAvailable) {
     const bx0 = x + 98, by0 = y + 12;
     ctx.save();
@@ -1063,7 +1062,7 @@ function drawHud(ctx: CanvasRenderingContext2D, w: number, h: number, c: Craft, 
     ctx.font = '800 12px system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillStyle = c.drsOpen ? '#07080f' : 'rgba(138, 147, 192, 0.8)';
-    ctx.fillText('DRS', bx0 + 23, by0 + 14);
+    ctx.fillText('WIND', bx0 + 23, by0 + 14);
     ctx.restore();
   }
 
@@ -1074,16 +1073,12 @@ function drawHud(ctx: CanvasRenderingContext2D, w: number, h: number, c: Craft, 
   ctx.fillStyle = '#a89d8a';
   ctx.fillText('km/h', x + 100, y + 68);
 
-  ctx.font = '800 44px system-ui, sans-serif';
-  ctx.fillStyle = c.rev > 0.9 ? '#e3b26c' : '#8fd0e0';
-  ctx.fillText(String(c.gear + 1), x + 172, y + 70);
-
-  // Rev bar: fills through the gear's speed band; the gearbox shifts up near the end.
-  const bx = x + 16, by = y + 86, bw = 204, bh = 10;
+  // Speed bar: how close the dragon is to its top speed.
+  const bx = x + 16, by = y + 86, bw = 204, bh = 10, sf = Math.min(1, c.speed / 880);
   ctx.fillStyle = '#3a2e24';
   ctx.fillRect(bx, by, bw, bh);
-  ctx.fillStyle = c.rev > 0.9 ? '#e3b26c' : '#3fa9ff';
-  ctx.fillRect(bx, by, bw * c.rev, bh);
+  ctx.fillStyle = sf > 0.92 ? '#e3b26c' : '#8fd0e0';
+  ctx.fillRect(bx, by, bw * sf, bh);
 
   // Heat meter: green while cool, orange once it's costing speed, flashing red when overheated.
   const heatColor = c.overheated ? '#ff3d3d' : c.heat > 0.6 ? '#ffb02e' : '#4dff9a';
@@ -1101,7 +1096,7 @@ function drawHud(ctx: CanvasRenderingContext2D, w: number, h: number, c: Craft, 
   // ERS energy: violet, brighter while deploying.
   ctx.font = '700 11px system-ui, sans-serif';
   ctx.fillStyle = c.deploying ? '#d9a6ff' : '#a89d8a';
-  ctx.fillText(c.deploying ? 'BOOSTING' : 'BOOST (W)', bx, y + 136);
+  ctx.fillText(c.deploying ? 'BREATHING FIRE' : 'FIRE (W)', bx, y + 136);
   ctx.fillStyle = '#3a2e24';
   ctx.fillRect(bx + 80, y + 128, bw - 80, 6);
   ctx.fillStyle = c.deploying ? '#d9a6ff' : '#9d5cff';
@@ -1125,7 +1120,7 @@ function drawHud(ctx: CanvasRenderingContext2D, w: number, h: number, c: Craft, 
     ctx.globalAlpha = clamp(c.slipstream * 2, 0, 1);
     ctx.font = '700 11px system-ui, sans-serif';
     ctx.fillStyle = '#dff4ff';
-    ctx.fillText('SLIPSTREAM', bx, y + 156);
+    ctx.fillText('IN THE WAKE', bx, y + 156);
     ctx.fillStyle = '#3a2e24';
     ctx.fillRect(bx + 80, y + 148, bw - 80, 6);
     ctx.fillStyle = '#dff4ff';

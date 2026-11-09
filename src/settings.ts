@@ -17,7 +17,7 @@ export const ACTIONS: { id: Action; label: string }[] = [
   { id: 'left', label: 'STEER LEFT' },
   { id: 'right', label: 'STEER RIGHT' },
   { id: 'brake', label: 'BRAKE' },
-  { id: 'boost', label: 'BOOST' },
+  { id: 'boost', label: 'BREATHE FIRE' },
 ];
 
 export const DEFAULT_KEYS: Record<Action, string[]> = {

@@ -19,19 +19,19 @@ interface Step { text: (k: (a: Action) => string) => string; done: (i: TutorialI
 interface StepState { time: number; left: number; right: number; brake: number; boost: number; energy0: number }
 
 const STEPS: Step[] = [
-  { text: (k) => `Get ready. Tip: hold <b>${k('brake')}</b> through the countdown and let go right on GO for a turbo start.`,
+  { text: (k) => `Get ready. Tip: hold <b>${k('brake')}</b> through the countdown and let go right on GO to leap off the line.`,
     done: (i) => i.racing },
   { text: (k) => `Steer with <b>${k('left')}</b> and <b>${k('right')}</b>. Tap for small corrections, hold to turn harder.`,
     done: (_, t) => t.left > 0.3 && t.right > 0.3 },
   { text: (k) => `Your dragon slides through the air, so slow down early: brake with <b>${k('brake')}</b> <i>before</i> a corner, then turn in.`,
     done: (_, t) => t.brake > 0.3 },
-  { text: () => `Turn hard through a corner at speed to slide. Sliding charges your <b>BOOST</b> bar.`,
+  { text: () => `Turn hard through a corner at speed to slide. Sliding fills your <b>FIRE</b>.`,
     done: (i, t) => i.energy - t.energy0 > 0.1 || (t.time > 14 && i.energy > 0.6) },
-  { text: (k) => `On a straight, hold <b>${k('boost')}</b> to <b>BOOST</b>.`,
+  { text: (k) => `On a straight, hold <b>${k('boost')}</b> to breathe <b>FIRE</b> and surge ahead.`,
     done: (_, t) => t.boost > 0.6 },
   { text: () => `Walls add <b>HEAT</b>, and a hot dragon tires and slows. Fly over the frost-blue <b>COOL</b> lane on the main straight to cool off.`,
     done: (i, t) => i.cooling || t.time > 8 },
-  { text: () => `From lap 2, <b>DRS</b> opens on the straights when you're within a second of the dragon ahead: ride its wind for +7% speed. Now finish the lap!`,
+  { text: () => `From lap 2, ride the <b>TAILWIND</b>: on the straights, within a second of the dragon ahead, its wind carries you +7%. Now finish the lap!`,
     done: (i) => i.lap >= 2 },
 ];
 

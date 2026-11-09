@@ -102,7 +102,7 @@ export const TRACKS: TrackDef[] = [
   },
   {
     name: 'ASGARD',
-    blurb: 'Round the golden walls of the gods: flat out, slipstream battles',
+    blurb: 'Round the golden walls of the gods: flat out, wing-to-wing battles',
     theme: { wall: '#e3b878', wallFace: '#efe6d2', lights: '255, 226, 170', kerb: '#c98b3e', surface: '#2c2a28' },
     control: [
       [0, 1400],

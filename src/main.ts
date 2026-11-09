@@ -935,7 +935,6 @@ function update(dt: number): void {
     pc.step(dt, racing ? aim : pc.heading, racing && !input.brake, racing && input.brake);
   }
   sound.engine(pc.gear, pc.rev, pc.thrust, clamp(pc.speed / 880, 0, 1));
-  if (pc.shifted === 1) sound.whoosh();
 
   for (const { car, driver } of rivals) {
     const c = racing ? driver.think(track, time, cars) : { aim: car.craft.heading, throttle: false, brake: false, deploy: false };
@@ -1188,7 +1187,7 @@ function updateDrs(ranked: Car[], racing: boolean): void {
       const gap = ahead ? car.race.gapBehind(ahead.race, track, time) : NaN;
       st.earned = zone >= 0 && drsAllowed(car) && !finishOrder.includes(car) && gap < DRS_GAP;
       st.zone = zone;
-      if (st.earned && car === player) showToast('DRS OPEN', '#4dff9a');
+      if (st.earned && car === player) showToast('TAILWIND', '#4dff9a');
     }
     if (car.craft.braking) st.earned = false;
     car.craft.drsOpen = st.earned && zone >= 0;

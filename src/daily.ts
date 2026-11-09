@@ -57,9 +57,9 @@ export function dailyChallenge(tracks: number, cars: number, skillMin: number, s
 }
 
 export function twistText(d: DailyDef): string {
-  if (d.twist === 'back') return 'Start from the back of the grid and finish on the podium.';
+  if (d.twist === 'back') return 'Start at the back of the flight and finish in the top three.';
   if (d.twist === 'hot') return 'Start with the heat bar at 70% and finish in the top two. Mind the walls.';
-  return 'The field is 3% faster today. Start on pole and win.';
+  return 'The other dragons are 3% faster today. Start at the front and win.';
 }
 
 function load(): DailySave {
