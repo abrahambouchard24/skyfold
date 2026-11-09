@@ -490,8 +490,8 @@ const SCENE_QUICK = (() => {
   return `<svg class="paper" viewBox="0 0 300 440" preserveAspectRatio="xMidYMid slice">${svg}</svg>`;
 })();
 
-/** A paper dart: the classic folded plane, two wings and a keel in three tones. */
-const DART = `<svg class="dart" viewBox="0 0 60 30"><polygon points="0,15 60,12 18,0" fill="#fff8e8"/><polygon points="0,15 60,12 24,30" fill="#d8cdb6"/><polygon points="0,15 60,12 30,17" fill="#b9ab90"/></svg>`;
+/** A raven (Odin's Huginn and Muninn carry the word between the halls): folded black planes. */
+const DART = `<svg class="dart" viewBox="0 0 60 30"><polygon points="2,16 22,13 32,15 22,19" fill="#1c1a1e"/><polygon points="22,13 30,1 40,12 32,15" fill="#2c2a30"/><polygon points="22,19 32,15 40,18 30,28" fill="#141216"/><polygon points="32,15 50,12 58,15 50,17" fill="#232126"/><polygon points="50,12 56,10 58,15" fill="#3a3640"/><polygon points="54,13 59,14 55,15" fill="#c98b3e"/></svg>`;
 
 const SCENE_ONLINE = (() => {
   // Deep teal paper folded into a few big planes, a dotted gold flight path between the two craft.
@@ -510,17 +510,25 @@ const SCENE_SEASON = (() => {
   svg += poly([[95, -10], [125, -10], [175, 330], [40, 330]], 'rgba(255,248,225,0.07)');
   svg += poly([[175, -10], [205, -10], [260, 330], [125, 330]], 'rgba(255,248,225,0.06)');
   const G = ['#f0c890', '#d6a462', '#b07a3e', '#8a5a2b', '#6a421f'];
-  // Cup: a faceted bowl (four planes a side), handles, stem and base.
+  // A round shield, its rune painted in the middle, and before it a gilded drinking horn on a stand:
+  // the reward of a saga well flown.
   const cup = [
-    poly([[110, 120], [150, 120], [150, 205]], G[1]), poly([[110, 120], [150, 205], [124, 186]], G[2]),
-    poly([[190, 120], [150, 120], [150, 205]], G[0]), poly([[190, 120], [150, 205], [176, 186]], G[1]),
-    poly([[110, 120], [124, 186], [112, 160]], G[3]), poly([[190, 120], [176, 186], [188, 160]], G[2]),
-    poly([[110, 128], [90, 132], [96, 160], [112, 166], [112, 154], [102, 150], [100, 138], [110, 136]], G[2]),
-    poly([[190, 128], [210, 132], [204, 160], [188, 166], [188, 154], [198, 150], [200, 138], [190, 136]], G[1]),
-    poly([[143, 205], [157, 205], [160, 238], [140, 238]], G[2]), poly([[150, 205], [157, 205], [160, 238], [150, 238]], G[1]),
-    poly([[124, 238], [176, 238], [184, 252], [116, 252]], G[1]), poly([[150, 238], [176, 238], [184, 252], [150, 252]], G[0]),
-    poly([[108, 252], [192, 252], [192, 276], [108, 276]], '#2a2420'), `<line x1="108" y1="252" x2="192" y2="252" stroke="#c98b3e" stroke-width="2"/>`,
-    poly([[140, 150], [160, 150], [150, 170]], '#8fd0e0'),
+    // The shield: eight folded planks in two tones, an iron rim and a bronze boss.
+    ...Array.from({ length: 8 }, (_, k) => {
+      const a0 = (k / 8) * Math.PI * 2, a1 = ((k + 1) / 8) * Math.PI * 2, R = 78;
+      return poly([[150, 165], [150 + Math.cos(a0) * R, 165 + Math.sin(a0) * R], [150 + Math.cos(a1) * R, 165 + Math.sin(a1) * R]], k % 2 ? '#7a2a22' : '#d8ccb0');
+    }),
+    `<circle cx="150" cy="165" r="78" fill="none" stroke="#3a3632" stroke-width="5"/>`,
+    `<circle cx="150" cy="165" r="13" fill="#b07a3e"/>`,
+    // The horn: a gilded curve in tapering facets, banded in bronze.
+    ...Array.from({ length: 7 }, (_, k) => {
+      const t0 = k / 7, t1 = (k + 1) / 7;
+      const pt = (t: number, r: number) => [92 + t * 120, 236 - Math.sin(t * Math.PI * 0.9) * 46 - r];
+      const w0 = 18 * (1 - t0 * 0.85), w1 = 18 * (1 - t1 * 0.85);
+      return poly([pt(t0, w0), pt(t1, w1), pt(t1, -w1 * 0.4), pt(t0, -w0 * 0.4)], k % 2 ? G[1] : G[0]);
+    }),
+    poly([[88, 216], [96, 216], [100, 258], [84, 258]], G[3]),
+    poly([[70, 258], [130, 258], [138, 270], [62, 270]], '#2a2420'),
   ];
   svg += `<g class="trophy">${cup.join('')}</g>`;
   // Podium steps.

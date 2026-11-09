@@ -47,7 +47,7 @@ export class TouchControls {
     this.el.innerHTML = `
       <button class="left" data-c="left" aria-label="Steer left">${ARROW(-1)}</button>
       <button class="right" data-c="right" aria-label="Steer right">${ARROW(1)}</button>
-      <button class="boost" data-c="boost">BOOST</button>
+      <button class="boost" data-c="boost">GALE</button>
       <button class="brake" data-c="brake">BRAKE</button>
       <button class="pause" data-pause aria-label="Pause"><svg viewBox="0 0 10 10"><path d="M2 1h2v8H2zM6 1h2v8H6z"/></svg></button>`;
     document.body.append(this.el);
