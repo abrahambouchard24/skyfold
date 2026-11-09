@@ -1,6 +1,6 @@
 // Everything drawn to the canvas. Reads game state, never changes it.
 
-import { Craft, GEARS, clamp } from './craft';
+import { Craft, clamp } from './craft';
 import { drawGround as drawSceneryGround, drawOverlays, drawProps, groundMoves, View } from './scenery';
 import { COOL_LANE, HALF_WIDTH, KERB_WIDTH, RaceState, Track, WALL_DIST, WALL_THICKNESS } from './track';
 
@@ -603,7 +603,7 @@ function drawLapPanel(ctx: CanvasRenderingContext2D, race: RaceState, now: numbe
     x + (hud.sprint ? 46 : 50), y + 30);
   ctx.textAlign = 'right';
   ctx.fillStyle = hud.position === 1 ? '#e3b26c' : '#fff';
-  ctx.fillText(`P${hud.position}`, x + 204, y + 30);
+  ctx.fillText(['1ST', '2ND', '3RD'][hud.position - 1] ?? `${hud.position}TH`, x + 204, y + 30);
   ctx.font = '600 13px system-ui, sans-serif';
   ctx.fillStyle = '#a89d8a';
   ctx.fillText(`/${hud.racers}`, x + 204, y + 46);
@@ -1128,11 +1128,6 @@ function drawHud(ctx: CanvasRenderingContext2D, w: number, h: number, c: Craft, 
     ctx.globalAlpha = 1;
   }
 
-  // Gear pips.
-  for (let i = 0; i < GEARS.length; i++) {
-    ctx.fillStyle = i <= c.gear ? '#8fd0e0' : '#2a3060';
-    ctx.fillRect(x + 168 + i * 11, y + 34, 8, 4);
-  }
   ctx.restore();
 
   if (toast && toast.t > 0) {
@@ -1147,7 +1142,7 @@ function drawHud(ctx: CanvasRenderingContext2D, w: number, h: number, c: Craft, 
 
   ctx.font = '500 13px system-ui, sans-serif';
   ctx.fillStyle = 'rgba(224,214,194,0.7)';
-  const help = 'A / D or ← / →: steer   S / ↓ / Space: brake   W / ↑ / Shift: boost   Hold R: restart   Esc: pause';
+  const help = 'A / D or ← / →: steer   S / ↓ / Space: brake   W / ↑ / Shift: breathe fire   Hold R: restart   Esc: pause';
   if (!touch) ctx.fillText(help, 16, h - 16);
   ctx.restore();
 }
