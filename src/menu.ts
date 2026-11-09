@@ -592,16 +592,16 @@ const svgWrap = (svg: string) => `<svg class="paper" viewBox="0 0 300 440" prese
 const SCENE_FLOCK = (() => {
   // A grey-blue northern sky, green folded hills with a turf-roofed longhouse, a meadow of sheep
   // behind a timber fence (a dragon carrying one off is laid over it as an image).
-  let svg = pleatBand(0, 90, '#33475a', 8, 21) + pleatBand(90, 170, '#5a7280', 8, 22);
-  svg += ridge(60, 220, 70, 210, '#4f6a3a') + ridge(250, 200, 90, 210, '#3e5a30');
+  let svg = pleatBand(0, 90, '#28384a', 8, 21) + pleatBand(90, 170, '#46606e', 8, 22);
+  svg += ridge(60, 220, 70, 210, '#3e5432') + ridge(250, 200, 90, 210, '#30442a');
   // The longhouse on the hill: timber walls, a turf roof folded along its ridge, smoke.
-  svg += poly([[196, 168], [262, 168], [262, 192], [196, 192]], '#5a3f2a') + poly([[190, 170], [229, 146], [268, 170]], '#4f6a3a') + poly([[229, 146], [268, 170], [248, 170]], '#3e5530');
+  svg += poly([[196, 168], [262, 168], [262, 192], [196, 192]], '#5a3f2a') + poly([[190, 170], [229, 146], [268, 170]], '#3e5432') + poly([[229, 146], [268, 170], [248, 170]], '#2e4228');
   svg += poly([[224, 192], [234, 192], [234, 178], [224, 178]], '#2a1c12');
-  svg += poly([[-10, 206], [310, 200], [310, 440], [-10, 440]], '#3e5a30') + poly([[-10, 206], [310, 200], [160, 270]], '#4a6a38');
+  svg += poly([[-10, 206], [310, 200], [310, 440], [-10, 440]], '#30442a') + poly([[-10, 206], [310, 200], [160, 270]], '#3a5230');
   // Timber fence.
   for (let x = -6; x < 310; x += 26) svg += poly([[x, 300], [x + 5, 296], [x + 5, 336], [x, 338]], '#5a3f2a');
   svg += poly([[-10, 308], [310, 302], [310, 307], [-10, 313]], '#6b4c32') + poly([[-10, 322], [310, 316], [310, 321], [-10, 327]], '#6b4c32');
-  for (const [x, y, k, fl] of [[40, 262, 1, false], [96, 274, 0.9, true], [210, 258, 0.85, false], [256, 278, 1.05, true], [150, 286, 1, false], [70, 352, 1.2, true], [232, 360, 1.25, false]] as const) svg += paperSheep(x, y, k, fl);
+  for (const [x, y, k, fl] of [[62, 268, 1.1, false], [118, 280, 1, true], [228, 272, 1.15, true]] as const) svg += paperSheep(x, y, k, fl);
   // The carried sheep, up under where the dragon flies.
   svg += `<g class="lift">${paperSheep(156, 168, 0.85)}</g>`;
   return svgWrap(svg);
@@ -632,7 +632,7 @@ const SCENE_DAILY = (() => {
   const cx = 150, cy = 210;
   for (let k = 0; k < 14; k++) {
     const a0 = Math.PI + (k / 14) * Math.PI, a1 = Math.PI + ((k + 1) / 14) * Math.PI, R = 150;
-    svg += poly([[cx, cy], [cx + Math.cos(a0) * R, cy + Math.sin(a0) * R], [cx + Math.cos(a1) * R, cy + Math.sin(a1) * R]], k % 2 ? 'rgba(255,220,160,0.10)' : 'rgba(255,220,160,0.04)');
+    svg += poly([[cx, cy], [cx + Math.cos(a0) * R, cy + Math.sin(a0) * R], [cx + Math.cos(a1) * R, cy + Math.sin(a1) * R]], k % 2 ? 'rgba(255,220,160,0.07)' : 'rgba(255,220,160,0.02)');
   }
   svg += ridge(30, 160, 50, 262, '#3a4650') + ridge(270, 180, 66, 262, '#2e3a44');
   svg += poly([[-10, 260], [310, 260], [310, 440], [-10, 440]], '#1f2428');
@@ -652,59 +652,64 @@ const SCENE_DAILY = (() => {
 })();
 
 const SCENE_TUTORIAL = (() => {
-  // A parchment unrolled on a timber table: a curving flight path drawn in ink round a standing
-  // stone, and the keys marked in the margin.
-  let svg = pleatBand(0, 440, '#2a221c', 6, 51);
-  svg += poly([[34, 70], [266, 60], [272, 330], [28, 340]], '#e6dcc4') + poly([[34, 70], [150, 65], [150, 335], [28, 340]], '#ded2b6');
-  svg += poly([[20, 62], [44, 58], [46, 76], [22, 80]], '#8a6a48') + poly([[256, 318], [280, 314], [282, 334], [258, 338]], '#8a6a48');
-  svg += `<path d="M70 300 C 80 200, 220 230, 200 150 S 120 90, 90 120" fill="none" stroke="#3a2a1c" stroke-width="3" stroke-dasharray="7 6" stroke-linecap="round"/>`;
-  svg += poly([[90, 120], [104, 110], [101, 126]], '#3a2a1c');
-  svg += poly([[160, 178], [172, 176], [174, 214], [158, 216]], '#7d7a74');
-  const key = (x: number, y: number, t: string) => poly([[x, y], [x + 26, y], [x + 26, y + 24], [x, y + 24]], '#4a3a2a') + `<text x="${x + 13}" y="${y + 17}" text-anchor="middle" font-family="Georgia, serif" font-weight="bold" font-size="14" fill="#e6dcc4">${t}</text>`;
-  svg += key(196, 262, 'W') + key(168, 290, 'A') + key(196, 290, 'S') + key(224, 290, 'D');
+  // Night teal paper, a standing stone, and a flight path curling round it in dotted gold, the way
+  // the regular windows draw a road or a flight: one motif, quiet colours. The keys sit below as
+  // small timber tiles.
+  let svg = pleatBand(0, 440, '#22303a', 6, 51);
+  svg += ridge(70, 200, 60, 250, '#2e3a44') + ridge(240, 180, 46, 250, '#26323a');
+  svg += poly([[-10, 248], [310, 248], [310, 440], [-10, 440]], '#1c2228') + poly([[-10, 248], [310, 248], [150, 300]], '#232a30');
+  // The stone, folded in two faces.
+  svg += poly([[138, 246], [150, 150], [156, 246]], '#8a867e') + poly([[156, 246], [150, 150], [168, 158], [172, 246]], '#5f5c56');
+  svg += `<path d="M40 250 C 60 120, 250 130, 220 196 S 110 230, 120 120" fill="none" stroke="#c98b3e" stroke-width="2.4" stroke-dasharray="2 8" stroke-linecap="round"/>`;
+  svg += poly([[120, 120], [112, 134], [128, 132]], '#e0a861');
+  const key = (x: number, y: number, t: string) =>
+    poly([[x, y], [x + 26, y], [x + 26, y + 24], [x, y + 24]], '#3a2a1e') + poly([[x, y], [x + 26, y], [x + 22, y + 4], [x + 4, y + 4]], '#4a3626')
+    + `<text x="${x + 13}" y="${y + 17}" text-anchor="middle" font-family="Georgia, serif" font-size="13" fill="#e6c08a">${t}</text>`;
+  void key;   // (the keys sat under the caption; the window reads better without them)
   return svgWrap(svg);
 })();
 
 const SCENE_HOARD = (() => {
-  // A dark cave, a heap of gold in folded facets, an open iron-bound chest glowing, shields leaning.
-  let svg = pleatBand(0, 440, '#1c1a18', 7, 61);
-  svg += `<ellipse cx="150" cy="300" rx="160" ry="90" fill="rgba(224,168,97,0.10)"/>`;
+  // Dark stone, and one folded mound of gold under a faint glow, a round shield resting on it:
+  // a single motif, like the Saga's shield and horn.
+  let svg = pleatBand(0, 440, '#24201c', 6, 61);
+  svg += `<ellipse cx="150" cy="250" rx="130" ry="110" fill="rgba(224,168,97,0.08)"/>`;
+  const G = ['#f0c890', '#d6a462', '#b07a3e', '#8a5a2b'];
+  // The mound: a fan of folded gold planes from a peak, alternating light and shade.
+  const peak = [150, 196], base = 318;
+  const xs = [30, 62, 96, 128, 150, 172, 204, 238, 270];
+  for (let k = 0; k < xs.length - 1; k++) svg += poly([peak, [xs[k], base], [xs[k + 1], base]], G[k < 4 ? k % 2 : 2 + (k % 2)]);
+  // A few coins catching the light along the slopes.
   const r = seeded(62);
-  // The heap's body first (a folded mound in two tones), then coins scattered all over it.
-  svg += poly([[20, 362], [90, 262], [150, 222], [210, 258], [282, 362]], '#a8743a') + poly([[150, 222], [210, 258], [282, 362], [150, 362]], '#8a5a2b');
-  for (let k = 0; k < 190; k++) {
-    const t = r(), x = 20 + t * 260, top = 362 - Math.sin(t * Math.PI) * 138, y = top + r() * (366 - top);
-    svg += poly([[x - 8, y], [x, y - 5], [x + 8, y], [x, y + 3]], shade('#d6a462', 0.7 + r() * 0.6));
+  for (let k = 0; k < 18; k++) {
+    const t = r(), x = 50 + t * 200, y = base - Math.sin(t * Math.PI) * 100 * r() - 6;
+    svg += poly([[x - 6, y], [x, y - 4], [x + 6, y], [x, y + 2]], k % 3 ? '#f0c890' : '#fff0c8');
   }
-  svg += poly([[10, 360], [290, 360], [310, 440], [-10, 440]], '#2a2420');
-  // The chest: lid thrown back, gold inside.
-  svg += poly([[110, 268], [190, 268], [190, 318], [110, 318]], '#5a3f2a') + poly([[110, 268], [190, 268], [182, 232], [118, 232]], '#4a3322');
-  svg += poly([[114, 268], [186, 268], [178, 260], [122, 260]], '#e8bf7a');
-  for (const x of [118, 146, 174]) svg += poly([[x, 268], [x + 6, 268], [x + 6, 318], [x, 318]], '#3a3632');
-  // Shields leaning against the heap.
-  for (const [x, y, c] of [[52, 300, '#a8342a'], [250, 296, '#2c4a55'], [212, 334, '#d8ccb4']] as const) {
-    for (let k = 0; k < 8; k++) {
-      const a0 = (k / 8) * Math.PI * 2, a1 = ((k + 1) / 8) * Math.PI * 2, R = 26;
-      svg += poly([[x, y], [x + Math.cos(a0) * R, y + Math.sin(a0) * R * 1.05], [x + Math.cos(a1) * R, y + Math.sin(a1) * R * 1.05]], k % 2 ? c : shade(c, 0.8));
-    }
-    svg += `<circle cx="${x}" cy="${y}" r="6" fill="#b07a3e"/>`;
+  svg += poly([[-10, 316], [310, 316], [310, 440], [-10, 440]], '#1c1916') + poly([[-10, 316], [310, 316], [150, 350]], '#221e1a');
+  // The shield leaning on the hoard.
+  const sx = 206, sy = 270, R = 40;
+  for (let k = 0; k < 8; k++) {
+    const a0 = (k / 8) * Math.PI * 2, a1 = ((k + 1) / 8) * Math.PI * 2;
+    svg += poly([[sx, sy], [sx + Math.cos(a0) * R, sy + Math.sin(a0) * R], [sx + Math.cos(a1) * R, sy + Math.sin(a1) * R]], k % 2 ? '#7a2a22' : '#d8ccb0');
   }
+  svg += `<circle cx="${sx}" cy="${sy}" r="${R}" fill="none" stroke="#3a3632" stroke-width="4"/><circle cx="${sx}" cy="${sy}" r="8" fill="#b07a3e"/>`;
   return svgWrap(svg);
 })();
 
 const SCENE_SETTINGS = (() => {
-  // The smithy: a forge glowing at the back, an anvil on a stump, a hammer leaning against it.
+  // The smith's anvil, folded from iron paper, under the warm glow of a forge, embers rising: one
+  // motif on dark paper, like the other windows.
   let svg = pleatBand(0, 440, '#22201e', 6, 71);
-  svg += poly([[40, 90], [260, 90], [250, 230], [50, 230]], '#3a3632') + poly([[70, 140], [230, 140], [222, 220], [78, 220]], '#1a1210');
-  svg += `<ellipse class="forge" cx="150" cy="200" rx="70" ry="26" fill="#ff8a3d" opacity="0.55"/>`;
-  svg += poly([[90, 196], [210, 196], [200, 220], [100, 220]], '#e0581e');
-  svg += poly([[-10, 300], [310, 300], [310, 440], [-10, 440]], '#2a2420');
-  // Stump and anvil.
-  svg += poly([[110, 330], [190, 330], [186, 400], [114, 400]], '#5a3f2a') + `<ellipse cx="150" cy="330" rx="40" ry="8" fill="#7a5a3a"/>`;
-  svg += poly([[96, 290], [200, 290], [212, 300], [188, 304], [176, 324], [124, 324], [116, 304], [84, 300]], '#4a4642');
-  svg += poly([[96, 290], [200, 290], [212, 300], [84, 300]], '#6a6662');
-  // The hammer, leaning.
-  svg += poly([[224, 396], [230, 396], [254, 300], [248, 298]], '#6b4c32') + poly([[236, 290], [266, 298], [262, 312], [232, 304]], '#3a3632');
+  svg += `<ellipse class="forge" cx="150" cy="200" rx="120" ry="90" fill="rgba(255,138,61,0.16)"/>`;
+  svg += poly([[-10, 300], [310, 300], [310, 440], [-10, 440]], '#1c1916') + poly([[-10, 300], [310, 300], [150, 336]], '#221e1a');
+  // Anvil: the face, the horn reaching left, the waist and the foot, each a folded plane.
+  svg += poly([[100, 214], [214, 214], [214, 232], [100, 232]], '#6a6662');           // face
+  svg += poly([[100, 214], [214, 214], [208, 208], [106, 208]], '#8a8680');           // top edge catching the glow
+  svg += poly([[100, 214], [100, 232], [52, 220]], '#5a5652') + poly([[100, 214], [52, 220], [100, 208]], '#7a7670');   // horn
+  svg += poly([[124, 232], [190, 232], [176, 270], [138, 270]], '#4a4642');           // waist
+  svg += poly([[114, 270], [200, 270], [210, 300], [104, 300]], '#3a3632') + poly([[114, 270], [157, 270], [150, 300], [104, 300]], '#46423e');
+  // The hammer resting across the face.
+  svg += poly([[150, 204], [236, 178], [238, 184], [152, 210]], '#6b4c32') + poly([[232, 166], [252, 172], [246, 194], [226, 188]], '#3a3632');
   return svgWrap(svg);
 })();
 
