@@ -3,6 +3,15 @@
 
 import { ACHIEVEMENTS, Achievement, Progress, SKINS, progressOf, skinUnlocked } from './achievements';
 import { installDeco } from './deco';
+import { HAIR_COLORS, RIDER_PARTS, choiceUnlocked, type RiderLook } from './rider';
+
+/** What the Hoard needs to dress the player's rider. */
+export interface RiderControls {
+  look: RiderLook;
+  /** A picture of the rider in this look ('' if it can't be drawn). */
+  preview(look: RiderLook): string;
+  save(look: RiderLook): void;
+}
 
 const CSS = `
 .gr-card { width: min(980px, calc(100% - 32px)); margin: auto; padding: 26px 30px; text-align: left; }
@@ -29,6 +38,18 @@ const CSS = `
 .gr-a small { color: #a89d8a; font-size: 11px; }
 .gr-a .bar { height: 2px; background: rgba(168,116,58,0.2); margin-top: 5px; }
 .gr-a .bar i { display: block; height: 100%; background: #8fd0e0; box-shadow: 0 0 8px #8fd0e0; }
+.gr-rider { display: grid; grid-template-columns: minmax(220px, 340px) 1fr; gap: 18px; align-items: center; }
+@media (max-width: 720px) { .gr-rider { grid-template-columns: 1fr; } }
+.gr-rider .pic { width: 100%; aspect-ratio: 7 / 5; object-fit: contain; border-radius: 4px; border: 1px solid rgba(168,116,58,0.3);
+  background: radial-gradient(ellipse at 50% 60%, rgba(224,168,97,0.16), rgba(20,16,12,0.9) 70%); }
+.gr-part { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; flex-wrap: wrap; }
+.gr-part > span { width: 64px; color: #c98b3e; font: 600 11px 'Alegreya Sans SC', 'Alegreya Sans', sans-serif; letter-spacing: 0.2em; }
+.gr-part button { padding: 6px 10px; border-radius: 3px; border: 1px solid #4a3a2a; background: linear-gradient(180deg, #3a2a1e, #261b13); color: #d8ccb0;
+  font: 600 11px 'Alegreya Sans SC', 'Alegreya Sans', sans-serif; letter-spacing: 0.1em; cursor: pointer; }
+.gr-part button:hover:not(:disabled) { border-color: #b07a3e; color: #fff; }
+.gr-part button.on { border-color: #8fd0e0; color: #f1f8fa; background: linear-gradient(180deg, #2c4a55, #1b2c33); }
+.gr-part button:disabled { opacity: 0.45; cursor: default; }
+.gr-part button i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(0,0,0,0.5); }
 .gr-rec { display: flex; gap: 22px; flex-wrap: wrap; }
 .gr-rec div b { display: block; font: 700 28px 'Cinzel', Georgia, serif; color: #f1e6d0; }
 .gr-rec div small { color: #a8743a; font-weight: 700; letter-spacing: 0.14em; font-size: 11px; }
@@ -63,7 +84,21 @@ export class GarageUI {
    * The collection: every skin and how to earn it (they're picked on the car selection screens).
    * pictures: each skin's 3D picture by skin id (colour swatches are shown where there isn't one).
    */
-  open(p: Progress, onClose: () => void, pictures: Record<string, string> = {}): void {
+  open(p: Progress, onClose: () => void, pictures: Record<string, string> = {}, rider?: RiderControls): void {
+    let look = rider ? { ...rider.look } : null;
+    let riderPic = rider && look ? rider.preview(look) : '';
+    const riderHtml = () => {
+      if (!rider || !look) return '';
+      const parts = RIDER_PARTS.map((part) => `<div class="gr-part"><span>${part.label}</span>${part.choices.map((c) => {
+        const open = choiceUnlocked(p, c);
+        const on = String(look![part.key]) === c.id;
+        const how = c.unlock ? ACHIEVEMENTS.find((a) => a.id === c.unlock)?.name : '';
+        const dot = part.key === 'hair' ? `<i style="background:${HAIR_COLORS[Number(c.id)]}"></i>` : '';
+        return `<button data-part="${part.key}" data-choice="${c.id}" class="${on ? 'on' : ''}" ${open ? '' : `disabled title="Earn ${how}"`}>${dot}${open ? '' : '🔒 '}${c.name}</button>`;
+      }).join('')}</div>`).join('');
+      return `<div class="gr-sub deco-label">YOUR RIDER · SOME PIECES ARE EARNED WITH DEEDS</div>
+        <div class="gr-rider">${riderPic ? `<img class="pic" src="${riderPic}" alt="">` : '<div></div>'}<div>${parts}</div></div>`;
+    };
     const render = () => {
       const skins = SKINS.filter((s) => s.colors).map((s) => {
         const owned = skinUnlocked(p, s.id);
@@ -85,6 +120,7 @@ export class GarageUI {
         <div class="gr-card deco-panel">
           <h2 class="deco-title">HOARD</h2>
           <div class="deco-rule"></div>
+          ${riderHtml()}
           <div class="gr-sub deco-label">SKINS · EARN THEM WITH DEEDS, WEAR THEM WHEN YOU CHOOSE YOUR DRAGON</div>
           <div class="gr-skins">${skins}</div>
           <div class="gr-sub deco-label">DEEDS · ${got} / ${ACHIEVEMENTS.length}</div>
@@ -97,6 +133,16 @@ export class GarageUI {
           <div class="hr-btns row" style="margin-top:20px"><button class="hr-btn" data-done>DONE</button></div>
         </div>`;
       this.el.querySelector('[data-done]')!.addEventListener('click', () => { this.el.classList.add('hidden'); onClose(); });
+      this.el.querySelectorAll<HTMLButtonElement>('[data-part]').forEach((b) => b.addEventListener('click', () => {
+        if (!rider || !look) return;
+        const key = b.dataset.part as keyof RiderLook, v = b.dataset.choice!;
+        look = { ...look, [key]: key === 'hair' ? Number(v) : v } as RiderLook;
+        rider.save(look);
+        riderPic = rider.preview(look);
+        const scroll = this.el.scrollTop;
+        render();
+        this.el.scrollTop = scroll;
+      }));
     };
     render();
     this.el.classList.remove('hidden');

@@ -1,5 +1,6 @@
 // Start screen (car, track, laps and season setup), pause menu and race results: plain DOM
 // overlays on top of the canvas.
+import { traitsForName } from './species';
 import { installDeco } from './deco';
 
 /** An unlocked skin, offered as a card beside the cars. */
@@ -419,6 +420,9 @@ const CSS = `
 .hr-seg button.on { background: linear-gradient(180deg, #c4ecf5, #8fd0e0); color: #120e0b; box-shadow: none; }
 .hr-results td.pos { font-family: 'Uncial Antiqua', Georgia, serif; color: #e6c08a; }
 .hr-standings-head, .hr-note { font-family: 'Uncial Antiqua', Georgia, serif; letter-spacing: 0.1em; }
+.hr-car .hr-species { display: block; margin-top: 3px; font: 600 9px 'Alegreya Sans SC', 'Alegreya Sans', sans-serif; font-style: normal; letter-spacing: 0.18em; color: #a89d8a; }
+.hr-car .hr-species i { display: block; font-style: normal; color: #c9b48e; letter-spacing: 0.1em; margin-top: 1px; }
+.ol-cars .hr-car .hr-species { font-size: 8px; } .ol-cars .hr-car .hr-species i { display: none; }
 
 /* The front menu as a carousel: four windows to a page, scrolling sideways and snapping. */
 .hr-carousel { position: relative; width: min(1240px, calc(100% - 32px)); margin: 0 auto; }
@@ -1137,5 +1141,7 @@ function overlay(html: string): HTMLDivElement {
 /** The inside of a car selection card: number, the car's 3D model and its name. */
 export function cardFace(car: CarChoice): string {
   const [num, ...rest] = car.name.split(' ');
-  return `<b>${num}</b><img src="${car.card ?? car.url}" alt=""><span style="color:${car.color}">${rest.join(' ') || num}</span>`;
+  const t = traitsForName(car.name);
+  return `<b>${num}</b><img src="${car.card ?? car.url}" alt=""><span style="color:${car.color}">${rest.join(' ') || num}</span>`
+    + (t ? `<em class="hr-species">${t.species}<i>${t.trait}</i></em>` : '');
 }

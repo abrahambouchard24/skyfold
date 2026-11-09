@@ -51,6 +51,10 @@ export function loadSprite(url: string, height = 256): Sprite {
 /** An unlockable colour scheme for a car (overrides its livery colours; null = stock livery). */
 export interface CarSkin { body: string; trim: string; accent: string; glow: string; pattern?: string }
 export interface Car { craft: Craft; race: RaceState; sprite: Sprite; color: string; hue: number; name: string; skin?: CarSkin | null;
+  /** Which of the six dragons this is (the livery index), so the right species shows whoever rides it. */
+  kind?: number;
+  /** The rider's look (the player's own from the Hoard; rivals get one from their name). */
+  rider?: import('./rider').RiderLook;
   /** A Time Trial ghost: drawn see-through, never raced against. */
   ghost?: boolean }
 

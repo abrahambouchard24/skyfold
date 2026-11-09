@@ -9,7 +9,7 @@ import * as THREE from 'three';
 import { CRAFT_LENGTH, type Camera, type Car, type Particle } from './render';
 import { COOL_LANE, HALF_WIDTH, KERB_WIDTH, Track, WALL_DIST, WALL_THICKNESS } from './track';
 import { groundCanvas, groundMoves, sceneryFor, type Prop } from './scenery';
-import { DragonRig, FLY_HEIGHT } from './dragon';
+import { DragonRig, FLY_HEIGHT, speciesFor } from './dragon';
 import { drawPathIcon, type PathIcon } from './pathicons';
 import { liveryMetal, liveryPainter, type Face, type Kind, type Painted } from './liveries';
 import * as LIVERIES_MOD from './liveries';
@@ -2964,4 +2964,40 @@ export function renderCarCards(cars: { color: string; name: string; hue: number;
   renderer.dispose();
   renderer.forceContextLoss();
   return out;
+}
+
+/**
+ * A close-up of a rider on its dragon, for the Hoard: the dragon gliding, seen from the front left
+ * at saddle height. Returns a PNG data URL ('' without WebGL).
+ */
+export function renderRiderPreview(car: { color: string; name: string; hue: number; kind?: number; skin?: Car['skin']; rider?: Car['rider'] }, w = 420, h = 300): string {
+  let renderer: THREE.WebGLRenderer;
+  try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true }); } catch { return ''; }
+  renderer.setSize(w, h, false);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.setClearColor(0x000000, 0);
+  const scene = new THREE.Scene();
+  scene.add(new THREE.HemisphereLight(0xfff4e0, 0x2a2420, 1.7));
+  const key = new THREE.DirectionalLight(0xffffff, 2.2);
+  key.position.set(1, 1.6, 0.8);
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0xffc890, 1.0);
+  rim.position.set(-1.2, 0.6, -1);
+  scene.add(rim);
+  const stub = { craft: { pos: { x: 0, y: 0 }, heading: 0, speed: 600, alt: 0, thrust: 0, braking: false, deploying: false, carving: 0 }, race: { lapStart: 0 } };
+  const rig = new DragonRig({ ...car, ...stub } as unknown as Car);
+  rig.pose({ ...car, ...stub } as unknown as Car);
+  scene.add(rig.root);
+  const sp = speciesFor(car);
+  const tx = sp.body * 0.3, ty = FLY_HEIGHT + sp.girth * 0.9 + 6;
+  const camera = new THREE.PerspectiveCamera(28, w / h, 1, 2000);
+  camera.position.set(tx + 50, ty + 15, 26);   // ahead of the rider and a little to its right, above the wing
+  camera.lookAt(tx, ty - 0.5, -0.5);
+  renderer.render(scene, camera);
+  const url = renderer.domElement.toDataURL('image/png');
+  scene.remove(rig.root);
+  dispose(rig.root);
+  renderer.dispose();
+  renderer.forceContextLoss();
+  return url;
 }

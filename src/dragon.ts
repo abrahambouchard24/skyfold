@@ -15,6 +15,7 @@ import * as THREE from 'three';
 import { clamp, wrapAngle } from './craft';
 import type { Car } from './render';
 import { liveryPainter, type Face, type Kind, type Painter } from './liveries';
+import { HAIR_COLORS, riderFromName, type RiderLook } from './rider';
 
 type V3 = [number, number, number];
 
@@ -48,7 +49,8 @@ export const SPECIES: Species[] = [
 ];
 
 /** The species for a racer: by its number (01-06), else by name. */
-export function speciesFor(car: { name: string }): Species {
+export function speciesFor(car: { name: string; kind?: number }): Species {
+  if (car.kind !== undefined) return SPECIES[car.kind % SPECIES.length];
   const n = parseInt(car.name, 10);
   return SPECIES[(Number.isFinite(n) && n > 0 ? n - 1 : 0) % SPECIES.length];
 }
@@ -383,6 +385,7 @@ export class DragonRig {
    * the reins, a round shield slung at the side and a cloak in the dragon's colour.
    */
   private buildRider(car: Car, L: number, G: number): void {
+    const look: RiderLook = car.rider ?? riderFromName(car.name);
     const h = [...car.name].reduce((a, ch) => a * 33 + ch.charCodeAt(0), 5) >>> 0;
     const pick = <T,>(arr: T[], salt: number): T => arr[(h >>> salt) % arr.length];
     const team = new THREE.Color(car.skin?.body ?? car.color);
@@ -390,8 +393,8 @@ export class DragonRig {
     const trousers = new THREE.Color('#2e2822');
     const fur = new THREE.Color(pick(['#8a7a66', '#6e6052', '#a49480'], 4));
     const skinC = new THREE.Color(pick(['#e0b896', '#c99a74', '#f0caa8'], 7));
-    const beard = new THREE.Color(pick(['#c26a2e', '#d9b26a', '#5a3a22', '#9a948a', '#e8d8a0'], 10));
-    const iron = new THREE.Color('#6a6662'), leather = new THREE.Color('#4a3020');
+    const hair = new THREE.Color(HAIR_COLORS[look.hair] ?? HAIR_COLORS[0]);
+    const iron = new THREE.Color('#6a6662'), leather = new THREE.Color('#4a3020'), dark = new THREE.Color('#2a2724');
 
     const rider = new THREE.Group();
     rider.position.set(L * 0.27, G * 0.88, 0);
@@ -410,12 +413,26 @@ export class DragonRig {
       prism(seat, [2.2, -0.6, z * 3.1], [0.6, -2.8, z * 3.0], 0.9, trousers);
       prism(seat, [0.6, -2.8, z * 3.0], [1.8, -3.2, z * 3.0], 0.75, leather);
     }
-    // The round shield slung on the left: painted boards in the dragon's colour round a bronze boss.
+    // The round shield slung on the left, painted to the rider's design round a bronze boss.
+    const wedge = (k: number): THREE.Color => {
+      switch (look.shield) {
+        case 'halves': return k < 4 ? team : IVORY;
+        case 'quartered': return k % 4 < 2 ? team : IVORY;
+        case 'spiral': return [team, IVORY, dark][k % 3];
+        case 'raven': return dark;
+        default: return k % 2 ? team : IVORY;
+      }
+    };
     for (let k = 0; k < 8; k++) {
       const a0 = (k / 8) * Math.PI * 2, a1 = ((k + 1) / 8) * Math.PI * 2, R = 2.8;
-      seat.tri([-1.4, 0.6, -3.9], [-1.4 + Math.cos(a0) * R, 0.6 + Math.sin(a0) * R, -3.9], [-1.4 + Math.cos(a1) * R, 0.6 + Math.sin(a1) * R, -3.9], k % 2 ? team : IVORY);
+      seat.tri([-1.4, 0.6, -3.9], [-1.4 + Math.cos(a0) * R, 0.6 + Math.sin(a0) * R, -3.9], [-1.4 + Math.cos(a1) * R, 0.6 + Math.sin(a1) * R, -3.9], wedge(k));
     }
-    seat.tri([-1.4, 1.1, -4.1], [-1.9, 0.3, -4.1], [-0.9, 0.3, -4.1], GOLD);
+    if (look.shield === 'raven') {
+      // A raven in flight painted in bone on the black field: two swept wings and a body.
+      seat.tri([-1.4, 0.9, -4.0], [-3.4, 1.9, -4.0], [-2.0, 0.5, -4.0], IVORY);
+      seat.tri([-1.4, 0.9, -4.0], [0.6, 1.9, -4.0], [-0.8, 0.5, -4.0], IVORY);
+      seat.tri([-1.0, 1.1, -4.0], [-1.8, 1.1, -4.0], [-1.4, -1.0, -4.0], IVORY);
+    } else seat.tri([-1.4, 1.1, -4.1], [-1.9, 0.3, -4.1], [-0.9, 0.3, -4.1], GOLD);
     rider.add(seat.mesh());
 
     // The upper body pivots at the hips, to lean and crouch.
@@ -432,16 +449,43 @@ export class DragonRig {
       prism(up, [2.8, 2.4, z * 2.1], [4.4, 2.0, z * 1.4], 0.7, fur);
       prism(up, [4.4, 2.0, z * 1.4], [5.0, 2.0, z * 1.2], 0.55, leather);   // gloves
     }
-    // Head: a faceted ball of skin, the beard below, the helm above with its nose guard.
+    // Head.
     const hx = 1.3, hy = 6.3;
     prism(up, [hx, hy - 1.2, 0], [hx, hy + 0.9, 0], 1.25, skinC);
-    up.tri([hx + 1.1, hy - 0.4, -1.0], [hx + 1.1, hy - 0.4, 1.0], [hx + 1.6, hy - 2.6, 0], beard);
-    up.tri([hx + 1.1, hy - 0.4, 1.0], [hx + 0.2, hy - 0.8, 1.2], [hx + 1.6, hy - 2.6, 0], beard);
-    up.tri([hx + 0.2, hy - 0.8, -1.2], [hx + 1.1, hy - 0.4, -1.0], [hx + 1.6, hy - 2.6, 0], beard);
-    const ring: V3[] = [];
-    for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI * 2; ring.push([hx + Math.cos(a) * 1.55, hy + 0.3, Math.sin(a) * 1.55]); }
-    for (let k = 0; k < 6; k++) up.tri(ring[k], ring[(k + 1) % 6], [hx, hy + 2.3, 0], iron);
-    up.quad([hx + 1.5, hy + 0.4, -0.25], [hx + 1.5, hy + 0.4, 0.25], [hx + 1.7, hy - 1.0, 0.2], [hx + 1.7, hy - 1.0, -0.2], iron);   // nose guard
+    // Beard.
+    if (look.beard !== 'none') {
+      const tip = look.beard === 'short' ? hy - 1.7 : hy - 2.6;
+      up.tri([hx + 1.1, hy - 0.4, -1.0], [hx + 1.1, hy - 0.4, 1.0], [hx + 1.6, tip, 0], hair);
+      up.tri([hx + 1.1, hy - 0.4, 1.0], [hx + 0.2, hy - 0.8, 1.2], [hx + 1.6, tip, 0], hair);
+      up.tri([hx + 0.2, hy - 0.8, -1.2], [hx + 1.1, hy - 0.4, -1.0], [hx + 1.6, tip, 0], hair);
+      if (look.beard === 'braided') {
+        prism(up, [hx + 1.6, tip + 0.3, 0], [hx + 1.9, tip - 1.6, 0], 0.32, hair);
+        up.tri([hx + 1.7, tip - 1.4, -0.4], [hx + 1.7, tip - 1.4, 0.4], [hx + 2.0, tip - 1.9, 0], GOLD);   // a gold bead
+      }
+    }
+    // Headgear.
+    if (look.helm === 'cone' || look.helm === 'spectacle') {
+      const ring: V3[] = [];
+      for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI * 2; ring.push([hx + Math.cos(a) * 1.55, hy + 0.3, Math.sin(a) * 1.55]); }
+      for (let k = 0; k < 6; k++) up.tri(ring[k], ring[(k + 1) % 6], [hx, hy + 2.3, 0], iron);
+      up.quad([hx + 1.5, hy + 0.4, -0.25], [hx + 1.5, hy + 0.4, 0.25], [hx + 1.7, hy - 1.0, 0.2], [hx + 1.7, hy - 1.0, -0.2], iron);   // nose guard
+      if (look.helm === 'spectacle') {
+        // The masked helm: rounded guards over both eyes, joined to the nose guard, with a bronze brow band.
+        for (const z of [1, -1]) {
+          up.quad([hx + 1.45, hy + 0.35, z * 0.25], [hx + 1.4, hy + 0.35, z * 1.2], [hx + 1.3, hy - 0.5, z * 1.25], [hx + 1.55, hy - 0.4, z * 0.25], iron);
+        }
+        for (let k = 0; k < 6; k++) { const a0 = (k / 6) * Math.PI * 2, a1 = ((k + 1) / 6) * Math.PI * 2; up.quad([hx + Math.cos(a0) * 1.6, hy + 0.3, Math.sin(a0) * 1.6], [hx + Math.cos(a1) * 1.6, hy + 0.3, Math.sin(a1) * 1.6], [hx + Math.cos(a1) * 1.6, hy + 0.6, Math.sin(a1) * 1.6], [hx + Math.cos(a0) * 1.6, hy + 0.6, Math.sin(a0) * 1.6], GOLD); }
+      }
+    } else if (look.helm === 'hood') {
+      // A fur hood drawn up over the head, open at the face.
+      prism(up, [hx - 1.0, hy - 1.0, 0], [hx - 0.7, hy + 1.5, 0], 1.5, fur);   // behind and over the head, leaving the face
+      up.quad([hx + 0.9, hy + 1.2, -1.3], [hx + 0.9, hy + 1.2, 1.3], [hx - 0.6, hy + 2.2, 1.4], [hx - 0.6, hy + 2.2, -1.4], fur);   // the brim over the brow
+      for (const z of [1, -1]) up.quad([hx + 0.9, hy + 1.2, z * 1.3], [hx - 0.6, hy + 2.2, z * 1.4], [hx - 0.8, hy - 1.0, z * 1.5], [hx + 0.6, hy - 0.6, z * 1.35], fur);   // the sides
+    } else {
+      // Bare-headed: hair swept back and two braids down the back.
+      prism(up, [hx - 0.3, hy + 0.4, 0], [hx - 0.6, hy + 1.3, 0], 1.3, hair);
+      for (const z of [0.8, -0.8]) prism(up, [hx - 0.8, hy + 0.2, z], [hx - 1.4, hy - 2.4, z * 1.2], 0.35, hair);
+    }
     torso.add(up.mesh());
 
     // The cloak, hinged at the shoulders, streaming back.
@@ -450,6 +494,12 @@ export class DragonRig {
     const cp = new Paper();
     cp.quad([0, 0, -2.1], [0, 0, 2.1], [-4.5, -3.0, 2.9], [-4.5, -3.0, -2.9], team);
     cp.quad([-4.5, -3.0, -2.9], [-4.5, -3.0, 2.9], [-7.5, -4.4, 2.4], [-7.5, -4.4, -2.4], team.clone().multiplyScalar(0.85));
+    if (look.cloak === 'bordered') {
+      cp.quad([-7.0, -4.05, -2.45], [-7.0, -4.05, 2.45], [-7.6, -4.35, 2.4], [-7.6, -4.35, -2.4], GOLD);
+      for (const z of [1, -1]) cp.quad([0, 0.05, z * 2.1], [-4.5, -2.95, z * 2.9], [-4.5, -2.95, z * 2.5], [0, 0.05, z * 1.8], GOLD);
+    } else if (look.cloak === 'striped') {
+      cp.quad([0, 0.06, -0.5], [0, 0.06, 0.5], [-7.5, -4.32, 0.6], [-7.5, -4.32, -0.6], IVORY);
+    }
     cloak.add(cp.mesh());
     torso.add(cloak);
 

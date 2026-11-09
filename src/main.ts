@@ -4,7 +4,7 @@ import { Craft, LAUNCH_TIME, Mods, NO_MODS, STALL_TIME, bumpOff, clamp, collideC
 import { Input } from './input';
 import { Menus, RaceSetup, ResultRow, ResultsView, StandingRow, TrackChoice } from './menu';
 import { Camera, Car, NOZZLE_BACK, NOZZLE_SIDE, Particle, RaceHud, Toast, drawFrame, formatTime, loadSprite } from './render';
-import { ChaseView, renderCarCards } from './view3d';
+import { ChaseView, renderCarCards, renderRiderPreview } from './view3d';
 import { loadRecords, loadSettings, saveRecords, saveSettings, type Settings } from './settings';
 import { SettingsUI } from './settingsui';
 import { Tutorial } from './tutorial';
@@ -16,6 +16,8 @@ import {
 import { StoryUI } from './storyui';
 import { LobbyUI } from './lobbyui';
 import { addMods, loadSetup, sanitize, saveSetup, setupMods } from './setup';
+import { speciesMods } from './species';
+import { loadRider, saveRider } from './rider';
 import { TuneUI } from './tuneui';
 import { TouchControls } from './touch';
 import { dragonEvents, speciesFor } from './dragon';
@@ -126,7 +128,12 @@ function skinPictures(ids = SKINS.map((s) => s.id)): Record<string, string> {
 
 function openGarage(): void {
   input.release();
-  garageUI.open(achievements.p, () => input.release(), skinPictures());
+  const li = LIVERIES[playerLivery];
+  garageUI.open(achievements.p, () => input.release(), skinPictures(), {
+    look: loadRider(),
+    preview: (look) => { try { return chase ? renderRiderPreview({ color: li.color, name: li.name, hue: li.hue, kind: playerLivery, skin: skinColors(achievements.equipped), rider: look }) : ''; } catch { return ''; } },
+    save: (look) => { saveRider(look); if (player) player.rider = look; },
+  });
 }
 
 /** Wear a skin, picked on a car selection screen ('stock' = the car's own colours). */
@@ -377,7 +384,7 @@ const drs = new Map<Car, { zone: number; earned: boolean }>();
 
 function livery(i: number) {
   const { sprite, color, hue, name } = LIVERIES[i];
-  return { sprite, color, hue, name };
+  return { sprite, color, hue, name, kind: i };
 }
 
 /** Line everyone up on the grid and start the countdown. */
@@ -395,7 +402,7 @@ function startRace(): void {
   carLivery.clear();
   rivals = cfg.field.filter((e) => !e.peer).map((e, k) => {
     const driver = new Driver(e.skill, k + 1);
-    driver.craft.mods = { ...e.mods };
+    driver.craft.mods = addMods(e.mods, speciesMods(e.livery));   // its setup, plus how its species flies
     const car: Car = { craft: driver.craft, race: driver.race, ...livery(e.livery), name: e.name };
     names.set(car, e.name);
     carLivery.set(car, e.livery);
@@ -404,7 +411,7 @@ function startRace(): void {
   });
   const humans = cfg.field.filter((e) => e.peer).map((e) => {
     const car: Car = { craft: new Craft(), race: new RaceState(), ...livery(e.livery), name: e.name };
-    car.craft.mods = { ...e.mods };   // that player's TUNE CAR setup
+    car.craft.mods = addMods(e.mods, speciesMods(e.livery));   // that player's TUNE CAR setup and the species
     car.skin = skinColors(e.skin);
     if (e.skin) carSkin.set(car, e.skin);
     names.set(car, e.name);
@@ -414,7 +421,8 @@ function startRace(): void {
   });
   const pl = mission !== null ? 0 : playerLivery;   // in Story you drive Leopard GP's red 01
   player = { craft: new Craft(), race: new RaceState(), ...livery(pl), name: cfg.playerName };
-  player.craft.mods = { ...cfg.playerMods };
+  player.craft.mods = addMods(cfg.playerMods, speciesMods(pl));
+  player.rider = loadRider();
   player.craft.heat = cfg.startHeat;
   player.skin = skinColors(achievements.equipped);
   carSkin.set(player, achievements.equipped);
@@ -1789,7 +1797,8 @@ function guestStart(trackNo: number, laps: number, entrants: NetEntrant[]): void
     return car;
   });
   player = cars[Math.max(0, entrants.findIndex((e) => e.peer === (online as { me: string }).me))];
-  player.craft.mods = setupMods(carSetup);
+  player.craft.mods = addMods(setupMods(carSetup), speciesMods(carLivery.get(player) ?? 0));
+  player.rider = loadRider();
   finishOrder = [];
   finishTimes.clear();
   particles.length = 0;
