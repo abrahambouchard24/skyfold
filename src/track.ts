@@ -70,8 +70,8 @@ const NEON: TrackTheme = { wall: '#3fe0d0', wallFace: '#f3ead2', lights: '255, 2
 
 export const TRACKS: TrackDef[] = [
   {
-    name: 'APEX ARENA',
-    blurb: 'Futurist arena: chicane, hairpin, esses',
+    name: 'MIDGARD',
+    blurb: 'The world of men: longhouses, fields and the fjord shore',
     scale: 1.27,
     theme: NEON,
     control: [
@@ -101,8 +101,8 @@ export const TRACKS: TrackDef[] = [
     ],
   },
   {
-    name: 'VELOCITY COLOSSEUM',
-    blurb: 'Marble colosseum oval: flat out, slipstream battles',
+    name: 'ASGARD',
+    blurb: 'Round the golden walls of the gods: flat out, slipstream battles',
     theme: { wall: '#e8c25a', wallFace: '#f6efe0', lights: '255, 226, 170', kerb: '#c9a24a', surface: '#2a2826' },
     control: [
       [0, 1400],
@@ -123,8 +123,8 @@ export const TRACKS: TrackDef[] = [
     ],
   },
   {
-    name: 'NEW YORK',
-    blurb: 'Deco skyline streets: square corners, short straights',
+    name: 'JOTUNHEIM',
+    blurb: 'Crags of the giants: square turns between standing stones',
     scale: 1.51,
     theme: { wall: '#f2b84b', wallFace: '#f1e3c4', lights: '255, 196, 110', kerb: '#3fe0d0', surface: '#22232a' },
     control: [
@@ -156,8 +156,8 @@ export const TRACKS: TrackDef[] = [
     ],
   },
   {
-    name: 'LAPPLAND',
-    blurb: 'Arctic night under the aurora: long sweepers',
+    name: 'NIFLHEIM',
+    blurb: 'Mist and ice under the northern lights: long sweepers',
     theme: { wall: '#7dffd0', wallFace: '#eef6ff', lights: '200, 235, 255', kerb: '#9fb6d6', surface: '#20252c' },
     control: [
       [0, 1500],
@@ -181,8 +181,8 @@ export const TRACKS: TrackDef[] = [
     ],
   },
   {
-    name: 'NEW ATLANTIS',
-    blurb: 'Marble city on the sea: fast sweepers, one big hairpin',
+    name: 'VANAHEIM',
+    blurb: 'Green isles of the Vanir: fast sweepers, one big hairpin',
     theme: { wall: '#5fe6d6', wallFace: '#f0f7f4', lights: '255, 214, 120', kerb: '#e8c25a', surface: '#1c2a30' },
     control: [
       [0, 1400],      // start/finish on the quay
@@ -209,8 +209,8 @@ export const TRACKS: TrackDef[] = [
     ],
   },
   {
-    name: 'CRYSTAL FRONT',
-    blurb: 'Crystal war zone: tight switchbacks, few straights',
+    name: 'SVARTALFHEIM',
+    blurb: 'Dwarf forges and crystal caves: tight switchbacks',
     theme: { wall: '#b98cff', wallFace: '#e6dcff', lights: '160, 220, 255', kerb: '#5fd8ff', surface: '#1f1d2c' },
     control: [
       [0, 1200],
@@ -241,8 +241,8 @@ export const TRACKS: TrackDef[] = [
     ],
   },
   {
-    name: 'HIEROPOLIS',
-    blurb: 'Sacred city of the sun: long straights, heavy braking',
+    name: 'MUSPELHEIM',
+    blurb: 'The realm of fire: long straights, heavy braking',
     scale: 1.49,
     theme: { wall: '#f0b24a', wallFace: '#f3dfb8', lights: '255, 190, 110', kerb: '#c85a2a', surface: '#2c2620' },
     control: [
@@ -272,8 +272,8 @@ export const TRACKS: TrackDef[] = [
     ],
   },
   {
-    name: 'HANGING GARDENS',
-    blurb: 'Terraced sky gardens with a long, sweeping carousel',
+    name: 'ALFHEIM',
+    blurb: 'Terraced groves of the light elves: one long carousel',
     scale: 1.44,
     theme: { wall: '#6fe0a0', wallFace: '#efe6cf', lights: '255, 230, 160', kerb: '#e8c25a', surface: '#232a24' },
     control: [
@@ -308,8 +308,8 @@ export const TRACKS: TrackDef[] = [
   },
   // --- sprints: one long route each, no laps, with jumps ---------------------------------------
   {
-    name: 'FAE FOREST',
-    blurb: 'Enchanted forest sprint: flowing sweepers and glade jumps',
+    name: 'IRONWOOD',
+    blurb: 'Sprint through the iron forest: flowing sweepers, root jumps',
     sprint: true, samples: 26, jumps: 20,
     forks: [['jump', 'charge'], ['plain', 'cool'], ['jump', 'plain'], ['charge', 'cool']],
     curveForks: [['plain', 'charge'], ['plain', 'cool']],
@@ -337,8 +337,8 @@ export const TRACKS: TrackDef[] = [
     ],
   },
   {
-    name: 'NOVA CAMELOT',
-    blurb: 'Castle-city sprint: long straights and tight castle ramps',
+    name: 'JOMSBORG',
+    blurb: 'Sea-fortress sprint: long straights and timber ramps',
     sprint: true, samples: 26, jumps: 20,
     forks: [['jump', 'plain'], ['plain', 'charge'], ['jump', 'cool']],
     curveForks: [['plain', 'cool'], ['plain', 'charge']],
@@ -367,8 +367,8 @@ export const TRACKS: TrackDef[] = [
     ],
   },
   {
-    name: 'ZOROPERSIA',
-    blurb: 'Persian fire-temple sprint: long straights and big jumps',
+    name: 'HELHEIM',
+    blurb: 'The road to Hel over the Gjallar bridge: big jumps',
     sprint: true, samples: 26, jumps: 20,
     forks: [['plain', 'cool'], ['jump', 'charge'], ['charge', 'cool']],
     curveForks: [['plain', 'charge'], ['plain', 'cool']],
@@ -400,7 +400,7 @@ export const TRACKS: TrackDef[] = [
   },
   {
     name: 'BIFROST',
-    blurb: 'Rainbow bridge between floating islands: jump after jump',
+    blurb: 'The rainbow bridge between the worlds: jump after jump',
     sprint: true, samples: 26, jumps: 20,
     forks: [['jump', 'plain'], ['jump', 'charge'], ['cool', 'charge'], ['jump', 'cool']],
     curveForks: [['plain', 'charge']],
@@ -432,8 +432,8 @@ export const TRACKS: TrackDef[] = [
     ],
   },
   {
-    name: 'EL DORADO',
-    blurb: 'Golden jungle city: tight switchbacks and waterfall jumps',
+    name: 'YGGDRASIL',
+    blurb: 'Down the World Tree: tight switchbacks and branch jumps',
     sprint: true, samples: 26, jumps: 20,
     forks: [['cool', 'charge'], ['jump', 'plain'], ['plain', 'cool'], ['jump', 'charge']],
     curveForks: [['plain', 'cool'], ['plain', 'charge']],

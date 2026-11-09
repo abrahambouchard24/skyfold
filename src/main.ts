@@ -18,6 +18,7 @@ import { LobbyUI } from './lobbyui';
 import { addMods, loadSetup, sanitize, saveSetup, setupMods } from './setup';
 import { TuneUI } from './tuneui';
 import { TouchControls } from './touch';
+import { dragonEvents, speciesFor } from './dragon';
 import { DailyDef, DailyUI, dailyChallenge, dailyStatus, recordDaily } from './daily';
 import { GhostLap, GhostRecorder, ghostPose, loadGhost, saveGhost, trackSig } from './ghost';
 import { BoardRow, CarSnap, Controls, Guest, Host, LobbyState, NetEntrant, Snapshot } from './net';
@@ -1022,7 +1023,7 @@ function update(dt: number): void {
 
   for (const car of cars) {
     car.craft.cooling = inCoolingLane(track, car.craft, car.race.index);
-    emitTrail(car.craft, car.hue);
+    emitTrail(car.craft, car.hue, speciesFor(car).span);
     emitHeat(car.craft);
   }
   celebrate(dt);
@@ -1377,23 +1378,26 @@ function emitSparks(x: number, y: number, craft: Craft): void {
   }
 }
 
-function emitTrail(craft: Craft, baseHue: number): void {
-  if (craft.speed < 20) return;
-  const fx = Math.cos(craft.heading), fy = Math.sin(craft.heading);
+/** Vapour streaming off a dragon's wingtips at speed: faint on a straight, stronger in a sliding turn. */
+function emitTrail(craft: Craft, baseHue: number, span = 64): void {
+  if (craft.speed < 320) return;
   const slip = Math.abs(craft.slip);
-  // Trail starts in the car's exhaust color and shifts toward magenta with drift angle.
-  const hue = lerp(baseHue, 310, clamp(slip / 0.6, 0, 1));
-  for (const side of [-NOZZLE_SIDE, NOZZLE_SIDE]) {
-    const x = craft.pos.x - fx * NOZZLE_BACK - fy * side;
-    const y = craft.pos.y - fy * NOZZLE_BACK + fx * side;
+  if (Math.random() > 0.35 + clamp(slip / 0.5, 0, 0.65)) return;
+  const fx = Math.cos(craft.heading), fy = Math.sin(craft.heading);
+  const hue = lerp(baseHue, 190, 0.5);
+  for (const side of [-span * 0.95, span * 0.95]) {
+    const x = craft.pos.x - fx * 12 - fy * side;
+    const y = craft.pos.y - fy * 12 + fx * side;
     particles.push({
       x, y,
-      vx: -fx * 60 + (Math.random() - 0.5) * 30,
-      vy: -fy * 60 + (Math.random() - 0.5) * 30,
-      life: 0.6, max: 0.6, hue, size: 4 + craft.thrust * 3 + (craft.drifting ? 3 : 0),
+      vx: -fx * 40 + (Math.random() - 0.5) * 16,
+      vy: -fy * 40 + (Math.random() - 0.5) * 16,
+      life: 0.45, max: 0.45, hue, size: 2.5 + slip * 6,
     });
   }
 }
+void NOZZLE_BACK; void NOZZLE_SIDE;
+dragonEvents.playerBeat = (k) => { if (mode === 'racing') sound.wingbeat(k); };
 
 
 // --- online play --------------------------------------------------------------------------------

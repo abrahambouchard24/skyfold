@@ -10,15 +10,15 @@ const CSS = `
 .st-set { padding: 26px 32px 22px !important; }
 .st-set .hr-h2 { margin-bottom: 0; font-size: 36px; }
 .st-set h2 { text-align: center; }
-.st-set h3 { margin: 16px 0 6px; color: #c9a24a; font-size: 11px; letter-spacing: 0.24em; font-weight: 700; }
-.st-set .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 6px 0; border-top: 1px solid rgba(201,162,74,0.16); }
+.st-set h3 { margin: 16px 0 6px; color: #a8743a; font-size: 11px; letter-spacing: 0.24em; font-weight: 700; }
+.st-set .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 6px 0; border-top: 1px solid rgba(168,116,58,0.16); }
 .st-set .row span { font-weight: 700; letter-spacing: 0.08em; font-size: 14px; }
-.st-set input[type=range] { width: 220px; accent-color: #3fe0d0; }
-.st-set .key { min-width: 150px; padding: 8px 14px; border-radius: 4px; border: 1px solid rgba(201,162,74,0.5); background: rgba(8,20,26,0.85);
-  color: #ece5d4; font: 800 13px system-ui, sans-serif; letter-spacing: 0.08em; cursor: pointer; }
-.st-set .key:hover { border-color: #e8c25a; }
-.st-set .key.wait { border-color: #3fe0d0; color: #3fe0d0; }
-.st-set .hint { color: #93aba8; font-size: 12px; margin-top: 8px; }
+.st-set input[type=range] { width: 220px; accent-color: #8fd0e0; }
+.st-set .key { min-width: 150px; padding: 8px 14px; border-radius: 4px; border: 1px solid rgba(168,116,58,0.5); background: rgba(30,25,21,0.85);
+  color: #e9e0cc; font: 800 13px system-ui, sans-serif; letter-spacing: 0.08em; cursor: pointer; }
+.st-set .key:hover { border-color: #c98b3e; }
+.st-set .key.wait { border-color: #8fd0e0; color: #8fd0e0; }
+.st-set .hint { color: #a89d8a; font-size: 12px; margin-top: 8px; }
 .st-set .hr-btns { margin-top: 16px; }
 `;
 

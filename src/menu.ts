@@ -8,8 +8,8 @@ export interface SkinChoice { id: string; name: string; card: string }
 /** The row of unlocked skins under the car cards (shared by the setup screen and the lobby). */
 export function skinCards(skins: SkinChoice[], equipped: string): string {
   if (!skins.length) return '<p class="hr-skin-hint">Earn skins with achievements (see the Garage); they show up here to pick.</p>';
-  return skins.map((s) => `<button class="hr-car hr-skincard ${equipped === s.id ? 'selected' : ''}" style="--c:#e8c25a" data-skin="${s.id}">
-    ${cardFace({ name: `◆ ${s.name}`, card: s.card, url: '', color: '#e8c25a' })}</button>`).join('');
+  return skins.map((s) => `<button class="hr-car hr-skincard ${equipped === s.id ? 'selected' : ''}" style="--c:#c98b3e" data-skin="${s.id}">
+    ${cardFace({ name: `◆ ${s.name}`, card: s.card, url: '', color: '#c98b3e' })}</button>`).join('');
 }
 
 export interface CarChoice {
@@ -82,7 +82,7 @@ const CSS = `
 .hr-sub { margin: 6px 0 14px; color: #8a93c0; font-weight: 600; letter-spacing: 0.2em; font-size: 13px; }
 .hr-skins-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin: -8px 0 22px; }
 @media (max-width: 760px) { .hr-skins-row { grid-template-columns: repeat(3, 1fr); } }
-.hr-skin-hint { grid-column: 1 / -1; margin: 0; color: #93aba8; font-size: 12px; letter-spacing: 0.06em; }
+.hr-skin-hint { grid-column: 1 / -1; margin: 0; color: #a89d8a; font-size: 12px; letter-spacing: 0.06em; }
 .hr-cars { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 22px; }
 @media (max-width: 760px) { .hr-cars { grid-template-columns: repeat(3, 1fr); } }
 .hr-car {
@@ -96,8 +96,8 @@ const CSS = `
 }
 .hr-car::after { content: ''; position: absolute; left: 20%; right: 20%; bottom: 7px; height: 2px; border-radius: 1px;
   background: var(--c); box-shadow: 0 0 8px var(--c); opacity: 0.7; }
-.hr-car:hover { transform: translateY(-4px); border-color: #f6e3a1; }
-.hr-car.selected { transform: translateY(-4px); border-color: #f6e3a1;
+.hr-car:hover { transform: translateY(-4px); border-color: #e3b878; }
+.hr-car.selected { transform: translateY(-4px); border-color: #e3b878;
   box-shadow: inset 0 0 0 4px rgba(4,20,26,0.85), inset 0 0 0 5px var(--c), 0 0 28px -4px var(--c); }
 .hr-car.selected::after { opacity: 1; }
 .hr-car img { display: block; width: 100%; max-width: 150px; height: auto; margin: 0 auto 4px; filter: drop-shadow(0 8px 8px rgba(0,0,0,0.45)); }
@@ -114,12 +114,12 @@ const CSS = `
 .hr-btn.secondary { background: #1d2346; color: #e8ecff; }
 .hr-keys { margin-top: 18px; color: #8a93c0; font-size: 13px; }
 .hr-front-actions .hr-btn { min-width: 180px; padding: 11px 22px; font-size: 15px; }
-.hr-front-actions .hr-btn.daily { color: #f1d27a; box-shadow: 0 0 0 1px rgba(201,162,74,0.75) inset; }
-.hr-front-actions .hr-btn.daily:hover { color: #fff6dc; box-shadow: 0 0 0 1px #e8c25a inset, 0 0 18px -6px #e8c25a; }
+.hr-front-actions .hr-btn.daily { color: #e3b26c; box-shadow: 0 0 0 1px rgba(168,116,58,0.75) inset; }
+.hr-front-actions .hr-btn.daily:hover { color: #f1e6d0; box-shadow: 0 0 0 1px #c98b3e inset, 0 0 18px -6px #c98b3e; }
 .hr-front-actions .hr-btn.fresh { background: linear-gradient(90deg, #4fe3ff, #7dffb0); color: #07080f; box-shadow: 0 0 24px -6px #4fe3ff; }
 .hr-track .hr-rec { color: #ffd23f; font-weight: 800; letter-spacing: 0.06em; }
 .hr-h2 { margin: 0 0 22px; font-size: 44px; font-weight: 900; letter-spacing: 0.1em; }
-.hr-dist { font: 800 15px system-ui, sans-serif; letter-spacing: 0.12em; color: #e8c25a; padding: 9px 4px; }
+.hr-dist { font: 800 15px system-ui, sans-serif; letter-spacing: 0.12em; color: #c98b3e; padding: 9px 4px; }
 .hr-tracks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
 @media (max-width: 760px) { .hr-tracks { grid-template-columns: repeat(2, 1fr); } }
 .hr-track {
@@ -263,75 +263,75 @@ const CSS = `
 }
 
 /* ---------------------------------------------------------------------------------------------
- * Vitalic futurism: the menus' look. Clean geometric type with wide tracking (Outfit), glassy
+ * (Earlier layer, kept under the Norse block at the end.) Clean type with wide tracking, glassy
  * sea-teal surfaces, gold only as fine hairlines and the primary action, teal light for what's
  * selected. Same layouts and scenes as above; these rules restyle them.
  * ------------------------------------------------------------------------------------------- */
-.hr-overlay { font-family: 'Outfit', system-ui, sans-serif; color: #ece5d4;
-  background: radial-gradient(ellipse 90% 70% at 50% 30%, rgba(16,58,64,0.55), rgba(4,10,16,0.94)); }
-.hr-title { font: 300 clamp(38px, 7vw, 72px) 'Outfit', system-ui, sans-serif; font-style: normal; letter-spacing: 0.34em; padding-left: 0.34em;
-  background: linear-gradient(180deg, #fffaf0 10%, #f1d79a 55%, #c9a24a); -webkit-background-clip: text; background-clip: text; color: transparent;
-  filter: drop-shadow(0 0 28px rgba(63,224,208,0.22)); }
+.hr-overlay { font-family: 'Alegreya Sans', system-ui, sans-serif; color: #e9e0cc;
+  background: radial-gradient(ellipse 90% 70% at 50% 30%, rgba(46,52,58,0.55), rgba(10,8,7,0.94)); }
+.hr-title { font: 300 clamp(38px, 7vw, 72px) 'Alegreya Sans', system-ui, sans-serif; font-style: normal; letter-spacing: 0.34em; padding-left: 0.34em;
+  background: linear-gradient(180deg, #f3ead8 10%, #e6c08a 55%, #a8743a); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 28px rgba(143,208,224,0.22)); }
 .hr-title + .hr-sub { position: relative; display: inline-block; padding: 0 64px; }
 .hr-title + .hr-sub::before, .hr-title + .hr-sub::after { content: ''; position: absolute; top: 50%; width: 48px; height: 1px;
-  background: linear-gradient(90deg, transparent, #c9a24a); }
+  background: linear-gradient(90deg, transparent, #a8743a); }
 .hr-title + .hr-sub::before { left: 0; } .hr-title + .hr-sub::after { right: 0; transform: scaleX(-1); }
-.hr-sub { color: #93aba8; font-weight: 500; letter-spacing: 0.34em; font-size: 11px; }
+.hr-sub { color: #a89d8a; font-weight: 500; letter-spacing: 0.34em; font-size: 11px; }
 .hr-keys { color: #6f8a88; font-size: 12px; letter-spacing: 0.04em; }
-.hr-h2 { font: 200 40px 'Outfit', system-ui, sans-serif; letter-spacing: 0.42em; padding-left: 0.42em; color: #fffaf0; }
+.hr-h2 { font: 200 40px 'Alegreya Sans', system-ui, sans-serif; letter-spacing: 0.42em; padding-left: 0.42em; color: #f3ead8; }
 
 /* Buttons: a gold pill for the main action, glass pills for the rest. */
-.hr-btn { border-radius: 999px; font: 600 14px 'Outfit', system-ui, sans-serif; letter-spacing: 0.26em; padding: 14px 30px; color: #0b1418;
-  background: linear-gradient(180deg, #f8e2a0, #d4ae58 60%, #b38a35); box-shadow: 0 0 0 1px rgba(255,244,214,0.5) inset, 0 10px 30px -14px rgba(232,194,90,0.8);
+.hr-btn { border-radius: 999px; font: 600 14px 'Alegreya Sans', system-ui, sans-serif; letter-spacing: 0.26em; padding: 14px 30px; color: #140f0b;
+  background: linear-gradient(180deg, #e8c08a, #b57a3c 60%, #8a5a2b); box-shadow: 0 0 0 1px rgba(255,244,214,0.5) inset, 0 10px 30px -14px rgba(201,139,62,0.8);
   transition: transform 140ms, box-shadow 160ms, filter 160ms; }
-.hr-btn:hover { filter: brightness(1.06); transform: translateY(-1px); box-shadow: 0 0 0 1px rgba(255,244,214,0.7) inset, 0 12px 34px -12px rgba(232,194,90,0.9); }
-.hr-btn.secondary { color: #ece5d4; background: rgba(10,32,38,0.55); backdrop-filter: blur(6px);
-  box-shadow: 0 0 0 1px rgba(201,162,74,0.45) inset; }
-.hr-btn.secondary:hover { color: #fffaf0; box-shadow: 0 0 0 1px rgba(63,224,208,0.8) inset, 0 0 22px -6px rgba(63,224,208,0.7); }
+.hr-btn:hover { filter: brightness(1.06); transform: translateY(-1px); box-shadow: 0 0 0 1px rgba(255,244,214,0.7) inset, 0 12px 34px -12px rgba(201,139,62,0.9); }
+.hr-btn.secondary { color: #e9e0cc; background: rgba(38,31,25,0.55); backdrop-filter: blur(6px);
+  box-shadow: 0 0 0 1px rgba(168,116,58,0.45) inset; }
+.hr-btn.secondary:hover { color: #f3ead8; box-shadow: 0 0 0 1px rgba(143,208,224,0.8) inset, 0 0 22px -6px rgba(143,208,224,0.7); }
 .hr-front-actions .hr-btn { min-width: 0; padding: 11px 22px; font-size: 12px; }
-.hr-front-actions .hr-btn.fresh { color: #071214; background: linear-gradient(180deg, #8ff5ea, #3fe0d0); box-shadow: 0 0 26px -6px #3fe0d0; }
-.hr-front-actions .hr-btn.daily { color: #f1d79a; box-shadow: 0 0 0 1px rgba(232,194,90,0.85) inset; }
+.hr-front-actions .hr-btn.fresh { color: #120e0b; background: linear-gradient(180deg, #c4ecf5, #8fd0e0); box-shadow: 0 0 26px -6px #8fd0e0; }
+.hr-front-actions .hr-btn.daily { color: #e6c08a; box-shadow: 0 0 0 1px rgba(201,139,62,0.85) inset; }
 .hr-back { border-radius: 999px; }
 
 /* Front windows: glass frames with a hairline that warms to gold on hover. */
-.hr-window { border: 1px solid rgba(201,162,74,0.32); border-radius: 22px; background: #071016;
-  box-shadow: 0 0 0 1px rgba(4,10,16,0.9) inset, 0 20px 50px -30px rgba(0,0,0,0.9); }
-.hr-window:hover, .hr-window:focus-visible { border-color: rgba(232,194,90,0.9); box-shadow: 0 0 0 1px rgba(232,194,90,0.25) inset, 0 22px 60px -18px rgba(63,224,208,0.45); }
-.hr-window .label b { font: 300 clamp(22px, 2.6vw, 32px) 'Outfit', system-ui, sans-serif; letter-spacing: 0.24em; color: #fffaf0; }
+.hr-window { border: 1px solid rgba(168,116,58,0.32); border-radius: 22px; background: #071016;
+  box-shadow: 0 0 0 1px rgba(10,8,7,0.9) inset, 0 20px 50px -30px rgba(0,0,0,0.9); }
+.hr-window:hover, .hr-window:focus-visible { border-color: rgba(201,139,62,0.9); box-shadow: 0 0 0 1px rgba(201,139,62,0.25) inset, 0 22px 60px -18px rgba(143,208,224,0.45); }
+.hr-window .label b { font: 300 clamp(22px, 2.6vw, 32px) 'Alegreya Sans', system-ui, sans-serif; letter-spacing: 0.24em; color: #f3ead8; }
 .hr-window .label small { color: #c9d6d2; font-weight: 400; font-size: 12px; letter-spacing: 0.05em; }
 .hr-window::after { background: linear-gradient(transparent 42%, rgba(3,10,14,0.94)); }
 /* Scene accents moved to the palette: gold and teal light instead of pink and rainbow. */
-.sc-story .stand::before { background: linear-gradient(90deg, #e8c25a, #3fe0d0, #fffaf0, #3fe0d0, #e8c25a) 0 0 / 50% 100%; box-shadow: 0 0 12px rgba(232,194,90,0.6); }
-.sc-story .vs { font: 200 30px 'Outfit', system-ui; letter-spacing: 0.2em; color: #f1d79a; text-shadow: 0 0 18px rgba(232,194,90,0.8); }
-.sc-quick .road::after { background: repeating-linear-gradient(90deg, #e8c25a 0 38px, #0b1418 38px 76px); box-shadow: 0 0 12px rgba(232,194,90,0.5); }
-.sc-quick .rail { background: #3fe0d0; box-shadow: 0 0 10px 2px rgba(63,224,208,0.7); }
+.sc-story .stand::before { background: linear-gradient(90deg, #c98b3e, #8fd0e0, #f3ead8, #8fd0e0, #c98b3e) 0 0 / 50% 100%; box-shadow: 0 0 12px rgba(201,139,62,0.6); }
+.sc-story .vs { font: 200 30px 'Alegreya Sans', system-ui; letter-spacing: 0.2em; color: #e6c08a; text-shadow: 0 0 18px rgba(201,139,62,0.8); }
+.sc-quick .road::after { background: repeating-linear-gradient(90deg, #c98b3e 0 38px, #140f0b 38px 76px); box-shadow: 0 0 12px rgba(201,139,62,0.5); }
+.sc-quick .rail { background: #8fd0e0; box-shadow: 0 0 10px 2px rgba(143,208,224,0.7); }
 .sc-season { background: radial-gradient(ellipse at 50% 35%, #123c44, #050d12 70%); }
 
 /* Setup screen: glass track cards, pill segments with a teal "on". */
-.hr-track { background: rgba(10,30,36,0.62); border: 1px solid rgba(201,162,74,0.22); border-radius: 16px; backdrop-filter: blur(4px); }
-.hr-track:hover { border-color: rgba(201,162,74,0.6); }
-.hr-track.selected { border-color: #e8c25a; box-shadow: 0 0 0 1px rgba(232,194,90,0.35) inset, 0 0 26px -6px rgba(63,224,208,0.6); }
+.hr-track { background: rgba(36,30,24,0.62); border: 1px solid rgba(168,116,58,0.22); border-radius: 16px; backdrop-filter: blur(4px); }
+.hr-track:hover { border-color: rgba(168,116,58,0.6); }
+.hr-track.selected { border-color: #c98b3e; box-shadow: 0 0 0 1px rgba(201,139,62,0.35) inset, 0 0 26px -6px rgba(143,208,224,0.6); }
 .hr-track b { font-weight: 600; letter-spacing: 0.16em; font-size: 12px; }
-.hr-track small { color: #93aba8; }
-.hr-track .hr-rec { color: #e8c25a; font-weight: 600; letter-spacing: 0.12em; }
-.hr-option label { color: #93aba8; font-weight: 500; letter-spacing: 0.3em; font-size: 11px; }
-.hr-seg { background: rgba(8,22,28,0.7); border: 1px solid rgba(201,162,74,0.35); border-radius: 999px; padding: 3px; }
-.hr-seg button { border-radius: 999px; color: #93aba8; font: 600 13px 'Outfit', system-ui, sans-serif; letter-spacing: 0.14em; }
-.hr-seg button:hover { color: #fffaf0; }
-.hr-seg button.on { background: linear-gradient(180deg, #8ff5ea, #3fe0d0); color: #071214; box-shadow: 0 0 16px -4px #3fe0d0; }
-.hr-dist { font: 600 14px 'Outfit', system-ui, sans-serif; letter-spacing: 0.22em; }
+.hr-track small { color: #a89d8a; }
+.hr-track .hr-rec { color: #c98b3e; font-weight: 600; letter-spacing: 0.12em; }
+.hr-option label { color: #a89d8a; font-weight: 500; letter-spacing: 0.3em; font-size: 11px; }
+.hr-seg { background: rgba(28,23,19,0.7); border: 1px solid rgba(168,116,58,0.35); border-radius: 999px; padding: 3px; }
+.hr-seg button { border-radius: 999px; color: #a89d8a; font: 600 13px 'Alegreya Sans', system-ui, sans-serif; letter-spacing: 0.14em; }
+.hr-seg button:hover { color: #f3ead8; }
+.hr-seg button.on { background: linear-gradient(180deg, #c4ecf5, #8fd0e0); color: #120e0b; box-shadow: 0 0 16px -4px #8fd0e0; }
+.hr-dist { font: 600 14px 'Alegreya Sans', system-ui, sans-serif; letter-spacing: 0.22em; }
 
 /* Results: a clean ledger with hairline rows, the player's row lit teal, points in gold. */
-.hr-results th { color: #93aba8; font-weight: 500; letter-spacing: 0.26em; font-size: 10px; }
-.hr-results td { font-weight: 500; font-size: 15px; border-top: 1px solid rgba(201,162,74,0.16); }
-.hr-results td.pos { font-weight: 300; font-size: 22px; color: #f1d79a; }
-.hr-results tr.me td { background: rgba(63,224,208,0.1); }
-.hr-results tr.me td:first-child { box-shadow: 2px 0 0 #3fe0d0 inset; }
-.hr-results .dim { color: #93aba8; }
-.hr-results .pts { color: #e8c25a; }
-.hr-results-track { color: #93aba8; font-weight: 500; letter-spacing: 0.28em; font-size: 11px; }
-.hr-standings-head { font-weight: 300; letter-spacing: 0.3em; color: #fffaf0; }
-.hr-note { font-weight: 300; letter-spacing: 0.24em; color: #f1d79a; }
+.hr-results th { color: #a89d8a; font-weight: 500; letter-spacing: 0.26em; font-size: 10px; }
+.hr-results td { font-weight: 500; font-size: 15px; border-top: 1px solid rgba(168,116,58,0.16); }
+.hr-results td.pos { font-weight: 300; font-size: 22px; color: #e6c08a; }
+.hr-results tr.me td { background: rgba(143,208,224,0.1); }
+.hr-results tr.me td:first-child { box-shadow: 2px 0 0 #8fd0e0 inset; }
+.hr-results .dim { color: #a89d8a; }
+.hr-results .pts { color: #c98b3e; }
+.hr-results-track { color: #a89d8a; font-weight: 500; letter-spacing: 0.28em; font-size: 11px; }
+.hr-standings-head { font-weight: 300; letter-spacing: 0.3em; color: #f3ead8; }
+.hr-note { font-weight: 300; letter-spacing: 0.24em; color: #e6c08a; }
 
 /* Front windows as folded dioramas: the paper art fills the window, the craft sit on it. */
 .hr-window .scene { background: #0b2a30; }
@@ -356,6 +356,69 @@ const CSS = `
 .sc-season svg .trophy { animation: hr-cup 3.2s ease-in-out infinite; }
 @keyframes hr-cup { 50% { transform: translateY(-6px); } }
 .sc-season .spark { width: 8px; height: 8px; border-radius: 0; clip-path: polygon(0 0, 100% 30%, 20% 100%); }
+
+/* ---------------------------------------------------------------------------------------------
+ * The Norse look (overrides everything above): weathered timber and iron, bronze fittings and
+ * rivets, bone-white text, fjord-frost for what's selected, uncial lettering for titles and
+ * runes as ornament. Rugged, hand-made, old.
+ * ------------------------------------------------------------------------------------------- */
+.hr-overlay { font-family: 'Alegreya Sans', system-ui, sans-serif; color: #e9e0cc;
+  background: radial-gradient(ellipse 90% 70% at 50% 30%, rgba(46,52,58,0.55), rgba(10,9,8,0.94)); }
+.hr-title { font: 400 clamp(40px, 7.4vw, 78px) 'Uncial Antiqua', Georgia, serif; letter-spacing: 0.08em; padding-left: 0.08em;
+  background: linear-gradient(180deg, #f3e6c8 10%, #d6a462 55%, #8a5a2b); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 3px 0 rgba(0,0,0,0.55)) drop-shadow(0 0 22px rgba(143,208,224,0.15)); }
+.hr-title + .hr-sub::before, .hr-title + .hr-sub::after { content: 'ᛟ'; width: auto; height: auto; background: none; color: #a8743a;
+  top: 50%; transform: translateY(-50%); font-size: 14px; letter-spacing: 0; }
+.hr-title + .hr-sub::after { content: 'ᛟ'; transform: translateY(-50%); }
+.hr-sub { font-family: 'Alegreya Sans SC', 'Alegreya Sans', system-ui, sans-serif; color: #a89d8a; letter-spacing: 0.28em; font-weight: 500; }
+.hr-h2 { font: 400 42px 'Uncial Antiqua', Georgia, serif; letter-spacing: 0.1em; padding-left: 0.1em; color: #f1e6d0;
+  text-shadow: 0 3px 0 rgba(0,0,0,0.5); }
+
+/* Buttons: hammered bronze plates for the main action, iron-bound timber for the rest. */
+.hr-btn { border-radius: 4px; font: 700 14px 'Alegreya Sans SC', 'Alegreya Sans', system-ui, sans-serif; letter-spacing: 0.16em; color: #1a120b;
+  background: linear-gradient(180deg, #e0a861, #b07a3e 55%, #7a4e24);
+  box-shadow: 0 0 0 1px #3a2716, inset 0 1px 0 rgba(255,232,190,0.5), inset 0 -2px 0 rgba(0,0,0,0.25), 0 8px 20px -10px rgba(0,0,0,0.9); }
+.hr-btn:hover { filter: brightness(1.08); }
+.hr-btn.secondary { color: #e9e0cc; backdrop-filter: none;
+  background: repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0 3px, transparent 3px 9px), linear-gradient(180deg, #3a2f26, #251e19);
+  box-shadow: 0 0 0 1px #6a5640, inset 0 0 0 3px rgba(0,0,0,0.35); }
+.hr-btn.secondary:hover { color: #fff; box-shadow: 0 0 0 1px #c98b3e, inset 0 0 0 3px rgba(0,0,0,0.35), 0 0 16px -6px rgba(201,139,62,0.7); }
+.hr-front-actions .hr-btn.fresh { color: #120e0b; background: linear-gradient(180deg, #c4ecf5, #8fd0e0); box-shadow: 0 0 0 1px #2c4a55, 0 0 22px -6px #8fd0e0; }
+.hr-front-actions .hr-btn.daily { color: #e6c08a; box-shadow: 0 0 0 1px #c98b3e, inset 0 0 0 3px rgba(0,0,0,0.35); }
+
+/* Front windows: timber frames bound in iron, with bronze studs. */
+.hr-window { border: 2px solid #4a3c2e; border-radius: 8px; background: #14110e;
+  box-shadow: inset 0 0 0 3px rgba(0,0,0,0.45), 0 18px 40px -26px rgba(0,0,0,0.95); }
+.hr-window:hover, .hr-window:focus-visible { border-color: #c98b3e; box-shadow: inset 0 0 0 3px rgba(0,0,0,0.45), 0 22px 50px -18px rgba(201,139,62,0.45); }
+.hr-window .label b { font: 400 clamp(22px, 2.6vw, 32px) 'Uncial Antiqua', Georgia, serif; letter-spacing: 0.06em; color: #f3ead8; text-shadow: 0 3px 0 rgba(0,0,0,0.6); }
+.hr-window .label small { color: #d6ccb8; }
+.hr-window::before { content: ''; position: absolute; inset: 7px; z-index: 3; pointer-events: none;
+  background:
+    radial-gradient(circle, #d19a55 0 2.5px, #5a3a1c 3px, transparent 3.6px) 0 0 / 100% 100% no-repeat,
+    radial-gradient(circle at 0 0, #d19a55 0 2.5px, #5a3a1c 3px, transparent 3.6px) top left / 10px 10px no-repeat,
+    radial-gradient(circle at 100% 0, #d19a55 0 2.5px, #5a3a1c 3px, transparent 3.6px) top right / 10px 10px no-repeat; }
+
+/* Car (dragon) cards: a round shield-arch of dark timber with bronze rays. */
+.hr-car { border: 2px solid #6a5640; border-radius: 60px 60px 6px 6px;
+  background:
+    repeating-conic-gradient(from 0deg at 50% 46%, rgba(201,139,62,0.12) 0deg 3deg, transparent 3deg 15deg),
+    radial-gradient(ellipse 85% 70% at 50% 44%, #4a3d30, #2a221b 55%, #120f0c);
+  box-shadow: inset 0 0 0 4px rgba(0,0,0,0.5), inset 0 0 0 5px rgba(201,139,62,0.35); }
+.hr-car:hover, .hr-car.selected { border-color: #e3b878; }
+.hr-car b { font-family: 'Uncial Antiqua', Georgia, serif; color: #e6c08a; text-shadow: 0 2px 0 #2a1a0c; }
+.hr-car span { font-family: 'Alegreya Sans SC', 'Alegreya Sans', sans-serif; letter-spacing: 0.18em; }
+
+/* Setup screen: timber track cards, iron segment bars, frost for the chosen one. */
+.hr-track { background: repeating-linear-gradient(90deg, rgba(255,255,255,0.012) 0 3px, transparent 3px 11px), linear-gradient(180deg, #2c241e, #1c1714);
+  border: 1px solid #4a3c2e; border-radius: 6px; backdrop-filter: none; }
+.hr-track:hover { border-color: #8a6a48; }
+.hr-track.selected { border-color: #c98b3e; box-shadow: inset 0 0 0 1px rgba(201,139,62,0.4), 0 0 22px -6px rgba(143,208,224,0.5); }
+.hr-track b { font-family: 'Alegreya Sans SC', 'Alegreya Sans', sans-serif; letter-spacing: 0.12em; font-size: 13px; }
+.hr-seg { border-radius: 4px; background: #1a1512; border: 1px solid #5a4a3a; }
+.hr-seg button { border-radius: 3px; font: 700 13px 'Alegreya Sans SC', 'Alegreya Sans', sans-serif; letter-spacing: 0.1em; }
+.hr-seg button.on { background: linear-gradient(180deg, #c4ecf5, #8fd0e0); color: #120e0b; box-shadow: none; }
+.hr-results td.pos { font-family: 'Uncial Antiqua', Georgia, serif; color: #e6c08a; }
+.hr-standings-head, .hr-note { font-family: 'Uncial Antiqua', Georgia, serif; letter-spacing: 0.1em; }
 `;
 
 
@@ -407,7 +470,7 @@ const SCENE_STORY = (() => {
   svg += ridge(40, 150, 62, 214, '#1d4a52') + ridge(250, 170, 78, 214, '#163d45') + ridge(150, 120, 40, 214, '#24575f');
   svg += poly([[-10, 212], [310, 212], [310, 440], [-10, 440]], '#0f2a30');
   svg += poly([[-10, 212], [310, 212], [150, 300]], '#143439');
-  svg += `<line x1="-10" y1="212" x2="310" y2="212" stroke="#e8c25a" stroke-width="2"/>`;
+  svg += `<line x1="-10" y1="212" x2="310" y2="212" stroke="#c98b3e" stroke-width="2"/>`;
   return `<svg class="paper" viewBox="0 0 300 440" preserveAspectRatio="xMidYMid slice">${svg}</svg>`;
 })();
 
@@ -418,11 +481,11 @@ const SCENE_QUICK = (() => {
   svg += poly([[-40, 330], [340, 150], [340, 200], [-40, 380]], '#33454f');   // the crease down the road's middle
   svg += `<g class="kerb">${Array.from({ length: 14 }, (_, i) => {
     const x = -60 + i * 34, y = 340 - i * 16;
-    return poly([[x, y], [x + 17, y - 8], [x + 17, y - 2], [x, y + 6]], i % 2 ? '#e8c25a' : '#fff4d6');
+    return poly([[x, y], [x + 17, y - 8], [x + 17, y - 2], [x, y + 6]], i % 2 ? '#c98b3e' : '#fff4d6');
   }).join('')}</g>`;
   svg += `<g class="chev">${Array.from({ length: 6 }, (_, i) => {
     const x = 10 + i * 60, y = 300 - i * 28;
-    return poly([[x, y], [x + 18, y - 4], [x, y + 8]], '#3fe0d0', 'opacity="0.7"');
+    return poly([[x, y], [x + 18, y - 4], [x, y + 8]], '#8fd0e0', 'opacity="0.7"');
   }).join('')}</g>`;
   return `<svg class="paper" viewBox="0 0 300 440" preserveAspectRatio="xMidYMid slice">${svg}</svg>`;
 })();
@@ -437,7 +500,7 @@ const SCENE_ONLINE = (() => {
   const pts = [[-10, -10], [150, -10], [310, -10], [-10, 220], [130, 200], [310, 230], [-10, 450], [160, 450], [310, 450]];
   const tris = [[0, 1, 4], [1, 2, 4], [2, 5, 4], [0, 4, 3], [3, 4, 7], [4, 5, 7], [3, 7, 6], [5, 8, 7]];
   for (const [a, b, c] of tris) svg += poly([pts[a], pts[b], pts[c]], shade('#12434c', 0.75 + r() * 0.35));
-  svg += `<path d="M60 205 Q150 110 240 205" fill="none" stroke="#e8c25a" stroke-width="2" stroke-dasharray="2 7" stroke-linecap="round"/>`;
+  svg += `<path d="M60 205 Q150 110 240 205" fill="none" stroke="#c98b3e" stroke-width="2" stroke-dasharray="2 7" stroke-linecap="round"/>`;
   return `<svg class="paper" viewBox="0 0 300 440" preserveAspectRatio="xMidYMid slice">${svg}</svg>`;
 })();
 
@@ -456,8 +519,8 @@ const SCENE_SEASON = (() => {
     poly([[190, 128], [210, 132], [204, 160], [188, 166], [188, 154], [198, 150], [200, 138], [190, 136]], G[1]),
     poly([[143, 205], [157, 205], [160, 238], [140, 238]], G[2]), poly([[150, 205], [157, 205], [160, 238], [150, 238]], G[1]),
     poly([[124, 238], [176, 238], [184, 252], [116, 252]], G[1]), poly([[150, 238], [176, 238], [184, 252], [150, 252]], G[0]),
-    poly([[108, 252], [192, 252], [192, 276], [108, 276]], '#173a40'), `<line x1="108" y1="252" x2="192" y2="252" stroke="#e8c25a" stroke-width="2"/>`,
-    poly([[140, 150], [160, 150], [150, 170]], '#3fe0d0'),
+    poly([[108, 252], [192, 252], [192, 276], [108, 276]], '#173a40'), `<line x1="108" y1="252" x2="192" y2="252" stroke="#c98b3e" stroke-width="2"/>`,
+    poly([[140, 150], [160, 150], [150, 170]], '#8fd0e0'),
   ];
   svg += `<g class="trophy">${cup.join('')}</g>`;
   // Podium steps.
@@ -493,7 +556,7 @@ export class Menus {
     // Front menu: Story, Quick Race and Season, each a window onto its own little scene.
     // Paper confetti: little folded triangles in gold, ivory and teal.
     const sparks = Array.from({ length: 16 }, (_, i) => `<i class="spark" style="left:${(i * 37) % 100}%;top:-10px;`
-      + `background:${['#e8c25a', '#fff4d6', '#3fe0d0', '#c99e45'][i % 4]};animation-duration:${3.4 + (i % 5) * 0.7}s;animation-delay:${(i * 0.43) % 4}s"></i>`).join('');
+      + `background:${['#c98b3e', '#fff4d6', '#8fd0e0', '#c99e45'][i % 4]};animation-duration:${3.4 + (i % 5) * 0.7}s;animation-delay:${(i * 0.43) % 4}s"></i>`).join('');
     this.front = overlay(`
       <div class="hr-panel" style="max-width:1240px">
         <h1 class="hr-title">SKYFOLD</h1>

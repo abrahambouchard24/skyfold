@@ -19,6 +19,9 @@ export class Sound {
   /** What the music should be doing; applied as soon as audio is unlocked. */
   private scene: 'menu' | 'race' | 'paused' = 'menu';
   private engineGain!: GainNode;
+  /** Rushing wind past the dragon, rising with speed (Skyfold has no engine). */
+  private windGain!: GainNode;
+  private windBand!: BiquadFilterNode;
   private engineFilter!: BiquadFilterNode;
   private engineOscs: OscillatorNode[] = [];
   private scrapeGain!: GainNode;
@@ -122,7 +125,37 @@ export class Sound {
     this.engineOscs[1].frequency.setTargetAtTime(freq * 0.5, t, 0.03);
     this.engineOscs[2].frequency.setTargetAtTime(freq * 2.01, t, 0.03);
     this.engineFilter.frequency.setTargetAtTime(350 + thrust * 1500 + rev * 700, t, 0.05);
-    this.engineGain.gain.setTargetAtTime(0.05 + thrust * 0.07 + speedFrac * 0.04, t, 0.05);
+    // Dragons have no engine: the old engine tone stays silent, and the wind carries the speed.
+    this.engineGain.gain.setTargetAtTime(0, t, 0.05);
+    this.windGain.gain.setTargetAtTime(0.025 + speedFrac * 0.11 + thrust * 0.02, t, 0.08);
+    this.windBand.frequency.setTargetAtTime(260 + speedFrac * 1300, t, 0.1);
+  }
+
+  /** One downstroke of the player's wings: a soft, deep whump of air. strength 0..1. */
+  wingbeat(strength: number): void {
+    const ctx = this.live();
+    if (!ctx) return;
+    const t = ctx.currentTime, k = Math.min(1, strength);
+    const src = this.noiseSource();
+    const low = ctx.createBiquadFilter();
+    low.type = 'lowpass';
+    low.frequency.setValueAtTime(520, t);
+    low.frequency.exponentialRampToValueAtTime(140, t + 0.22);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.26 * k, t + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+    src.connect(low).connect(g).connect(this.sfx);
+    src.start(t); src.stop(t + 0.32);
+    const o = ctx.createOscillator();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(78, t);
+    o.frequency.exponentialRampToValueAtTime(48, t + 0.2);
+    const og = ctx.createGain();
+    og.gain.setValueAtTime(0.12 * k, t);
+    og.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
+    o.connect(og).connect(this.sfx);
+    o.start(t); o.stop(t + 0.26);
   }
 
   /** Grinding against a wall: 0 = clear, 1 = pressed hard into it. Set every step. */
@@ -394,6 +427,17 @@ export class Sound {
     const scrapeSrc = this.noiseSource();
     scrapeSrc.connect(scrapeBand).connect(this.scrapeGain).connect(this.sfx);
     scrapeSrc.start();
+
+    // Flight wind: looping noise through a band-pass that opens up with speed (see engine()).
+    this.windBand = ctx.createBiquadFilter();
+    this.windBand.type = 'bandpass';
+    this.windBand.frequency.value = 300;
+    this.windBand.Q.value = 0.5;
+    this.windGain = ctx.createGain();
+    this.windGain.gain.value = 0;
+    const windSrc = this.noiseSource();
+    windSrc.connect(this.windBand).connect(this.windGain).connect(this.sfx);
+    windSrc.start();
 
     // Airtime wind: looping noise through a soft band-pass, silent until air() raises it.
     this.airBand = ctx.createBiquadFilter();

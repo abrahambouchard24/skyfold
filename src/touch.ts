@@ -8,15 +8,15 @@ const CSS = `
 .tc { position: fixed; inset: 0; z-index: 12; pointer-events: none; user-select: none; -webkit-user-select: none; touch-action: none; }
 .tc.hidden { display: none; }
 .tc button { position: absolute; pointer-events: auto; touch-action: none; -webkit-tap-highlight-color: transparent;
-  border-radius: 50%; border: 1px solid rgba(201,162,74,0.7); background: rgba(8,14,26,0.42);
-  box-shadow: inset 0 0 0 4px rgba(8,14,26,0.35), inset 0 0 0 5px rgba(201,162,74,0.25);
-  color: #ece5d4; font: 800 12px system-ui, sans-serif; letter-spacing: 0.14em; display: grid; place-items: center; padding: 0; }
-.tc button.on { background: rgba(63,224,208,0.32); border-color: #3fe0d0; color: #fff; }
+  border-radius: 50%; border: 1px solid rgba(168,116,58,0.7); background: rgba(18,15,13,0.42);
+  box-shadow: inset 0 0 0 4px rgba(18,15,13,0.35), inset 0 0 0 5px rgba(168,116,58,0.25);
+  color: #e9e0cc; font: 800 12px system-ui, sans-serif; letter-spacing: 0.14em; display: grid; place-items: center; padding: 0; }
+.tc button.on { background: rgba(143,208,224,0.32); border-color: #8fd0e0; color: #fff; }
 .tc button svg { width: 42%; height: 42%; fill: currentColor; }
 .tc .left  { left: max(18px, env(safe-area-inset-left)); bottom: 22px; width: 92px; height: 92px; }
 .tc .right { left: calc(max(18px, env(safe-area-inset-left)) + 106px); bottom: 22px; width: 92px; height: 92px; }
 .tc .brake { right: calc(max(16px, env(safe-area-inset-right)) + 186px); bottom: 22px; width: 96px; height: 96px; }
-.tc .boost { right: calc(max(16px, env(safe-area-inset-right)) + 186px); bottom: 132px; width: 76px; height: 76px; color: #e8c25a; }
+.tc .boost { right: calc(max(16px, env(safe-area-inset-right)) + 186px); bottom: 132px; width: 76px; height: 76px; color: #c98b3e; }
 .tc .boost.on { color: #fff; }
 .tc .pause { left: 50%; top: 10px; transform: translateX(-50%); width: 44px; height: 44px; border-radius: 4px; }
 @media (max-height: 420px) {

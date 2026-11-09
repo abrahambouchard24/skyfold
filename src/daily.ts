@@ -102,13 +102,13 @@ const CSS = `
 .dy { width: min(520px, calc(100% - 32px)); margin: auto; padding: 28px 30px 24px; text-align: center; }
 .dy h2 { margin: 0; font-size: 30px; }
 .dy .date { margin-top: 4px; }
-.dy .track { font: 800 22px system-ui, sans-serif; letter-spacing: 0.14em; color: #ece5d4; margin: 6px 0 2px; }
+.dy .track { font: 800 22px system-ui, sans-serif; letter-spacing: 0.14em; color: #e9e0cc; margin: 6px 0 2px; }
 .dy .car { display: block; height: 120px; margin: 6px auto 4px; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5)); }
-.dy .twist { color: #ece5d4; font-size: 16px; line-height: 1.45; margin: 10px 0 16px; }
+.dy .twist { color: #e9e0cc; font-size: 16px; line-height: 1.45; margin: 10px 0 16px; }
 .dy .stats { display: flex; justify-content: center; gap: 28px; margin-bottom: 20px; }
-.dy .stats b { display: block; font: 800 22px 'Cinzel', Georgia, serif; color: #f1d27a; }
-.dy .stats small { color: #93aba8; font-weight: 700; letter-spacing: 0.2em; font-size: 10px; }
-.dy .done { color: #3fe0d0; font-weight: 800; letter-spacing: 0.2em; font-size: 12px; margin-bottom: 12px; }
+.dy .stats b { display: block; font: 800 22px 'Cinzel', Georgia, serif; color: #e3b26c; }
+.dy .stats small { color: #a89d8a; font-weight: 700; letter-spacing: 0.2em; font-size: 10px; }
+.dy .done { color: #8fd0e0; font-weight: 800; letter-spacing: 0.2em; font-size: 12px; margin-bottom: 12px; }
 .dy .btns { display: flex; gap: 10px; justify-content: center; }
 `;
 

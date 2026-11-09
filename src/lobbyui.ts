@@ -58,12 +58,12 @@ const CSS = `
 .ol-tracks button:disabled { cursor: default; }
 .ol-wait { color: #8a93c0; font-weight: 700; letter-spacing: 0.1em; margin-top: 12px; }
 .ol-board { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; margin-bottom: 8px; }
-.ol-board th { color: #c9a24a; font-size: 10px; letter-spacing: 0.16em; font-weight: 700; text-align: right; padding: 0 6px 5px; }
+.ol-board th { color: #a8743a; font-size: 10px; letter-spacing: 0.16em; font-weight: 700; text-align: right; padding: 0 6px 5px; }
 .ol-board th:nth-child(-n+2) { text-align: left; }
-.ol-board td { padding: 6px; font-weight: 800; font-size: 13px; text-align: right; border-top: 1px solid rgba(201,162,74,0.18); }
+.ol-board td { padding: 6px; font-weight: 800; font-size: 13px; text-align: right; border-top: 1px solid rgba(168,116,58,0.18); }
 .ol-board td:nth-child(-n+2) { text-align: left; }
-.ol-board tr.me td { background: rgba(63,224,208,0.08); }
-.ol-board .lead { color: #e8c25a; }
+.ol-board tr.me td { background: rgba(143,208,224,0.08); }
+.ol-board .lead { color: #c98b3e; }
 `;
 
 export class LobbyUI {
@@ -171,7 +171,7 @@ export class LobbyUI {
             <div class="ol-tracks">${tracks}</div>
             <div class="ol-row" style="margin-top:12px;gap:22px">
               ${this.tracks[lobby.track]?.sprint
-                ? `<div><div class="ol-label">SPRINT ◆ ONE RUN</div><div style="font:800 15px system-ui;letter-spacing:0.12em;color:#e8c25a;padding:8px 0">${this.tracks[lobby.track].sprint} KM</div></div>`
+                ? `<div><div class="ol-label">SPRINT ◆ ONE RUN</div><div style="font:800 15px system-ui;letter-spacing:0.12em;color:#c98b3e;padding:8px 0">${this.tracks[lobby.track].sprint} KM</div></div>`
                 : `<div><div class="ol-label">LAPS</div>${seg('laps', LAP_CHOICES, lobby.laps)}</div>`}
               <div><div class="ol-label">AI CARS</div>${seg('ai', Array.from({ length: maxAi + 1 }, (_, i) => i), Math.min(lobby.ai, maxAi))}</div>
               <div><div class="ol-label">CONTACT</div><div class="hr-seg" data-seg="contact">

@@ -121,7 +121,7 @@ function build(track: Track): Scenery {
 
   let ground: GroundKind = 'tarmac';
   switch (track.name) {
-    case 'APEX ARENA': {
+    case 'MIDGARD': {
       // A futurist arena: marble stands under gold arches along the main straight, a palace for a
       // pit building, light pylons, holo screens and a monument in the infield.
       ground = 'marble';
@@ -135,7 +135,7 @@ function build(track: Track): Scenery {
       scatter(40, (x, y) => ({ kind: 'cypress', x, y, r: 20, h: 110 }), 900);
       break;
     }
-    case 'VELOCITY COLOSSEUM': {
+    case 'ASGARD': {
       // A marble colosseum right round the oval, a great obelisk in the middle, and the blimp.
       ground = 'marble';
       for (let i = 0; i < m; i += 9) {
@@ -148,7 +148,7 @@ function build(track: Track): Scenery {
       overlays.push({ kind: 'blimp', x: cx, y: cy, r: 1400, h: 0, text: 'APEX', seed: rand() });
       break;
     }
-    case 'NEW YORK': {
+    case 'JOTUNHEIM': {
       // New York, reimagined: deco towers with gold crowns, a colossus with a torch, park terraces,
       // the elevated line, steam from the streets.
       ground = 'city';
@@ -163,7 +163,7 @@ function build(track: Track): Scenery {
       scatter(18, (x, y) => ({ kind: 'steam', x, y, r: 18, h: 90 }), 300);
       break;
     }
-    case 'LAPPLAND': {
+    case 'NIFLHEIM': {
       // Arctic night under the aurora: snowfields, birch and pine, ice monoliths, lit pavilions
       // shaped like Sámi lavvu tents, and reindeer.
       ground = 'snow';
@@ -175,7 +175,7 @@ function build(track: Track): Scenery {
       clumps(4, 5, 300, (x, y) => ({ kind: 'reindeer', x, y, r: 26, h: 40, rot: rand() * Math.PI * 2 }), 500);
       break;
     }
-    case 'NEW ATLANTIS': {
+    case 'VANAHEIM': {
       // A white marble city on the sea: islands with domed temples and colonnades, sea-glass towers
       // with gold crowns, the crowned lighthouse spire, and glowing sea life in the water.
       ground = 'water';
@@ -204,7 +204,7 @@ function build(track: Track): Scenery {
       scatter(6, (x, y) => ({ kind: 'arch', x, y, r: 90, h: 160, w: 150, rot: rand() * Math.PI }), 700);
       break;
     }
-    case 'CRYSTAL FRONT': {
+    case 'SVARTALFHEIM': {
       // The crystal biome of a sci-fi war zone: great violet and emerald crystal spires, wrecked mechs
       // and a crashed dropship half buried, cracked shield domes, scorched ground, a storm overhead.
       ground = 'scorched';
@@ -221,7 +221,7 @@ function build(track: Track): Scenery {
       rocks(24, '#2a2234');
       break;
     }
-    case 'HIEROPOLIS': {
+    case 'MUSPELHEIM': {
       // A sacred city of the sun: a terraced pyramid arcology, gold-tipped obelisks with glowing glyph
       // bands, guardian statues along the straights, palms and teal reflecting pools.
       ground = 'sand';
@@ -236,7 +236,7 @@ function build(track: Track): Scenery {
       break;
     }
     // --- sprints: long routes, so landmarks line the way at intervals -------------------------------
-    case 'FAE FOREST': {
+    case 'IRONWOOD': {
       // An enchanted forest: ancient trees crowding the route, giant glowing mushrooms, fairy lights
       // drifting in the glades, rings of standing stones.
       ground = 'garden';
@@ -250,7 +250,7 @@ function build(track: Track): Scenery {
       scatter(4, (x, y) => ({ kind: 'stone-ring', x, y, r: 150, h: 70 }), 500);
       break;
     }
-    case 'NOVA CAMELOT': {
+    case 'JOMSBORG': {
       // A futurist Camelot: curtain walls and round towers along the route, banners, a great keep,
       // and the sword in the stone by the start.
       ground = 'garden';
@@ -266,7 +266,7 @@ function build(track: Track): Scenery {
       scatter(70, (x, y) => ({ kind: 'cypress', x, y, r: 18, h: 110 }), 900, 1400);
       break;
     }
-    case 'ZOROPERSIA': {
+    case 'HELHEIM': {
       // Fire temples and columned halls of a reimagined Persia: winged guardian bulls along the
       // straights, eternal flames, palm groves, and a great winged-disc monument.
       ground = 'sand';
@@ -287,7 +287,7 @@ function build(track: Track): Scenery {
       scatter(16, (x, y) => ({ kind: 'gold-tower', x, y, r: 55, h: between(340, 560) }), 900);
       break;
     }
-    case 'EL DORADO': {
+    case 'YGGDRASIL': {
       // The golden city in the jungle: stepped temples with gold shrines, jungle giants, waterfalls,
       // golden idols and overgrown ruins.
       ground = 'garden';
@@ -300,7 +300,7 @@ function build(track: Track): Scenery {
       clumps(10, 5, 300, (x, y) => ({ kind: 'palm', x, y, r: 26, h: 120 }));
       break;
     }
-    case 'HANGING GARDENS': {
+    case 'ALFHEIM': {
       // Babylon in the sky: terraced gardens with waterfalls between slim gold towers, cypress rows,
       // above the clouds.
       ground = 'garden';
@@ -321,11 +321,11 @@ function build(track: Track): Scenery {
   }
   // Sprints: landmarks stand on the island at every split, between the jump lane and the bypass.
   const ISLE_MARK: Record<string, (r: number) => Omit<Prop, 'seed' | 'x' | 'y'>> = {
-    'FAE FOREST': (r) => ({ kind: 'ancient-tree', r, h: 260 }),
-    'NOVA CAMELOT': (r) => ({ kind: 'castle-tower', r: r * 0.55, h: 300 }),
-    'ZOROPERSIA': (r) => ({ kind: 'fire-temple', r: r * 0.85, h: 170 }),
+    'IRONWOOD': (r) => ({ kind: 'ancient-tree', r, h: 260 }),
+    'JOMSBORG': (r) => ({ kind: 'castle-tower', r: r * 0.55, h: 300 }),
+    'HELHEIM': (r) => ({ kind: 'fire-temple', r: r * 0.85, h: 170 }),
     'BIFROST': (r) => ({ kind: 'gold-tower', r: r * 0.5, h: 460 }),
-    'EL DORADO': (r) => ({ kind: 'meso-temple', r: r * 0.75, h: 260 }),
+    'YGGDRASIL': (r) => ({ kind: 'meso-temple', r: r * 0.75, h: 260 }),
   };
   const mark = ISLE_MARK[track.name];
   if (mark) {

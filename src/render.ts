@@ -532,7 +532,7 @@ function drawMinimap(ctx: CanvasRenderingContext2D, w: number, h: number, track:
   ctx.fill();
   if (track.forks?.length) {
     // Forks: small teal ticks where the road splits into two lanes.
-    ctx.fillStyle = '#3fe0d0';
+    ctx.fillStyle = '#8fd0e0';
     const r = (2.6 * k) / scale;
     for (const f of track.forks) {
       const q = track.pts[f.from];
@@ -543,7 +543,7 @@ function drawMinimap(ctx: CanvasRenderingContext2D, w: number, h: number, track:
   if (track.open) {
     // A sprint's finish: a gold diamond.
     const f = track.pts[track.finishIndex], r = (7 * k) / scale;
-    ctx.fillStyle = '#e8c25a';
+    ctx.fillStyle = '#c98b3e';
     ctx.beginPath(); ctx.moveTo(f.x, f.y - r); ctx.lineTo(f.x + r, f.y); ctx.lineTo(f.x, f.y + r); ctx.lineTo(f.x - r, f.y); ctx.closePath();
     ctx.fill();
   }
@@ -629,13 +629,13 @@ function drawLapPanel(ctx: CanvasRenderingContext2D, race: RaceState, now: numbe
 }
 
 const STRIP_CUE: Record<NonNullable<RaceHud['strip']>, [string, string]> = {
-  boost: ['BOOST PAD', '#e8c25a'], charge: ['CHARGING', '#c58bff'], cool: ['COOLING', '#7fdcff'], fire: ['FIRE', '#ff6a3d'],
+  boost: ['BOOST PAD', '#c98b3e'], charge: ['CHARGING', '#c58bff'], cool: ['COOLING', '#7fdcff'], fire: ['FIRE', '#ff6a3d'],
 };
 /** A small pill under the progress strip naming the strip the player is on, pulsing gently. */
 function drawStripCue(ctx: CanvasRenderingContext2D, w: number, kind: NonNullable<RaceHud['strip']>, y: number, time: number): void {
   const [text, color] = STRIP_CUE[kind];
   ctx.save();
-  ctx.font = '600 12px Outfit, system-ui, sans-serif';
+  ctx.font = '700 12px "Alegreya Sans SC", system-ui, sans-serif';
   const tw = ctx.measureText(text).width + text.length * 2.4, pw = tw + 30;
   ctx.globalAlpha = 0.85 + Math.sin(time * 8) * 0.15;
   ctx.fillStyle = 'rgba(6,18,24,0.78)';
@@ -659,14 +659,14 @@ function drawSprintStrip(ctx: CanvasRenderingContext2D, w: number, sp: NonNullab
   ctx.fillStyle = 'rgba(8,10,22,0.7)';
   roundRect(ctx, x0 - 14, y - 12, half * 2 + 28, 24, 12);
   ctx.fill();
-  ctx.strokeStyle = 'rgba(201,162,74,0.55)';
+  ctx.strokeStyle = 'rgba(168,116,58,0.55)';
   ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
   // Gold ticks every kilometre, and the finish as a diamond.
-  ctx.fillStyle = 'rgba(201,162,74,0.8)';
+  ctx.fillStyle = 'rgba(168,116,58,0.8)';
   for (let k = 1; k < sp.km; k++) ctx.fillRect(x0 + (k / sp.km) * half * 2 - 1, y - 4, 2, 8);
   ctx.beginPath(); ctx.moveTo(x1, y - 6); ctx.lineTo(x1 + 6, y); ctx.lineTo(x1, y + 6); ctx.lineTo(x1 - 6, y); ctx.closePath();
-  ctx.fillStyle = '#e8c25a'; ctx.fill();
+  ctx.fillStyle = '#c98b3e'; ctx.fill();
   // Rivals first, the player on top.
   for (const c of [...sp.cars].sort((a, b) => Number(a.me) - Number(b.me))) {
     const cx = x0 + c.f * half * 2;

@@ -113,8 +113,13 @@ export const FLY_HEIGHT = 22;
 interface Seg { g: THREE.Group; len: number }
 interface Wing { shoulder: THREE.Group; hand: THREE.Group; side: number }
 
+/** Called on each downstroke of the player's dragon (strength 0..1), for the wingbeat sound. */
+export const dragonEvents: { playerBeat: ((strength: number) => void) | null } = { playerBeat: null };
+
 export class DragonRig {
   root = new THREE.Group();
+  /** This rig is the player's dragon (set by the view each frame). */
+  isPlayer = false;
   private body = new THREE.Group();     // everything that banks and bobs
   private neck: Seg[] = [];
   private tail: Seg[] = [];
@@ -326,7 +331,9 @@ export class DragonRig {
     const effort = racing ? 0.6 + c.thrust * 0.4 : 0.45;
     const flap = (1 - this.glide) * effort;
     const freq = (1.5 + c.thrust * 1.3 + speed / 1100 + (c.deploying ? 0.8 : 0)) * sp.beat;
+    const before = Math.floor(this.phase / (Math.PI * 2));
     this.phase += dt * Math.PI * 2 * freq * (0.4 + flap * 0.6);
+    if (this.isPlayer && racing && flap > 0.2 && Math.floor(this.phase / (Math.PI * 2)) !== before) dragonEvents.playerBeat?.(flap);
     const s = Math.sin(this.phase), s2 = Math.sin(this.phase - 0.9);
 
     // Wings: a big beat (shoulders), the hands following a beat behind and folding on the upstroke.

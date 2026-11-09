@@ -41,52 +41,52 @@ interface Atmos {
 }
 
 const ATMOS: Record<string, Atmos> = {
-  'APEX ARENA': {          // a teal and gold dusk over the marble arena
+  'MIDGARD': {          // a teal and gold dusk over the marble arena
     sky: ['#0e2a44', '#2f7f8f', '#ffd9a0'], sun: { color: '#ffd9a0', elev: 0.1, azim: 2.4, size: 300, light: 1.7 }, stars: 0,
     fog: '#8fb7bd', fogNear: 2200, fogFar: 9500, hemi: ['#e8f4f0', '#3a3a48', 1.7], ground: '#d8d0c0',
     road: '#2c3440', wall: ['#f4efe4', '#cdbf9f'], skyline: 'towers', skylineColor: '#6f9aa4', windows: '#ffe2a6', gates: 3,
   },
-  'VELOCITY COLOSSEUM': {  // golden hour over the colosseum
+  'ASGARD': {  // golden hour over the colosseum
     sky: ['#2c2a62', '#c8686a', '#ffd79a'], sun: { color: '#ffc27a', elev: 0.07, azim: 0.9, size: 420, light: 1.8 }, stars: 0,
     fog: '#e3a77e', fogNear: 2000, fogFar: 9000, hemi: ['#ffe2c4', '#4a3040', 1.6], ground: '#e0d2b8',
     road: '#36323c', wall: ['#fbf4ea', '#d6c2a8'], skyline: 'towers', skylineColor: '#a8768a', windows: '#ffe7c4', gates: 2,
   },
-  'NEW YORK': {            // twilight on the deco skyline, every window gold
+  'JOTUNHEIM': {            // twilight on the deco skyline, every window gold
     sky: ['#060d1e', '#1d3b6a', '#f0a868'], sun: { color: '#ffb070', elev: 0.04, azim: 4.2, size: 360, light: 1.2 }, stars: 40,
     fog: '#3a4a6a', fogNear: 1600, fogFar: 8000, hemi: ['#b8c8ff', '#1a1a28', 1.4], ground: '#5a6478',
     road: '#22262f', wall: ['#e8e2d4', '#a89a80'], skyline: 'city', skylineColor: '#1c2a44', windows: '#ffd88a', gates: 4,
   },
-  'LAPPLAND': {            // polar night, moonlight on snow, the aurora overhead
+  'NIFLHEIM': {            // polar night, moonlight on snow, the aurora overhead
     sky: ['#02040c', '#08203a', '#1f5a5a'], sun: { color: '#bfe8ff', elev: 0.02, azim: 3.6, size: 140, light: 0.95 }, stars: 600,
     fog: '#13283a', fogNear: 1800, fogFar: 9000, hemi: ['#a8c8ff', '#1a2030', 1.6], ground: '#8fa3be',
     road: '#2a3240', wall: ['#eef4fb', '#b8c8da'], skyline: 'peaks', skylineColor: '#1a3044', windows: '#ffd9a0', gates: 2, aurora: true,
   },
-  'NEW ATLANTIS': {        // dusk on the sea, marble and sea glass
+  'VANAHEIM': {        // dusk on the sea, marble and sea glass
     sky: ['#082636', '#2f8f9a', '#ffd9a0'], sun: { color: '#ffcf8a', elev: 0.05, azim: 5.5, size: 380, light: 1.5 }, stars: 40,
     fog: '#4f8f98', fogNear: 2000, fogFar: 9000, hemi: ['#d4f0f0', '#1a3038', 1.6], ground: '#1f6a78',
     road: '#283a44', wall: ['#f6f1e6', '#cdbf9f'], skyline: 'towers', skylineColor: '#3a7a84', windows: '#9ff0ff', gates: 3,
   },
-  'CRYSTAL FRONT': {       // a violet storm over the crystal war zone
+  'SVARTALFHEIM': {       // a violet storm over the crystal war zone
     sky: ['#05030c', '#21143a', '#5a3a6a'], sun: { color: '#d8b8ff', elev: 0.1, azim: 1.6, size: 160, light: 0.95 }, stars: 0,
     fog: '#2a1a3a', fogNear: 2000, fogFar: 9000, hemi: ['#c8b4ff', '#120c1c', 1.35], ground: '#4a4058',
     road: '#221e2c', wall: ['#d8d0ec', '#8a7aa8'], skyline: 'mesas', skylineColor: '#1a1028', windows: '#c8a8ff', gates: 2, lightning: true,
   },
-  'HIEROPOLIS': {          // the golden afternoon of the sacred city
+  'MUSPELHEIM': {          // the golden afternoon of the sacred city
     sky: ['#1f4f9a', '#e2a35c', '#ffe2a8'], sun: { color: '#fff0cc', elev: 0.22, azim: 0.4, size: 300, light: 2.2 }, stars: 0,
     fog: '#f0d2a0', fogNear: 3600, fogFar: 14000, hemi: ['#fff1dc', '#6a5038', 1.8], ground: '#ead2a4',
     road: '#463e38', wall: ['#fff8ec', '#e2c9a2'], skyline: 'dunes', skylineColor: '#d8b483', windows: '#9ff0ff', gates: 3,
   },
-  'FAE FOREST': {          // fae twilight: a mint-green sky, mist between the ancient trees
+  'IRONWOOD': {          // fae twilight: a mint-green sky, mist between the ancient trees
     sky: ['#06121c', '#14404a', '#c8f0d0'], sun: { color: '#d8fff0', elev: 0.1, azim: 2.0, size: 200, light: 1.1 }, stars: 200,
     fog: '#1a3a3a', fogNear: 1500, fogFar: 7500, hemi: ['#b8ffe0', '#10201a', 1.6], ground: '#2f5a46',
     road: '#202a28', wall: ['#e8fff4', '#9cc8b4'], skyline: 'dunes', skylineColor: '#0f2a28', windows: '#fff0a0', gates: 3,
   },
-  'NOVA CAMELOT': {        // a bright morning over the castle city
+  'JOMSBORG': {        // a bright morning over the castle city
     sky: ['#2a6fd0', '#8fc4f0', '#fff4d8'], sun: { color: '#fff8e8', elev: 0.35, azim: 2.6, size: 220, light: 2.0 }, stars: 0,
     fog: '#dfe8f0', fogNear: 2600, fogFar: 12000, hemi: ['#f4f8ff', '#5a6a48', 1.9], ground: '#7fa060',
     road: '#33363f', wall: ['#fffaf0', '#d8ccb0'], skyline: 'towers', skylineColor: '#9fb6d8', windows: '#ffe8a0', gates: 3,
   },
-  'ZOROPERSIA': {          // a fire-lit dusk over the temples
+  'HELHEIM': {          // a fire-lit dusk over the temples
     sky: ['#160c2a', '#8a3a3a', '#ffb070'], sun: { color: '#ffc080', elev: 0.06, azim: 0.6, size: 380, light: 1.6 }, stars: 60,
     fog: '#b8705a', fogNear: 2200, fogFar: 10000, hemi: ['#ffd8b8', '#40242a', 1.6], ground: '#c8a070',
     road: '#3a302c', wall: ['#fff2e0', '#d8b890'], skyline: 'mesas', skylineColor: '#6a3a3a', windows: '#ffb060', gates: 3,
@@ -96,18 +96,18 @@ const ATMOS: Record<string, Atmos> = {
     fog: '#8a7ab8', fogNear: 2400, fogFar: 11000, hemi: ['#e8dcff', '#2a2048', 1.6], ground: '#d8d0f0',
     road: '#26223a', wall: ['#f6f0ff', '#c4b4e8'], skyline: 'clouds', skylineColor: '#f0e0ff', windows: '#e0d0ff', gates: 4, aurora: true,
   },
-  'EL DORADO': {           // a humid golden afternoon in the jungle
+  'YGGDRASIL': {           // a humid golden afternoon in the jungle
     sky: ['#1f5a8a', '#8fd0c0', '#ffe8a8'], sun: { color: '#fff0c0', elev: 0.25, azim: 1.2, size: 260, light: 2.0 }, stars: 0,
     fog: '#b8d8b0', fogNear: 1800, fogFar: 8500, hemi: ['#f0ffe0', '#304a28', 1.8], ground: '#3f6a3a',
     road: '#2c2e26', wall: ['#fff6dc', '#d8c890'], skyline: 'peaks', skylineColor: '#4a7a5a', windows: '#ffe08a', gates: 3,
   },
-  'HANGING GARDENS': {     // morning in the sky gardens, above the clouds
+  'ALFHEIM': {     // morning in the sky gardens, above the clouds
     sky: ['#2a6fc0', '#9fd0f0', '#fff2d8'], sun: { color: '#fff4e0', elev: 0.3, azim: 3.1, size: 260, light: 2.0 }, stars: 0,
     fog: '#e6eef4', fogNear: 2200, fogFar: 10000, hemi: ['#f4f8ff', '#4a6a48', 1.8], ground: '#7faa6a',
     road: '#34383f', wall: ['#fffaf0', '#d8ccb0'], skyline: 'clouds', skylineColor: '#ffffff', windows: '#fff0c8', gates: 3,
   },
 };
-const DEFAULT_ATMOS = ATMOS['APEX ARENA'];
+const DEFAULT_ATMOS = ATMOS['MIDGARD'];
 
 export interface ChaseScene {
   time: number; cam: Camera; player: Car; cars: Car[]; track: Track; particles: Particle[];
@@ -220,6 +220,7 @@ export class ChaseView {
         this.rigs.set(car, rig);
         this.scene.add(rig.root);
       }
+      rig.isPlayer = car === s.player;
       rig.update(car, s.time, dt);
       seen.add(car);
     }

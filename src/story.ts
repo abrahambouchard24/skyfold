@@ -115,7 +115,7 @@ export const CHAPTER_TAGLINES = [
 export const MISSIONS: Mission[] = [
   // ---- Chapter 1: County Cup ------------------------------------------------------------------
   {
-    id: 'prove-it', chapter: 0, title: 'PROVE IT', track: 'VELOCITY COLOSSEUM', laps: 2, grid: 'random', aiBuff: 0,
+    id: 'prove-it', chapter: 0, title: 'PROVE IT', track: 'ASGARD', laps: 2, grid: 'random', aiBuff: 0,
     rivals: [CHARLIE(0.74)],
     goal: { kind: 'win' }, points: 150, bonusPoints: 0,
     intro: [
@@ -134,7 +134,7 @@ export const MISSIONS: Mission[] = [
     ],
   },
   {
-    id: 'county-cup', chapter: 0, title: 'COUNTY CUP', track: 'VELOCITY COLOSSEUM', laps: 3, grid: 'back', aiBuff: 0,
+    id: 'county-cup', chapter: 0, title: 'COUNTY CUP', track: 'ASGARD', laps: 3, grid: 'back', aiBuff: 0,
     rivals: fillers(5, 0.72, 0.84, [0]),
     goal: { kind: 'top', n: 3 }, bonus: { kind: 'win' }, points: 200, bonusPoints: 100,
     intro: [
@@ -153,7 +153,7 @@ export const MISSIONS: Mission[] = [
     ],
   },
   {
-    id: 'tryout', chapter: 0, title: 'THE TRYOUT', track: 'APEX ARENA', laps: 3, grid: 'pole', aiBuff: 0,
+    id: 'tryout', chapter: 0, title: 'THE TRYOUT', track: 'MIDGARD', laps: 3, grid: 'pole', aiBuff: 0,
     rivals: [],
     goal: { kind: 'lap', seconds: 32.0 }, bonus: { kind: 'lap', seconds: 29.5 }, points: 250, bonusPoints: 100,
     unlocks: 'GARAGE UNLOCKED: spend team points on upgrades from the story menu.',
@@ -174,7 +174,7 @@ export const MISSIONS: Mission[] = [
 
   // ---- Chapter 2: Leopard GP ------------------------------------------------------------------
   {
-    id: 'shakedown', chapter: 1, title: 'SHAKEDOWN', track: 'NEW ATLANTIS', laps: 3, grid: 'random', aiBuff: 0.01,
+    id: 'shakedown', chapter: 1, title: 'SHAKEDOWN', track: 'VANAHEIM', laps: 3, grid: 'random', aiBuff: 0.01,
     rivals: fillers(3, 0.8, 0.88, [0]),
     goal: { kind: 'and', goals: [{ kind: 'top', n: 3 }, { kind: 'cool' }] }, bonus: { kind: 'win' }, points: 250, bonusPoints: 100,
     intro: [
@@ -192,7 +192,7 @@ export const MISSIONS: Mission[] = [
     ],
   },
   {
-    id: 'enter-judah', chapter: 1, title: 'ENTER JUDAH', track: 'NEW YORK', laps: 3, grid: 'random', aiBuff: 0.015,
+    id: 'enter-judah', chapter: 1, title: 'ENTER JUDAH', track: 'JOTUNHEIM', laps: 3, grid: 'random', aiBuff: 0.015,
     // Judah's debut: he matches whatever you've bought in the garage, so only driving beats him.
     rivals: [JUDAH(0.99, 0.06, true), ROOK(0.88), ...fillers(3, 0.8, 0.88, [0, 4, 5])],
     goal: { kind: 'top', n: 3 }, bonus: { kind: 'beat', who: 'judah' }, points: 300, bonusPoints: 150,
@@ -218,7 +218,7 @@ export const MISSIONS: Mission[] = [
     ],
   },
   {
-    id: 'penalty', chapter: 1, title: 'BACK OF THE GRID', track: 'CRYSTAL FRONT', laps: 3, grid: 'back', aiBuff: 0.02,
+    id: 'penalty', chapter: 1, title: 'BACK OF THE GRID', track: 'SVARTALFHEIM', laps: 3, grid: 'back', aiBuff: 0.02,
     rivals: [ROOK(0.9), ...fillers(4, 0.82, 0.9, [0, 5])],
     goal: { kind: 'top', n: 3 }, bonus: { kind: 'beat', who: 'rook' }, points: 300, bonusPoints: 150,
     intro: [
@@ -239,7 +239,7 @@ export const MISSIONS: Mission[] = [
 
   // ---- Chapter 3: The Climb -------------------------------------------------------------------
   {
-    id: 'last-ride', chapter: 2, title: 'CHARLIE\'S LAST RIDE', track: 'LAPPLAND', laps: 3, grid: 'random', aiBuff: 0.015,
+    id: 'last-ride', chapter: 2, title: 'CHARLIE\'S LAST RIDE', track: 'NIFLHEIM', laps: 3, grid: 'random', aiBuff: 0.015,
     rivals: [CHARLIE(0.93), ...fillers(4, 0.84, 0.92, [0, 3])],
     goal: { kind: 'beat', who: 'charlie' }, bonus: { kind: 'win' }, points: 350, bonusPoints: 150,
     intro: [
@@ -255,7 +255,7 @@ export const MISSIONS: Mission[] = [
     ],
   },
   {
-    id: 'mirage', chapter: 2, title: 'MIRAGE', track: 'HIEROPOLIS', laps: 3, grid: 'random', aiBuff: 0.015,
+    id: 'mirage', chapter: 2, title: 'MIRAGE', track: 'MUSPELHEIM', laps: 3, grid: 'random', aiBuff: 0.015,
     rivals: [ROOK(0.95), JUDAH(0.96, 0.05), ...fillers(3, 0.86, 0.93, [0, 4, 5])],
     goal: { kind: 'beat', who: 'rook' }, bonus: { kind: 'beat', who: 'judah' }, points: 350, bonusPoints: 200,
     intro: [
@@ -272,7 +272,7 @@ export const MISSIONS: Mission[] = [
     ],
   },
   {
-    id: 'sabotage', chapter: 2, title: 'SABOTAGE', track: 'HANGING GARDENS', laps: 3, grid: 'random', aiBuff: 0.015,
+    id: 'sabotage', chapter: 2, title: 'SABOTAGE', track: 'ALFHEIM', laps: 3, grid: 'random', aiBuff: 0.015,
     rivals: [JUDAH(0.97, 0.05), ROOK(0.95), ...fillers(3, 0.88, 0.95, [0, 4, 5])],
     startHeat: 0.55,
     goal: { kind: 'top', n: 3 }, bonus: { kind: 'beat', who: 'judah' }, points: 400, bonusPoints: 200,
@@ -296,7 +296,7 @@ export const MISSIONS: Mission[] = [
 
   // ---- Chapter 4: The Apex --------------------------------------------------------------------
   {
-    id: 'rivals', chapter: 3, title: 'RIVALS', track: 'NEW ATLANTIS', laps: 4, grid: 'random', aiBuff: 0.015,
+    id: 'rivals', chapter: 3, title: 'RIVALS', track: 'VANAHEIM', laps: 4, grid: 'random', aiBuff: 0.015,
     rivals: [JUDAH(0.95, 0.02), ROOK(0.95), ...fillers(3, 0.9, 0.95, [0, 4, 5])],
     goal: { kind: 'beat', who: 'judah' }, bonus: { kind: 'win' }, points: 450, bonusPoints: 200,
     intro: [
@@ -317,7 +317,7 @@ export const MISSIONS: Mission[] = [
     ],
   },
   {
-    id: 'final', chapter: 3, title: 'THE APEX', track: 'APEX ARENA', laps: 5, grid: 'back', aiBuff: 0.01,
+    id: 'final', chapter: 3, title: 'THE APEX', track: 'MIDGARD', laps: 5, grid: 'back', aiBuff: 0.01,
     rivals: [JUDAH(0.96, 0.025), ROOK(0.93), CHARLIE(0.92), ...fillers(2, 0.88, 0.93, [0, 3, 4, 5])],
     goal: { kind: 'win' }, bonus: { kind: 'cool' }, points: 600, bonusPoints: 250,
     unlocks: 'ROOKIE SEASON COMPLETE. Every mission can be replayed from the story menu.',

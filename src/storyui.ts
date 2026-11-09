@@ -85,19 +85,19 @@ const CSS = `
 .st-box { position: relative; display: flex; gap: 22px; align-items: flex-start; width: min(960px, calc(100% - 32px)); margin-bottom: 28px;
   padding: 22px 28px 24px; border-radius: 6px;
   background: linear-gradient(160deg, rgba(16,58,66,0.96), rgba(6,22,28,0.97) 60%);
-  border: 2px solid #d9b25b; outline: 1px solid rgba(217,178,91,0.45); outline-offset: 4px;
+  border: 2px solid #b98040; outline: 1px solid rgba(217,178,91,0.45); outline-offset: 4px;
   box-shadow: 0 0 46px -14px var(--c), inset 0 0 0 1px rgba(246,227,161,0.15); }
-.st-box::before, .st-box::after { content: ''; position: absolute; width: 22px; height: 22px; border: 2px solid #f6e3a1; pointer-events: none; }
+.st-box::before, .st-box::after { content: ''; position: absolute; width: 22px; height: 22px; border: 2px solid #e3b878; pointer-events: none; }
 .st-box::before { top: 7px; left: 7px; border-right: 0; border-bottom: 0; }
 .st-box::after { bottom: 7px; right: 7px; border-left: 0; border-top: 0; }
 .st-face { flex: none; width: 128px; height: 128px; border-radius: 64px 64px 4px 4px; overflow: hidden; display: flex; align-items: center; justify-content: center;
-  background: #0c3540; border: 3px solid #d9b25b; box-shadow: 0 0 0 2px var(--c), 0 0 22px -2px var(--c);
+  background: #0c3540; border: 3px solid #b98040; box-shadow: 0 0 0 2px var(--c), 0 0 22px -2px var(--c);
   font: 900 44px system-ui, sans-serif; color: #fff; }
 .st-face img { width: 100%; height: 100%; object-fit: cover; }
 .st-speaker { font: 700 20px 'Cinzel', 'Trajan Pro', Georgia, serif; letter-spacing: 0.16em; color: var(--c); text-shadow: 0 0 12px var(--c); }
-.st-role { color: #d9b25b; font-size: 11px; letter-spacing: 0.22em; font-weight: 700; margin: 3px 0 10px; text-transform: uppercase; }
+.st-role { color: #b98040; font-size: 11px; letter-spacing: 0.22em; font-weight: 700; margin: 3px 0 10px; text-transform: uppercase; }
 .st-text { font-size: 19px; line-height: 1.5; min-height: 56px; color: #f3ecdc; }
-.st-next { position: absolute; right: 22px; bottom: 10px; color: #d9b25b; font-size: 11px; letter-spacing: 0.22em; font-weight: 700; }
+.st-next { position: absolute; right: 22px; bottom: 10px; color: #b98040; font-size: 11px; letter-spacing: 0.22em; font-weight: 700; }
 .st-skip { position: fixed; top: 18px; right: 22px; z-index: 21; }
 
 /* The way forward: one big card for the next mission. Nothing past it is shown. */

@@ -37,18 +37,18 @@ const STEPS: Step[] = [
 
 const CSS = `
 .tut { position: fixed; left: 50%; top: 96px; transform: translateX(-50%); z-index: 15; width: min(560px, calc(100% - 32px));
-  padding: 14px 20px 16px; border-radius: 4px; background: linear-gradient(160deg, rgba(11,34,40,0.93), rgba(8,14,26,0.95)); border: 1px solid #c9a24a;
-  box-shadow: inset 0 0 0 4px rgba(8,14,26,0.85), inset 0 0 0 5px rgba(201,162,74,0.22), 0 10px 40px -12px rgba(0,0,0,0.7);
-  font-family: system-ui, sans-serif; color: #ece5d4; pointer-events: none;
+  padding: 14px 20px 16px; border-radius: 4px; background: linear-gradient(160deg, rgba(40,32,26,0.93), rgba(18,15,13,0.95)); border: 1px solid #a8743a;
+  box-shadow: inset 0 0 0 4px rgba(18,15,13,0.85), inset 0 0 0 5px rgba(168,116,58,0.22), 0 10px 40px -12px rgba(0,0,0,0.7);
+  font-family: system-ui, sans-serif; color: #e9e0cc; pointer-events: none;
   transition: border-color 200ms, opacity 300ms; }
 .tut.hidden { opacity: 0; }
-.tut small { display: block; color: #c9a24a; font-weight: 700; letter-spacing: 0.24em; font-size: 10px; margin-bottom: 6px; }
+.tut small { display: block; color: #a8743a; font-weight: 700; letter-spacing: 0.24em; font-size: 10px; margin-bottom: 6px; }
 .tut p { margin: 0; font-size: 17px; line-height: 1.45; }
-.tut b { color: #3fe0d0; }
-.tut.ok { border-color: #f1d27a; box-shadow: inset 0 0 0 4px rgba(8,14,26,0.85), inset 0 0 0 5px rgba(241,210,122,0.5), 0 0 30px -8px rgba(241,210,122,0.6); }
+.tut b { color: #8fd0e0; }
+.tut.ok { border-color: #e3b26c; box-shadow: inset 0 0 0 4px rgba(18,15,13,0.85), inset 0 0 0 5px rgba(241,210,122,0.5), 0 0 30px -8px rgba(241,210,122,0.6); }
 .tut .dots { display: flex; gap: 6px; margin-top: 10px; }
-.tut .dots i { width: 22px; height: 2px; background: rgba(201,162,74,0.25); }
-.tut .dots i.on { background: #e8c25a; box-shadow: 0 0 6px #e8c25a; }
+.tut .dots i { width: 22px; height: 2px; background: rgba(168,116,58,0.25); }
+.tut .dots i.on { background: #c98b3e; box-shadow: 0 0 6px #c98b3e; }
 `;
 
 export class Tutorial {
